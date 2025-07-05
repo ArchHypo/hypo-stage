@@ -13,6 +13,8 @@ export async function createHypothesisService({
 
   return {
     async createHypothesis(input) {
+      logger.info('Creating hypothesis', { input });
+
       const hypothesis: Hypothesis = {
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -28,10 +30,14 @@ export async function createHypothesisService({
     },
 
     async getHypotheses() {
+      logger.info('Getting hypotheses');
+
       return storedHypotheses;
     },
 
     async getHypothesis(id: string) {
+      logger.info('Getting hypothesis', { id });
+
       const hypothesis =  storedHypotheses.find(h => h.id === id);
 
       if (!hypothesis) {
