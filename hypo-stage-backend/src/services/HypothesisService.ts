@@ -26,7 +26,7 @@ export async function createHypothesisService({
         owner: 'unknown', // TODO associate with backstage entities
       };
 
-      await db('hypothesis').insert(hypothesis);
+      await db<Hypothesis>('hypothesis').insert(hypothesis);
 
       return hypothesis;
     },
@@ -34,13 +34,13 @@ export async function createHypothesisService({
     async getHypotheses() {
       logger.info('Getting hypotheses');
 
-      return await db('hypothesis').select('*');
+      return await db<Hypothesis>('hypothesis').select('*');
     },
 
     async getHypothesis(id: string) {
       logger.info('Getting hypothesis', { id });
 
-      const hypothesis = await db('hypothesis').where({ id }).first();
+      const hypothesis = await db<Hypothesis>('hypothesis').where('id', id).first();
 
       if (!hypothesis) {
         throw new NotFoundError(`Hypothesis with id ${id} not found`);
