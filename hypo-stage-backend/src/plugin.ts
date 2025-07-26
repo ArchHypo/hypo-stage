@@ -1,6 +1,7 @@
 import {
   coreServices,
   createBackendPlugin,
+  resolvePackagePath,
 } from '@backstage/backend-plugin-api';
 import { createRouter } from './router';
 import { createHypothesisService } from './services/HypothesisService';
@@ -20,6 +21,18 @@ export const hypoStagePlugin = createBackendPlugin({
         httpRouter: coreServices.httpRouter,
       },
       async init({ logger, database, httpRouter }) {
+        // https://backstage.io/docs/backend-system/core-services/database
+        const client = await database.getClient();
+        const migrationsDir = resolvePackagePath(
+          '@internal/plugin-hypo-stage-backend',
+          'migrations',
+        );
+        if (!database.migrations?.skip) {
+          await client.migrate.latest({
+            directory: migrationsDir,
+          });
+        }
+
         // Create hypothesis service
         const hypothesisService = await createHypothesisService({
           logger,
