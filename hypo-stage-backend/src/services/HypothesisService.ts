@@ -1,15 +1,17 @@
-import { LoggerService } from "@backstage/backend-plugin-api";
+import { DatabaseService, LoggerService } from "@backstage/backend-plugin-api";
 import { Hypothesis, HypothesisService } from "../types/hypothesis";
 import { NotFoundError } from "@backstage/errors";
 
 export async function createHypothesisService({
   logger,
+  database,
 }: {
   logger: LoggerService;
+  database: DatabaseService;
 }): Promise<HypothesisService> {
   logger.info('Initializing HypothesisService');
 
-  const storedHypotheses = new Array<Hypothesis>(); // TODO use database
+  const db = await database.getClient();
 
   return {
     async createHypothesis(input) {
@@ -24,7 +26,7 @@ export async function createHypothesisService({
         owner: 'unknown', // TODO associate with backstage entities
       };
 
-      storedHypotheses.push(hypothesis);
+      await db('hypothesis').insert(hypothesis);
 
       return hypothesis;
     },
@@ -32,13 +34,13 @@ export async function createHypothesisService({
     async getHypotheses() {
       logger.info('Getting hypotheses');
 
-      return storedHypotheses;
+      return await db('hypothesis').select('*');
     },
 
     async getHypothesis(id: string) {
       logger.info('Getting hypothesis', { id });
 
-      const hypothesis =  storedHypotheses.find(h => h.id === id);
+      const hypothesis = await db('hypothesis').where({ id }).first();
 
       if (!hypothesis) {
         throw new NotFoundError(`Hypothesis with id ${id} not found`);

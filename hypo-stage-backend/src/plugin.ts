@@ -16,19 +16,19 @@ export const hypoStagePlugin = createBackendPlugin({
     env.registerInit({
       deps: {
         logger: coreServices.logger,
+        database: coreServices.database,
         httpRouter: coreServices.httpRouter,
       },
-      async init({ logger, httpRouter }) {
-
+      async init({ logger, database, httpRouter }) {
+        // Create hypothesis service
         const hypothesisService = await createHypothesisService({
           logger,
+          database,
         });
 
-        httpRouter.use(
-          await createRouter({
-            hypothesisService,
-          }),
-        );
+        // Create and register router
+        const router = await createRouter({ hypothesisService });
+        httpRouter.use(router);
       },
     });
   },
