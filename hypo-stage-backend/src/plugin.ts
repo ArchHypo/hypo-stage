@@ -5,6 +5,7 @@ import {
 } from '@backstage/backend-plugin-api';
 import { createRouter } from './router';
 import { createHypothesisService } from './services/HypothesisService';
+import { catalogServiceRef } from '@backstage/plugin-catalog-node';
 
 /**
  * hypoStagePlugin backend plugin
@@ -18,9 +19,11 @@ export const hypoStagePlugin = createBackendPlugin({
       deps: {
         logger: coreServices.logger,
         database: coreServices.database,
+        httpAuth: coreServices.httpAuth,
         httpRouter: coreServices.httpRouter,
+        catalogService: catalogServiceRef,
       },
-      async init({ logger, database, httpRouter }) {
+      async init({ logger, database, httpAuth, httpRouter, catalogService }) {
         // https://backstage.io/docs/backend-system/core-services/database
         const client = await database.getClient();
         const migrationsDir = resolvePackagePath(
@@ -40,7 +43,7 @@ export const hypoStagePlugin = createBackendPlugin({
         });
 
         // Create and register router
-        const router = await createRouter({ hypothesisService });
+        const router = await createRouter({ httpAuth, hypothesisService, catalogService });
         httpRouter.use(router);
       },
     });
