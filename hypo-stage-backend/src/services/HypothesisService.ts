@@ -18,12 +18,11 @@ export async function createHypothesisService({
       logger.info('Creating hypothesis', { input });
 
       const hypothesis: Hypothesis = {
+        ...input,
         createdAt: new Date(),
         updatedAt: new Date(),
         id: crypto.randomUUID(),
-        ...input,
         status: 'Research',
-        owner: 'unknown', // TODO associate with backstage entities
       };
 
       await db<Hypothesis>('hypothesis').insert(hypothesis);

@@ -4,9 +4,8 @@ export type FiveStarRating = 'Very Low' | 'Low' | 'Medium' | 'High' | 'Very High
 
 export type Status = 'Research' | 'In Progress' | 'Validated' | 'Planning' | 'Testing' | 'Completed';
 
-export type TechnicalPlanning = 'Architectural Spike' | 'Tracer Bullet' | 'Software Analytics';
-
 export type Hypothesis = {
+  entityRef: string;
   createdAt: Date;
   updatedAt: Date;
   id: string;
@@ -14,21 +13,20 @@ export type Hypothesis = {
   description: string;
   uncertainty: FiveStarRating;
   impact: FiveStarRating;
-  technicalPlanning: TechnicalPlanning;
   status: Status;
-  owner: string; // TODO associate with backstage entities
+  technicalPlanning: string; // TODO associate with backstage docs
 };
 
 export interface HypothesisService {
   createHypothesis(input: {
     // Backstage entity reference pattern
-    entityRef?: string;
+    entityRef: string;
     // Hypothesis
     title: string;
     description: string;
     uncertainty: FiveStarRating;
     impact: FiveStarRating;
-    technicalPlanning: TechnicalPlanning;
+    technicalPlanning: string;
   }): Promise<Hypothesis>;
 
   getHypotheses(): Promise<Hypothesis[]>;
@@ -36,9 +34,10 @@ export interface HypothesisService {
 }
 
 export const createHypothesisSchema = z.object({
-  title: z.string(),
-  description: z.string(),
+  entityRef: z.string().min(1),
+  title: z.string().min(1),
+  description: z.string().min(1),
   uncertainty: z.enum(['Very Low', 'Low', 'Medium', 'High', 'Very High']),
   impact: z.enum(['Very Low', 'Low', 'Medium', 'High', 'Very High']),
-  technicalPlanning: z.enum(['Architectural Spike', 'Tracer Bullet', 'Software Analytics']),
+  technicalPlanning: z.string().url().min(1),
 });
