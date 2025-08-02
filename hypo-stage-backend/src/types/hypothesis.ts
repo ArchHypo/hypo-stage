@@ -9,8 +9,7 @@ export type Hypothesis = {
   createdAt: Date;
   updatedAt: Date;
   id: string;
-  title: string;
-  description: string;
+  text: string;
   uncertainty: FiveStarRating;
   impact: FiveStarRating;
   status: Status;
@@ -22,21 +21,18 @@ export interface HypothesisService {
     // Backstage entity reference pattern
     entityRef: string;
     // Hypothesis
-    title: string;
-    description: string;
+    text: string;
     uncertainty: FiveStarRating;
     impact: FiveStarRating;
     technicalPlanning: string;
   }): Promise<Hypothesis>;
 
   getHypotheses(): Promise<Hypothesis[]>;
-  getHypothesis(id: string): Promise<Hypothesis>;
 }
 
 export const createHypothesisSchema = z.object({
   entityRef: z.string().min(1),
-  title: z.string().min(1),
-  description: z.string().min(1),
+  text: z.string().min(20),
   uncertainty: z.enum(['Very Low', 'Low', 'Medium', 'High', 'Very High']),
   impact: z.enum(['Very Low', 'Low', 'Medium', 'High', 'Very High']),
   technicalPlanning: z.string().url().min(1),

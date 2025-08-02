@@ -1,6 +1,5 @@
 import { DatabaseService, LoggerService } from "@backstage/backend-plugin-api";
 import { Hypothesis, HypothesisService } from "../types/hypothesis";
-import { NotFoundError } from "@backstage/errors";
 
 export async function createHypothesisService({
   logger,
@@ -25,27 +24,19 @@ export async function createHypothesisService({
         status: 'Research',
       };
 
-      await db<Hypothesis>('hypothesis').insert(hypothesis);
+      const createdHypotheses = await db<Hypothesis>('hypothesis').insert(hypothesis).returning('*');
 
-      return hypothesis;
+      if (!createdHypotheses) {
+        throw new Error('Failed to create hypothesis');
+      }
+
+      return createdHypotheses[0];
     },
 
     async getHypotheses() {
       logger.info('Getting hypotheses');
 
       return await db<Hypothesis>('hypothesis').select('*');
-    },
-
-    async getHypothesis(id: string) {
-      logger.info('Getting hypothesis', { id });
-
-      const hypothesis = await db<Hypothesis>('hypothesis').where('id', id).first();
-
-      if (!hypothesis) {
-        throw new NotFoundError(`Hypothesis with id ${id} not found`);
-      }
-
-      return hypothesis;
     },
   }
 }

@@ -18,7 +18,7 @@ export async function createRouter({
   const router = Router();
   router.use(express.json());
 
-  router.get('/hypotheses/owners', async (req, res) => {
+  router.get('/hypotheses/entity-refs', async (req, res) => {
     // https://backstage.io/docs/backend-system/core-services/http-auth/#getting-request-credentials
     const auth = await httpAuth.credentials(req);
     const entities = await catalogService.getEntities({filter: {
@@ -35,7 +35,7 @@ export async function createRouter({
       throw new InputError(parsed.error.toString());
     }
 
-    const createdHypothesis = res.json(await hypothesisService.createHypothesis(parsed.data));
+    const createdHypothesis = await hypothesisService.createHypothesis(parsed.data);
 
     res.status(201).json(createdHypothesis);
   });
@@ -44,12 +44,6 @@ export async function createRouter({
     const hypotheses = await hypothesisService.getHypotheses();
 
     res.json(hypotheses);
-  });
-
-  router.get('/hypotheses/:id', async (req, res) => {
-    const hypothesis = await hypothesisService.getHypothesis(req.params.id);
-
-    res.json(hypothesis);
   });
 
   return router;
