@@ -1,20 +1,19 @@
-import { Grid } from '@material-ui/core';
+import { Grid, Button } from '@material-ui/core';
 import {
   Header,
   Page,
   Content,
   HeaderLabel,
 } from '@backstage/core-components';
-import { useState, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { ListHypotheses } from '../components/ListHypotheses';
-import { CreateHypothesis } from '../components/CreateHypothesis';
 
 export const HomePage = () => {
-  const [refreshKey, setRefreshKey] = useState(0);
+  const navigate = useNavigate();
 
-  const handleHypothesisCreated = useCallback(() => {
-    setRefreshKey(prev => prev + 1);
-  }, []);
+  const handleCreateHypothesis = () => {
+    navigate('/hypo-stage/create-hypothesis');
+  };
 
   return (
     <Page themeId="tool">
@@ -26,11 +25,18 @@ export const HomePage = () => {
       <Content>
         <Grid container spacing={3} direction="column">
           <Grid item>
-            <CreateHypothesis onHypothesisCreated={handleHypothesisCreated} />
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={handleCreateHypothesis}
+              size="large"
+            >
+              Create New Hypothesis
+            </Button>
           </Grid>
 
           <Grid item>
-            <ListHypotheses refreshKey={refreshKey} />
+            <ListHypotheses />
           </Grid>
         </Grid>
       </Content>
