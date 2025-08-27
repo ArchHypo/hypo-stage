@@ -1,39 +1,61 @@
 import { z } from "zod";
+import {
+  createHypothesisSchema,
+  likertScaleSchema,
+  qualityAttributeSchema,
+  sourceTypeSchema,
+  statusSchema,
+  technicalPlanningSchema,
+  updateHypothesisSchema,
+  actionTypeSchema
+} from "../schemas/hypothesis";
 
-export type FiveStarRating = 'Very Low' | 'Low' | 'Medium' | 'High' | 'Very High';
+export type Status = z.infer<typeof statusSchema>;
+export type SourceType = z.infer<typeof sourceTypeSchema>;
+export type QualityAttribute = z.infer<typeof qualityAttributeSchema>;
+export type LikertScale = z.infer<typeof likertScaleSchema>;
+export type ActionType = z.infer<typeof actionTypeSchema>;
+export type TechnicalPlanning = z.infer<typeof technicalPlanningSchema>;
 
-export type Status = 'Research' | 'In Progress' | 'Validated' | 'Planning' | 'Testing' | 'Completed';
+export type CreateHypothesisInput = z.infer<typeof createHypothesisSchema>;
+export type UpdateHypothesisInput = z.infer<typeof updateHypothesisSchema>;
 
 export type Hypothesis = {
-  entityRef: string;
   createdAt: Date;
   updatedAt: Date;
   id: string;
-  text: string;
-  uncertainty: FiveStarRating;
-  impact: FiveStarRating;
   status: Status;
-  technicalPlanning: string; // TODO associate with backstage docs
+  statement: string;
+  sourceType: SourceType;
+  relatedArtefacts: string[];
+  qualityAttributes: QualityAttribute[];
+  uncertainty: LikertScale;
+  impact: LikertScale;
+  technicalPlanning: TechnicalPlanning;
+  notes: string | null;
 };
 
+export type CreateHypothesisEvent = {
+  timestamp: Date;
+  id: string;
+  hypothesisId: string;
+  eventType: "CREATE";
+  changes: CreateHypothesisInput;
+};
+
+export type UpdateHypothesisEvent = {
+  timestamp: Date;
+  id: string;
+  hypothesisId: string;
+  eventType: "UPDATE";
+  changes: UpdateHypothesisInput;
+};
+
+export type HypothesisEvent = CreateHypothesisEvent | UpdateHypothesisEvent;
+
 export interface HypothesisService {
-  createHypothesis(input: {
-    // Backstage entity reference pattern
-    entityRef: string;
-    // Hypothesis
-    text: string;
-    uncertainty: FiveStarRating;
-    impact: FiveStarRating;
-    technicalPlanning: string;
-  }): Promise<Hypothesis>;
-
-  getHypotheses(): Promise<Hypothesis[]>;
+  create(input: CreateHypothesisInput): Promise<Hypothesis>;
+  getAll(): Promise<Hypothesis[]>;
+  update(id: string, input: UpdateHypothesisInput): Promise<Hypothesis>;
+  getEvents(id: string): Promise<HypothesisEvent[]>;
 }
-
-export const createHypothesisSchema = z.object({
-  entityRef: z.string().min(1),
-  text: z.string().min(20),
-  uncertainty: z.enum(['Very Low', 'Low', 'Medium', 'High', 'Very High']),
-  impact: z.enum(['Very Low', 'Low', 'Medium', 'High', 'Very High']),
-  technicalPlanning: z.string().url().min(1),
-});

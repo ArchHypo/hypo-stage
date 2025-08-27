@@ -1,10 +1,11 @@
 import { InputError } from '@backstage/errors';
 import express from 'express';
 import Router from 'express-promise-router';
-import { createHypothesisSchema, HypothesisService } from './types/hypothesis';
+import { HypothesisService } from './types/hypothesis';
 import { CatalogService } from '@backstage/plugin-catalog-node';
 import { HttpAuthService } from '@backstage/backend-plugin-api';
 import { stringifyEntityRef } from '@backstage/catalog-model';
+import { createHypothesisSchema, updateHypothesisSchema } from './schemas/hypothesis';
 
 export async function createRouter({
   httpAuth,
@@ -35,15 +36,33 @@ export async function createRouter({
       throw new InputError(parsed.error.toString());
     }
 
-    const createdHypothesis = await hypothesisService.createHypothesis(parsed.data);
+    const createdHypothesis = await hypothesisService.create(parsed.data);
 
     res.status(201).json(createdHypothesis);
   });
 
   router.get('/hypotheses', async (_req, res) => {
-    const hypotheses = await hypothesisService.getHypotheses();
+    const hypotheses = await hypothesisService.getAll();
 
     res.json(hypotheses);
+  });
+
+  router.put('/hypotheses/:id', async (req, res) => {
+    const parsed = updateHypothesisSchema.safeParse(req.body);
+
+    if (!parsed.success) {
+      throw new InputError(parsed.error.toString());
+    }
+
+    const updatedHypothesis = await hypothesisService.update(req.params.id, parsed.data);
+
+    res.json(updatedHypothesis);
+  });
+
+  router.get('/hypotheses/:id/events', async (req, res) => {
+    const events = await hypothesisService.getEvents(req.params.id);
+
+    res.json(events);
   });
 
   return router;
