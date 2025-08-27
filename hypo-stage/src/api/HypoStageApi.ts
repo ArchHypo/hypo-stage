@@ -1,16 +1,12 @@
 import { createApiRef, DiscoveryApi, FetchApi } from "@backstage/core-plugin-api";
-import { Hypothesis } from "../types/hypothesis";
+import { CreateHypothesisInput, UpdateHypothesisInput, Hypothesis, HypothesisEvent } from "@internal/plugin-hypo-stage-backend";
 
 export interface HypoStageApi {
   getEntityRefs: () => Promise<string[]>;
-  createHypothesis: (input: {
-    entityRef: string;
-    text: string;
-    uncertainty: 'Very Low' | 'Low' | 'Medium' | 'High' | 'Very High';
-    impact: 'Very Low' | 'Low' | 'Medium' | 'High' | 'Very High';
-    technicalPlanning: string;
-  }) => Promise<Hypothesis>;
+  createHypothesis: (input: CreateHypothesisInput) => Promise<Hypothesis>;
   getHypotheses: () => Promise<Hypothesis[]>;
+  updateHypothesis: (id: string, input: UpdateHypothesisInput) => Promise<Hypothesis>;
+  getEvents: (id: string) => Promise<HypothesisEvent[]>;
 }
 
 export class HypoStageApiClient implements HypoStageApi {
@@ -23,7 +19,6 @@ export class HypoStageApiClient implements HypoStageApi {
   }) {
     this.discoveryApi = options.discoveryApi;
     this.fetchApi = options.fetchApi;
-
   }
 
   async getEntityRefs(): Promise<string[]> {
@@ -33,13 +28,7 @@ export class HypoStageApiClient implements HypoStageApi {
     return response.json();
   }
 
-  async createHypothesis(input: {
-    entityRef: string;
-    text: string;
-    uncertainty: 'Very Low' | 'Low' | 'Medium' | 'High' | 'Very High';
-    impact: 'Very Low' | 'Low' | 'Medium' | 'High' | 'Very High';
-    technicalPlanning: string;
-  }): Promise<Hypothesis> {
+  async createHypothesis(input: CreateHypothesisInput): Promise<Hypothesis> {
     const baseUrl = await this.discoveryApi.getBaseUrl('hypo-stage');
     const response = await this.fetchApi.fetch(`${baseUrl}/hypotheses`, {
       method: 'POST',
@@ -62,6 +51,34 @@ export class HypoStageApiClient implements HypoStageApi {
 
     if (!response.ok) {
       throw new Error(`Failed to fetch hypotheses: ${response.statusText}`);
+    }
+
+    return response.json();
+  }
+
+  async updateHypothesis(id: string, input: UpdateHypothesisInput): Promise<Hypothesis> {
+    const baseUrl = await this.discoveryApi.getBaseUrl('hypo-stage');
+    const response = await this.fetchApi.fetch(`${baseUrl}/hypotheses/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(input),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to update hypothesis: ${response.statusText}`);
+    }
+
+    return response.json();
+  }
+
+  async getEvents(id: string): Promise<HypothesisEvent[]> {
+    const baseUrl = await this.discoveryApi.getBaseUrl('hypo-stage');
+    const response = await this.fetchApi.fetch(`${baseUrl}/hypotheses/${id}/events`);
+
+    if (!response.ok) {
+      throw new Error(`Failed to get events: ${response.statusText}`);
     }
 
     return response.json();

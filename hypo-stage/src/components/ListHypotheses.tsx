@@ -8,10 +8,7 @@ import {
 import useAsync from 'react-use/lib/useAsync';
 import { useApi } from '@backstage/core-plugin-api';
 import { HypoStageApiRef } from '../api/HypoStageApi';
-import { Hypothesis } from '../types/hypothesis';
-
-
-
+import { Hypothesis } from '@internal/plugin-hypo-stage-backend';
 
 const useStyles = makeStyles({
   statusChip: {
@@ -154,19 +151,19 @@ export const DenseTable = ({ hypotheses }: DenseTableProps) => {
   };
 
   const columns: TableColumn[] = [
-    { title: 'Hypothesis', field: 'text' },
+    { title: 'Hypothesis', field: 'statement' },
     { title: 'Uncertainty', field: 'uncertainty' },
     { title: 'Impact', field: 'impact' },
     { title: 'Status', field: 'status' },
-    { title: 'Entity Ref', field: 'entityRef' },
+    { title: 'Source Type', field: 'sourceType' },
     { title: 'Created', field: 'createdAt' },
   ];
 
   const data = hypotheses.map(hypothesis => {
     return {
-      text: (
+      statement: (
         <a
-          href={`/hypo-stage/technical-planning/${hypothesis.id}`}
+          href={`/hypo-stage/hypothesis/${hypothesis.id}`}
           style={{
             color: '#007bff',
             textDecoration: 'none',
@@ -175,10 +172,10 @@ export const DenseTable = ({ hypotheses }: DenseTableProps) => {
           }}
           onClick={(e) => {
             e.preventDefault();
-            window.open(`/hypo-stage/technical-planning/${hypothesis.id}`, '_blank');
+            window.location.href = `/hypo-stage/hypothesis/${hypothesis.id}`;
           }}
         >
-          {hypothesis.text}
+          {hypothesis.statement}
         </a>
       ),
       uncertainty: (
@@ -196,7 +193,7 @@ export const DenseTable = ({ hypotheses }: DenseTableProps) => {
           {hypothesis.status}
         </span>
       ),
-      entityRef: hypothesis.entityRef,
+      sourceType: hypothesis.sourceType,
       createdAt: formatDate(hypothesis.createdAt),
     };
   });

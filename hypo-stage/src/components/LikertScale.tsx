@@ -1,22 +1,21 @@
 import { Typography, IconButton } from '@material-ui/core';
-import Star from '@material-ui/icons/Star';
 import TrendingUp from '@material-ui/icons/TrendingUp';
 import Help from '@material-ui/icons/Help';
 import { useStyles } from '../hooks/useStyles';
 
-type StarRatingProps = {
+type LikertScaleProps = {
   rating: number;
   onRatingChange: (rating: number) => void;
   label: string;
   description: string;
 };
 
-export const StarRating = ({
+export const LikertScale = ({
   rating,
   onRatingChange,
   label,
   description
-}: StarRatingProps) => {
+}: LikertScaleProps) => {
   const classes = useStyles();
 
   const getRatingLabel = (ratingValue: number) => {
@@ -40,16 +39,16 @@ export const StarRating = ({
         {description}
       </Typography>
       <div className={classes.starContainer}>
-        {[1, 2, 3, 4, 5].map((star) => (
+        {[1, 2, 3, 4, 5].map((point) => (
           <IconButton
-            key={star}
+            key={point}
             size="small"
-            onClick={() => onRatingChange(star)}
+            onClick={() => onRatingChange(point)}
             className={`${classes.starButton} ${
-              star <= rating ? classes.starActive : classes.starInactive
+              point <= rating ? classes.starActive : classes.starInactive
             }`}
           >
-            <Star fontSize="large" />
+            {point}
           </IconButton>
         ))}
         <Typography className={classes.ratingLabel}>

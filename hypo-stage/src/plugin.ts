@@ -3,13 +3,15 @@ import {
   createRoutableExtension,
 } from '@backstage/core-plugin-api';
 
-import { rootRouteRef, createHypothesisRouteRef } from './routes';
+import { rootRouteRef, createHypothesisRouteRef, hypothesisRouteRef, editHypothesisRouteRef } from './routes';
 
 export const hypoStagePlugin = createPlugin({
   id: 'hypo-stage',
   routes: {
     root: rootRouteRef,
     createHypothesis: createHypothesisRouteRef,
+    hypothesis: hypothesisRouteRef,
+    editHypothesis: editHypothesisRouteRef,
   },
 });
 
@@ -28,5 +30,23 @@ export const CreateHypothesisPage = hypoStagePlugin.provide(
     component: () =>
       import('./pages/CreateHypothesisPage').then(m => m.CreateHypothesisPage),
     mountPoint: createHypothesisRouteRef,
+  }),
+);
+
+export const HypothesisPage = hypoStagePlugin.provide(
+  createRoutableExtension({
+    name: 'HypothesisPage',
+    component: () =>
+      import('./pages/HypothesisPage').then(m => m.HypothesisPage),
+    mountPoint: hypothesisRouteRef,
+  }),
+);
+
+export const EditHypothesisPage = hypoStagePlugin.provide(
+  createRoutableExtension({
+    name: 'EditHypothesisPage',
+    component: () =>
+      import('./pages/EditHypothesisPage').then(m => m.EditHypothesisPage),
+    mountPoint: editHypothesisRouteRef,
   }),
 );

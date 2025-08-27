@@ -7,3 +7,13 @@ export const rootRouteRef = createRouteRef({
 export const createHypothesisRouteRef = createRouteRef({
   id: 'hypo-stage/create-hypothesis',
 });
+
+export const hypothesisRouteRef = createRouteRef({
+  id: 'hypo-stage/hypothesis',
+  params: ['hypothesisId'],
+});
+
+export const editHypothesisRouteRef = createRouteRef({
+  id: 'hypo-stage/edit-hypothesis',
+  params: ['hypothesisId'],
+});

@@ -1,9 +1,10 @@
 import {
   makeStyles,
   createStyles,
+  Theme,
 } from '@material-ui/core';
 
-export const useStyles = makeStyles(() =>
+export const useStyles = makeStyles((theme: Theme) =>
   createStyles({
     formContainer: {
       // background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
