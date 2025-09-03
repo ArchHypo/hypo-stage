@@ -5,7 +5,7 @@ import { HypothesisService } from './types/hypothesis';
 import { CatalogService } from '@backstage/plugin-catalog-node';
 import { HttpAuthService } from '@backstage/backend-plugin-api';
 import { stringifyEntityRef } from '@backstage/catalog-model';
-import { createHypothesisSchema, updateHypothesisSchema } from './schemas/hypothesis';
+import { createHypothesisSchema, updateHypothesisSchema, createTechnicalPlanningSchema, updateTechnicalPlanningSchema } from './schemas/hypothesis';
 
 export async function createRouter({
   httpAuth,
@@ -63,6 +63,36 @@ export async function createRouter({
     const events = await hypothesisService.getEvents(req.params.id);
 
     res.json(events);
+  });
+
+  router.post('/hypotheses/:id/technical_plannings', async (req, res) => {
+    const parsed = createTechnicalPlanningSchema.safeParse(req.body);
+
+    if (!parsed.success) {
+      throw new InputError(parsed.error.toString());
+    }
+
+    const createdTechPlan = await hypothesisService.createTechnicalPlanning(req.params.id, parsed.data);
+
+    res.status(201).json(createdTechPlan);
+  });
+
+  router.put('/technical_plannings/:id', async (req, res) => {
+    const parsed = updateTechnicalPlanningSchema.safeParse(req.body);
+
+    if (!parsed.success) {
+      throw new InputError(parsed.error.toString());
+    }
+
+    const updatedTechPlan = await hypothesisService.updateTechnicalPlanning(req.params.id, parsed.data);
+
+    res.json(updatedTechPlan);
+  });
+
+  router.delete('/technical_plannings/:id', async (req, res) => {
+    await hypothesisService.deleteTechnicalPlanning(req.params.id);
+
+    res.status(204).send();
   });
 
   return router;

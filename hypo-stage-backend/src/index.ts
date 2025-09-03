@@ -3,6 +3,7 @@ export { hypoStagePlugin as default } from './plugin';
 export type {
   ActionType,
   CreateHypothesisInput,
+  CreateTechnicalPlanningInput,
   Hypothesis,
   HypothesisEvent,
   LikertScale,
@@ -11,4 +12,5 @@ export type {
   Status,
   TechnicalPlanning,
   UpdateHypothesisInput,
+  UpdateTechnicalPlanningInput,
 } from './types/hypothesis';

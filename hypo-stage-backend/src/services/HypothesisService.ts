@@ -1,5 +1,5 @@
 import { DatabaseService, LoggerService } from "@backstage/backend-plugin-api";
-import { CreateHypothesisInput, Hypothesis, HypothesisService, UpdateHypothesisInput, HypothesisEvent } from "../types/hypothesis";
+import { CreateHypothesisInput, Hypothesis, HypothesisService, UpdateHypothesisInput, HypothesisEvent, TechnicalPlanning, CreateTechnicalPlanningInput, UpdateTechnicalPlanningInput } from "../types/hypothesis";
 
 export async function createHypothesisService({
   logger,
@@ -22,9 +22,9 @@ export async function createHypothesisService({
         const createdHypotheses = await trx('hypothesis').insert({
           status: 'Open',
           ...input,
+          entityRefs: JSON.stringify(input.entityRefs),
           relatedArtefacts: JSON.stringify(input.relatedArtefacts),
           qualityAttributes: JSON.stringify(input.qualityAttributes),
-          technicalPlanning: JSON.stringify(input.technicalPlanning),
         }).returning('*');
 
         if (!createdHypotheses || createdHypotheses.length === 0) {
@@ -33,10 +33,20 @@ export async function createHypothesisService({
 
         const createdHypothesis = createdHypotheses[0];
 
-        // Parse relatedArtefacts, qualityAttributes, technicalPlanning
+        // Parse entityRefs, relatedArtefacts, qualityAttributes
+        createdHypothesis.entityRefs = JSON.parse(createdHypothesis.entityRefs);
         createdHypothesis.relatedArtefacts = JSON.parse(createdHypothesis.relatedArtefacts);
         createdHypothesis.qualityAttributes = JSON.parse(createdHypothesis.qualityAttributes);
-        createdHypothesis.technicalPlanning = JSON.parse(createdHypothesis.technicalPlanning);
+
+        // Get technical plannings for this hypothesis
+        const technicalPlannings = await trx('technicalPlanning')
+          .where('hypothesisId', createdHypothesis.id)
+          .select('*');
+
+        createdHypothesis.technicalPlannings = technicalPlannings.map(tp => ({
+          ...tp,
+          documentations: JSON.parse(tp.documentations),
+        }));
 
         // Create the change event
         await trx('hypothesisEvents').insert({
@@ -52,15 +62,29 @@ export async function createHypothesisService({
     async getAll(): Promise<Hypothesis[]> {
       logger.info('Getting hypotheses');
 
-      const hypotheses = await db('hypothesis').select('*')
+      const hypotheses = await db('hypothesis').select('*');
 
-      // Parse relatedArtefacts, qualityAttributes, technicalPlanning
-      return hypotheses.map(hypothesis => ({
-        ...hypothesis,
-        relatedArtefacts: JSON.parse(hypothesis.relatedArtefacts),
-        qualityAttributes: JSON.parse(hypothesis.qualityAttributes),
-        technicalPlanning: JSON.parse(hypothesis.technicalPlanning),
-      }));
+      // Parse entityRefs, relatedArtefacts, qualityAttributes and get technical plannings
+      const hypothesesWithTechPlans = await Promise.all(
+        hypotheses.map(async (hypothesis) => {
+          const technicalPlannings = await db('technicalPlanning')
+            .where('hypothesisId', hypothesis.id)
+            .select('*');
+
+          return {
+            ...hypothesis,
+            entityRefs: JSON.parse(hypothesis.entityRefs),
+            relatedArtefacts: JSON.parse(hypothesis.relatedArtefacts),
+            qualityAttributes: JSON.parse(hypothesis.qualityAttributes),
+            technicalPlannings: technicalPlannings.map(tp => ({
+              ...tp,
+              documentations: JSON.parse(tp.documentations),
+            })),
+          };
+        })
+      );
+
+      return hypothesesWithTechPlans;
     },
 
     async update(id: string, input: UpdateHypothesisInput): Promise<Hypothesis> {
@@ -76,7 +100,6 @@ export async function createHypothesisService({
             ...input,
             relatedArtefacts: JSON.stringify(input.relatedArtefacts),
             qualityAttributes: JSON.stringify(input.qualityAttributes),
-            technicalPlanning: JSON.stringify(input.technicalPlanning),
           })
           .returning('*');
 
@@ -86,10 +109,20 @@ export async function createHypothesisService({
 
         const updatedHypothesis = updatedHypotheses[0];
 
-        // Parse relatedArtefacts, qualityAttributes, technicalPlanning
+        // Parse entityRefs, relatedArtefacts, qualityAttributes
+        updatedHypothesis.entityRefs = JSON.parse(updatedHypothesis.entityRefs);
         updatedHypothesis.relatedArtefacts = JSON.parse(updatedHypothesis.relatedArtefacts);
         updatedHypothesis.qualityAttributes = JSON.parse(updatedHypothesis.qualityAttributes);
-        updatedHypothesis.technicalPlanning = JSON.parse(updatedHypothesis.technicalPlanning);
+
+        // Get technical plannings for this hypothesis
+        const technicalPlannings = await trx('technicalPlanning')
+          .where('hypothesisId', id)
+          .select('*');
+
+        updatedHypothesis.technicalPlannings = technicalPlannings.map(tp => ({
+          ...tp,
+          documentations: JSON.parse(tp.documentations),
+        }));
 
         // Create the change event
         await trx('hypothesisEvents').insert({
@@ -115,6 +148,70 @@ export async function createHypothesisService({
       ...event,
       changes: JSON.parse(event.changes),
     }));
+  },
+
+  async createTechnicalPlanning(hypothesisId: string, input: CreateTechnicalPlanningInput): Promise<TechnicalPlanning> {
+    logger.info('Creating technical planning', { hypothesisId, input });
+
+    return await db.transaction(async (trx) => {
+      // Create the technical planning
+      const createdTechPlans = await trx('technicalPlanning').insert({
+        hypothesisId,
+        ...input,
+        documentations: JSON.stringify(input.documentations),
+        targetDate: new Date(input.targetDate),
+      }).returning('*');
+
+      if (!createdTechPlans || createdTechPlans.length === 0) {
+        throw new Error('Failed to create technical planning');
+      }
+
+      const createdTechPlan = createdTechPlans[0];
+
+      // Parse documentations
+      createdTechPlan.documentations = JSON.parse(createdTechPlan.documentations);
+
+      return createdTechPlan;
+    });
+  },
+
+  async updateTechnicalPlanning(id: string, input: UpdateTechnicalPlanningInput): Promise<TechnicalPlanning> {
+    logger.info('Updating technical planning', { id, input });
+
+    return await db.transaction(async (trx) => {
+      // Update the technical planning
+      const updatedTechPlans = await trx('technicalPlanning')
+        .where('id', id)
+        .update({
+          updatedAt: new Date(),
+          ...input,
+          documentations: JSON.stringify(input.documentations),
+        })
+        .returning('*');
+
+      if (!updatedTechPlans || updatedTechPlans.length === 0) {
+        throw new Error('Failed to update technical planning');
+      }
+
+      const updatedTechPlan = updatedTechPlans[0];
+
+      // Parse documentations
+      updatedTechPlan.documentations = JSON.parse(updatedTechPlan.documentations);
+
+      return updatedTechPlan;
+    });
+  },
+
+  async deleteTechnicalPlanning(id: string): Promise<void> {
+    logger.info('Deleting technical planning', { id });
+
+    const deletedCount = await db('technicalPlanning')
+      .where('id', id)
+      .del();
+
+    if (deletedCount === 0) {
+      throw new Error('Technical planning not found');
+    }
   },
   };
 }

@@ -56,23 +56,14 @@ export const actionTypeSchema = z.enum([
   'Other'
 ]);
 
-export const technicalPlanningSchema = z.object({
-  entityRef: z.string(), // Backstage entity reference pattern
-  actionType: actionTypeSchema,
-  description: z.string().min(1).max(500),
-  expectedOutcome: z.string().min(1).max(500),
-  documentation: z.string().url(),
-  targetDate: z.string().date(),
-});
-
 export const createHypothesisSchema = z.object({
+  entityRefs: z.array(z.string()), // Backstage entity reference pattern
   statement: z.string().min(20).max(500),
   sourceType: sourceTypeSchema,
   relatedArtefacts: z.array(z.string().url()),
   qualityAttributes: z.array(qualityAttributeSchema),
   uncertainty: likertScaleSchema,
   impact: likertScaleSchema,
-  technicalPlanning: technicalPlanningSchema,
   notes: z.string().nullable(),
 });
 
@@ -83,6 +74,19 @@ export const updateHypothesisSchema = z.object({
   qualityAttributes: z.array(qualityAttributeSchema),
   uncertainty: likertScaleSchema,
   impact: likertScaleSchema,
-  technicalPlanning: technicalPlanningSchema,
   notes: z.string().nullable(),
+});
+
+export const createTechnicalPlanningSchema = z.object({
+  entityRef: z.string(), // Backstage entity reference pattern
+  actionType: actionTypeSchema,
+  description: z.string().min(1).max(500),
+  expectedOutcome: z.string().min(1).max(500),
+  documentations: z.array(z.string().url()),
+  targetDate: z.string().date(),
+});
+
+export const updateTechnicalPlanningSchema = z.object({
+  expectedOutcome: z.string().min(1).max(500),
+  documentations: z.array(z.string().url()),
 });
