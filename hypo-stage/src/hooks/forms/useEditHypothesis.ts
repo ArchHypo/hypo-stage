@@ -3,7 +3,7 @@ import { useApi } from '@backstage/core-plugin-api';
 import { HypoStageApiRef } from '../../api/HypoStageApi';
 import { useFormState } from '../useFormState';
 import { useApiCall } from '../useApiCall';
-import { useNotifications } from '../../components/NotificationProvider';
+import { useNotifications } from '../../providers/NotificationProvider';
 import { UpdateHypothesisInput, Status, SourceType, QualityAttribute, LikertScale, Hypothesis } from '@internal/plugin-hypo-stage-backend';
 
 export interface EditHypothesisFormData {

@@ -4,7 +4,7 @@ import { HypoStageApiRef } from '../../api/HypoStageApi';
 import { CreateTechnicalPlanningInput, ActionType } from '@internal/plugin-hypo-stage-backend';
 import { useFormState } from '../useFormState';
 import { useApiCall } from '../useApiCall';
-import { useNotifications } from '../../components/NotificationProvider';
+import { useNotifications } from '../../providers/NotificationProvider';
 
 export interface CreateTechnicalPlanningFormData {
   entityRef: string;

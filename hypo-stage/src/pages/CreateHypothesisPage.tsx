@@ -7,7 +7,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { HypothesisForm } from '../components/HypothesisForm';
 import { useCreateHypothesis } from '../hooks/forms/useCreateHypothesis';
-import { NotificationProvider } from '../components/NotificationProvider';
+import { NotificationProvider } from '../providers/NotificationProvider';
 
 const CreateHypothesisPageContent = () => {
   const navigate = useNavigate();

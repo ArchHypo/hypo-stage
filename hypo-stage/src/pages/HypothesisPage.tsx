@@ -14,7 +14,7 @@ import { QualityAttributesCard } from './HypothesisPage/components/QualityAttrib
 import { RelatedArtefactsCard } from './HypothesisPage/components/RelatedArtefactsCard';
 import { TechnicalPlanningList } from '../components/TechnicalPlanningList';
 import { EvolutionChart } from './HypothesisPage/components/EvolutionChart';
-import { NotificationProvider } from '../components/NotificationProvider';
+import { NotificationProvider } from '../providers/NotificationProvider';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useStyles } from '../hooks/useStyles';
 import ArrowBack from '@material-ui/icons/ArrowBack';

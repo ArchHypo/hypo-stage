@@ -2,7 +2,7 @@ import { Button } from '@material-ui/core';
 import ArrowBack from '@material-ui/icons/ArrowBack';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useEditHypothesis } from '../hooks/forms/useEditHypothesis';
-import { NotificationProvider } from '../components/NotificationProvider';
+import { NotificationProvider } from '../providers/NotificationProvider';
 import {
   Header,
   Page,

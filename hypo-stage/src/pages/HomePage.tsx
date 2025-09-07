@@ -7,7 +7,7 @@ import {
 } from '@backstage/core-components';
 import { useNavigate } from 'react-router-dom';
 import { HypothesisList } from '../components/HypothesisList';
-import { NotificationProvider } from '../components/NotificationProvider';
+import { NotificationProvider } from '../providers/NotificationProvider';
 
 export const HomePage = () => {
   const navigate = useNavigate();
