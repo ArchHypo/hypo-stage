@@ -6,7 +6,7 @@ import {
   HeaderLabel,
 } from '@backstage/core-components';
 import { useNavigate } from 'react-router-dom';
-import { ListHypotheses } from '../components/ListHypotheses';
+import { HypothesisList } from '../components/HypothesisList';
 import { NotificationProvider } from '../components/NotificationProvider';
 
 export const HomePage = () => {
@@ -38,7 +38,7 @@ export const HomePage = () => {
             </Grid>
 
             <Grid item>
-              <ListHypotheses />
+              <HypothesisList />
             </Grid>
           </Grid>
         </Content>

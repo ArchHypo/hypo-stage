@@ -18,30 +18,45 @@ import Timeline from '@material-ui/icons/Timeline';
 import EditIcon from '@material-ui/icons/Edit';
 import DeleteIcon from '@material-ui/icons/Delete';
 import { useApi } from '@backstage/core-plugin-api';
-import { useStyles } from '../../../hooks/useStyles';
-import { HypoStageApiRef } from '../../../api/HypoStageApi';
-import { TechnicalPlanningForm } from '../../../components/TechnicalPlanningForm';
-import { EditTechnicalPlanningForm } from '../../../components/EditTechnicalPlanningForm';
-import { Hypothesis } from '@internal/plugin-hypo-stage-backend';
+import { useStyles } from '../hooks/useStyles';
+import { HypoStageApiRef } from '../api/HypoStageApi';
+import { TechnicalPlanningForm } from './TechnicalPlanningForm';
+import { useCreateTechnicalPlanning } from '../hooks/forms/useCreateTechnicalPlanning';
+import { useEditTechnicalPlanning } from '../hooks/forms/useEditTechnicalPlanning';
+import { Hypothesis, TechnicalPlanning } from '@internal/plugin-hypo-stage-backend';
 
-interface TechnicalPlanningCardProps {
+interface TechnicalPlanningListProps {
   hypothesis: Hypothesis;
   onRefresh: () => void;
-  className?: string;
 }
 
-export const TechnicalPlanningCard: React.FC<TechnicalPlanningCardProps> = ({
+export const TechnicalPlanningList: React.FC<TechnicalPlanningListProps> = ({
   hypothesis,
-  onRefresh,
-  className
+  onRefresh
 }) => {
   const classes = useStyles();
   const api = useApi(HypoStageApiRef);
   const [showTechnicalPlanningForm, setShowTechnicalPlanningForm] = useState(false);
-  const [editingTechnicalPlanningId, setEditingTechnicalPlanningId] = useState<string | null>(null);
+  const [editingTechnicalPlanning, setEditingTechnicalPlanning] = useState<TechnicalPlanning | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [technicalPlanningToDelete, setTechnicalPlanningToDelete] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  // Create form hook
+  const createForm = useCreateTechnicalPlanning(hypothesis.id);
+
+  // Edit form hook - always initialize but only use when editing
+  const editForm = useEditTechnicalPlanning(editingTechnicalPlanning || {
+    id: '',
+    entityRef: '',
+    actionType: 'Other',
+    description: '',
+    expectedOutcome: '',
+    documentations: [],
+    targetDate: new Date(),
+    createdAt: new Date(),
+    updatedAt: new Date()
+  } as TechnicalPlanning);
 
   const handleDeleteClick = (technicalPlanningId: string) => {
     setTechnicalPlanningToDelete(technicalPlanningId);
@@ -58,7 +73,7 @@ export const TechnicalPlanningCard: React.FC<TechnicalPlanningCardProps> = ({
       setTechnicalPlanningToDelete(null);
       onRefresh();
     } catch (err) {
-      console.error('Failed to delete technical planning:', err);
+      // Error handling is done by the notification system
     } finally {
       setIsDeleting(false);
     }
@@ -71,7 +86,7 @@ export const TechnicalPlanningCard: React.FC<TechnicalPlanningCardProps> = ({
 
   return (
     <>
-      <Card className={className}>
+      <Card>
         <CardContent>
           <Typography variant="h5" style={{
             marginBottom: 16,
@@ -97,8 +112,8 @@ export const TechnicalPlanningCard: React.FC<TechnicalPlanningCardProps> = ({
                           variant="outlined"
                           size="small"
                           startIcon={<EditIcon />}
-                          onClick={() => setEditingTechnicalPlanningId(techPlan.id)}
-                          disabled={editingTechnicalPlanningId === techPlan.id}
+                          onClick={() => setEditingTechnicalPlanning(techPlan)}
+                          disabled={editingTechnicalPlanning?.id === techPlan.id}
                           className={classes.marginRight}
                         >
                           Edit
@@ -109,21 +124,27 @@ export const TechnicalPlanningCard: React.FC<TechnicalPlanningCardProps> = ({
                           color="secondary"
                           startIcon={<DeleteIcon />}
                           onClick={() => handleDeleteClick(techPlan.id)}
-                          disabled={editingTechnicalPlanningId === techPlan.id}
+                          disabled={editingTechnicalPlanning?.id === techPlan.id}
                         >
                           Delete
                         </Button>
                       </Box>
                     </Box>
 
-                    {editingTechnicalPlanningId === techPlan.id ? (
-                      <EditTechnicalPlanningForm
+                    {editingTechnicalPlanning?.id === techPlan.id ? (
+                      <TechnicalPlanningForm
+                        mode="edit"
                         technicalPlanning={techPlan}
-                        onSave={() => {
-                          setEditingTechnicalPlanningId(null);
-                          onRefresh();
+                        formData={editForm.formData}
+                        onFieldChange={editForm.updateField}
+                        isFormValid={editForm.isFormValid}
+                        loading={editForm.loading}
+                        onSubmit={() => {
+                          editForm.handleSubmit(() => {
+                            setEditingTechnicalPlanning(null);
+                            onRefresh();
+                          });
                         }}
-                        onCancel={() => setEditingTechnicalPlanningId(null)}
                       />
                     ) : (
                       <Grid container spacing={2}>
@@ -226,10 +247,18 @@ export const TechnicalPlanningCard: React.FC<TechnicalPlanningCardProps> = ({
           {showTechnicalPlanningForm && (
             <Box className={classes.marginTopLarge}>
               <TechnicalPlanningForm
+                mode="create"
                 hypothesisId={hypothesis.id}
                 availableEntityRefs={hypothesis.entityRefs}
-                onTechnicalPlanningCreated={() => {
-                  onRefresh();
+                formData={createForm.formData}
+                onFieldChange={createForm.updateField}
+                isFormValid={createForm.isFormValid}
+                loading={createForm.loading}
+                onSubmit={() => {
+                  createForm.handleSubmit(() => {
+                    setShowTechnicalPlanningForm(false);
+                    onRefresh();
+                  });
                 }}
               />
               <Button

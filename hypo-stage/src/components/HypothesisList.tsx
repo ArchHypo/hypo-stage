@@ -74,11 +74,11 @@ export const DenseTable = ({ hypotheses }: DenseTableProps) => {
   );
 };
 
-interface ListHypothesesProps {
+interface HypothesisListProps {
   refreshKey?: number;
 }
 
-export const ListHypotheses = ({ refreshKey = 0 }: ListHypothesesProps) => {
+export const HypothesisList = ({ refreshKey = 0 }: HypothesisListProps) => {
   const hypoStageApi = useApi(HypoStageApiRef);
 
   const { value, loading, error } = useAsync(async (): Promise<Hypothesis[]> => {

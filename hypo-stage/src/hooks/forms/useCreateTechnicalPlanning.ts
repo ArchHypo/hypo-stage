@@ -1,12 +1,12 @@
 import { useCallback } from 'react';
 import { useApi } from '@backstage/core-plugin-api';
-import { ActionType, CreateTechnicalPlanningInput } from '@internal/plugin-hypo-stage-backend';
 import { HypoStageApiRef } from '../../api/HypoStageApi';
-import { useNotifications } from '../../components/NotificationProvider';
+import { CreateTechnicalPlanningInput, ActionType } from '@internal/plugin-hypo-stage-backend';
 import { useFormState } from '../useFormState';
 import { useApiCall } from '../useApiCall';
+import { useNotifications } from '../../components/NotificationProvider';
 
-interface TechnicalPlanningFormData {
+export interface CreateTechnicalPlanningFormData {
   entityRef: string;
   actionType: ActionType | '';
   description: string;
@@ -15,29 +15,27 @@ interface TechnicalPlanningFormData {
   targetDate: string;
 }
 
-const initialFormData: TechnicalPlanningFormData = {
-  entityRef: '',
-  actionType: '',
-  description: '',
-  expectedOutcome: '',
-  documentations: [],
-  targetDate: '',
-};
-
-export const useTechnicalPlanning = (hypothesisId: string) => {
+export const useCreateTechnicalPlanning = (hypothesisId: string) => {
   const api = useApi(HypoStageApiRef);
-  const { showSuccess, showError } = useNotifications();
-  const { formData, updateField, resetForm } = useFormState(initialFormData);
   const { loading, execute } = useApiCall();
+  const { showSuccess, showError } = useNotifications();
+  const { formData, updateField, resetForm } = useFormState<CreateTechnicalPlanningFormData>({
+    entityRef: '',
+    actionType: '',
+    description: '',
+    expectedOutcome: '',
+    documentations: [],
+    targetDate: '',
+  });
 
-  const isFormValid = formData.entityRef &&
-    formData.actionType &&
+  const isFormValid = formData.entityRef !== '' &&
+    formData.actionType !== '' &&
     formData.description.trim().length > 0 &&
     formData.description.trim().length <= 500 &&
     formData.expectedOutcome.trim().length > 0 &&
     formData.expectedOutcome.trim().length <= 500 &&
     formData.documentations.length > 0 &&
-    formData.targetDate;
+    formData.targetDate !== '';
 
   const handleSubmit = useCallback(async (onSuccess?: () => void) => {
     if (!isFormValid) return;
@@ -60,7 +58,7 @@ export const useTechnicalPlanning = (hypothesisId: string) => {
     } catch (error) {
       showError(error instanceof Error ? error.message : 'Failed to create technical planning');
     }
-  }, [api, hypothesisId, formData, isFormValid, execute, showSuccess, showError, resetForm]);
+  }, [hypothesisId, api, formData, isFormValid, execute, showSuccess, showError, resetForm]);
 
   return {
     formData,

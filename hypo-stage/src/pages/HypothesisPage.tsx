@@ -12,7 +12,7 @@ import { formatDate } from '../utils/formatters';
 import { HypothesisDetails } from './HypothesisPage/components/HypothesisDetails';
 import { QualityAttributesCard } from './HypothesisPage/components/QualityAttributesCard';
 import { RelatedArtefactsCard } from './HypothesisPage/components/RelatedArtefactsCard';
-import { TechnicalPlanningCard } from './HypothesisPage/components/TechnicalPlanningCard';
+import { TechnicalPlanningList } from '../components/TechnicalPlanningList';
 import { EvolutionChart } from './HypothesisPage/components/EvolutionChart';
 import { NotificationProvider } from '../components/NotificationProvider';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -85,7 +85,7 @@ export const HypothesisPage = () => {
 
             {/* Technical Planning Section */}
             <Grid item xs={12}>
-              <TechnicalPlanningCard hypothesis={hypothesis} onRefresh={refreshHypothesis} />
+              <TechnicalPlanningList hypothesis={hypothesis} onRefresh={refreshHypothesis} />
             </Grid>
           </Grid>
         </Content>
