@@ -1,5 +1,5 @@
 import { Grid } from '@material-ui/core';
-import { CustomTextField } from '../FormField';
+import { CustomTextField } from '../forms/FormField';
 
 interface DescriptionFieldsProps {
   description: string;

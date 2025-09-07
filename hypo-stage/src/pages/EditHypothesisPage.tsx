@@ -1,8 +1,6 @@
-import { Typography, Button, Paper, CircularProgress, Box } from '@material-ui/core';
-import Save from '@material-ui/icons/Save';
+import { Button } from '@material-ui/core';
 import ArrowBack from '@material-ui/icons/ArrowBack';
-import { useNavigate } from 'react-router-dom';
-import { useStyles } from '../hooks/useStyles';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useEditHypothesis } from '../hooks/forms/useEditHypothesis';
 import { NotificationProvider } from '../components/NotificationProvider';
 import {
@@ -12,12 +10,13 @@ import {
   Progress,
   ResponseErrorPanel,
 } from '@backstage/core-components';
-import { EditHypothesis } from '../components/EditHypothesis';
+import { HypothesisForm } from '../components/HypothesisForm';
 
 const EditHypothesisPageContent = () => {
-  const classes = useStyles();
+  const { hypothesisId } = useParams<{ hypothesisId: string }>();
   const navigate = useNavigate();
-  const { hypothesis, formData, updateField, loading, isFormValid, handleSubmit } = useEditHypothesis();
+  const { hypothesis, formData, updateField, loading, isFormValid, handleSubmit } = useEditHypothesis(hypothesisId);
+
 
   if (loading) {
     return <Progress />;
@@ -26,6 +25,14 @@ const EditHypothesisPageContent = () => {
   if (!hypothesis) {
     return <ResponseErrorPanel error={new Error('Hypothesis not found')} />;
   }
+
+  const handleHypothesisUpdated = () => {
+    navigate(`/hypo-stage/hypothesis/${hypothesis.id}`);
+  };
+
+  const onSubmit = () => {
+    handleSubmit(handleHypothesisUpdated);
+  };
 
   return (
     <Page themeId="tool">
@@ -40,35 +47,15 @@ const EditHypothesisPageContent = () => {
       </Header>
 
       <Content>
-        <Paper className={classes.formContainer} elevation={0}>
-          <Typography className={classes.formTitle}>
-            <Save />
-            Edit Hypothesis
-          </Typography>
-          <Typography className={classes.formSubtitle}>
-            Update your hypothesis and reassess its uncertainty and potential impact
-          </Typography>
-
-          <EditHypothesis
-            hypothesis={hypothesis}
-            formData={formData}
-            onFieldChange={updateField}
-          />
-
-          {/* Submit Button */}
-          <Box display="flex" justifyContent="flex-end" mt={2}>
-            <Button
-              variant="contained"
-              color="primary"
-              size="large"
-              startIcon={loading ? <CircularProgress size={20} /> : <Save />}
-              onClick={handleSubmit}
-              disabled={!isFormValid || loading}
-            >
-              {loading ? 'Updating...' : 'Update Hypothesis'}
-            </Button>
-          </Box>
-        </Paper>
+        <HypothesisForm
+          mode="edit"
+          hypothesis={hypothesis}
+          formData={formData}
+          onFieldChange={updateField}
+          isFormValid={isFormValid}
+          loading={loading}
+          onSubmit={onSubmit}
+        />
       </Content>
     </Page>
   );

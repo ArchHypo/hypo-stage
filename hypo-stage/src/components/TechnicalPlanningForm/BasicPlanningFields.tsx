@@ -1,5 +1,5 @@
 import { Grid } from '@material-ui/core';
-import { CustomSelectField, CustomTextField } from '../FormField';
+import { CustomSelectField, CustomTextField } from '../forms/FormField';
 import { EntityRefSelect } from '../EntityRefSelect';
 import { ACTION_TYPE_OPTIONS } from '../../utils/constants';
 import { ActionType } from '@internal/plugin-hypo-stage-backend';

@@ -1,13 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
 import { useApi } from '@backstage/core-plugin-api';
 import { HypoStageApiRef } from '../../api/HypoStageApi';
 import { useFormState } from '../useFormState';
 import { useApiCall } from '../useApiCall';
 import { useNotifications } from '../../components/NotificationProvider';
-import { UpdateHypothesisInput, Status, SourceType, QualityAttribute, LikertScale } from '@internal/plugin-hypo-stage-backend';
+import { UpdateHypothesisInput, Status, SourceType, QualityAttribute, LikertScale, Hypothesis } from '@internal/plugin-hypo-stage-backend';
 
-interface EditHypothesisFormData {
+export interface EditHypothesisFormData {
   status: Status;
   sourceType: SourceType;
   relatedArtefacts: string[];
@@ -17,10 +16,10 @@ interface EditHypothesisFormData {
   notes: string;
 }
 
-export const useEditHypothesis = () => {
-  const { hypothesisId } = useParams<{ hypothesisId: string }>();
-  const navigate = useNavigate();
+export const useEditHypothesis = (hypothesisId: string | undefined) => {
+  const [hypothesis, setHypothesis] = useState<Hypothesis | null>(null);
   const api = useApi(HypoStageApiRef);
+  const { loading, execute } = useApiCall();
   const { showSuccess, showError } = useNotifications();
   const { formData, updateField, updateFields } = useFormState<EditHypothesisFormData>({
     status: 'Open',
@@ -31,9 +30,6 @@ export const useEditHypothesis = () => {
     impact: 'Medium',
     notes: '',
   });
-  const { loading, execute } = useApiCall();
-
-  const [hypothesis, setHypothesis] = useState<any>(null);
 
   const isFormValid = formData.status &&
     formData.sourceType &&
@@ -64,9 +60,9 @@ export const useEditHypothesis = () => {
     } catch (error) {
       showError(error instanceof Error ? error.message : 'Failed to load hypothesis');
     }
-  }, [api, hypothesisId, updateFields, showError]);
+  }, [hypothesisId, api, updateFields, showError]);
 
-  const handleSubmit = useCallback(async () => {
+  const handleSubmit = useCallback(async (onSuccess?: () => void) => {
     if (!isFormValid || !hypothesisId) return;
 
     try {
@@ -82,16 +78,12 @@ export const useEditHypothesis = () => {
 
       await execute(() => api.updateHypothesis(hypothesisId, hypothesisData));
 
-      showSuccess('Hypothesis updated successfully! Redirecting...');
-
-      // Navigate back to hypothesis page after a short delay
-      setTimeout(() => {
-        navigate(`/hypo-stage/hypothesis/${hypothesisId}`);
-      }, 1500);
+      showSuccess('Hypothesis updated successfully!');
+      onSuccess?.();
     } catch (error) {
       showError(error instanceof Error ? error.message : 'Failed to update hypothesis');
     }
-  }, [api, hypothesisId, formData, isFormValid, execute, showSuccess, showError, navigate]);
+  }, [hypothesisId, api, formData, isFormValid, execute, showSuccess, showError]);
 
   useEffect(() => {
     loadHypothesis();

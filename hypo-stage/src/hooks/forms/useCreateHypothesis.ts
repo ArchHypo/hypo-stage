@@ -6,7 +6,7 @@ import { useFormState } from '../useFormState';
 import { useApiCall } from '../useApiCall';
 import { useNotifications } from '../../components/NotificationProvider';
 
-interface CreateHypothesisFormData {
+export interface CreateHypothesisFormData {
   entityRefs: string[];
   statement: string;
   sourceType: SourceType | '';
@@ -35,7 +35,7 @@ export const useCreateHypothesis = () => {
   const isFormValid = formData.entityRefs.length > 0 &&
     formData.statement.trim().length >= 20 &&
     formData.statement.trim().length <= 500 &&
-    formData.sourceType &&
+    formData.sourceType !== '' &&
     formData.qualityAttributes.length > 0 &&
     formData.uncertainty !== '' &&
     formData.impact !== '';

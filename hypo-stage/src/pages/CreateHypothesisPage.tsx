@@ -1,4 +1,3 @@
-import { Grid } from '@material-ui/core';
 import {
   Header,
   Page,
@@ -6,32 +5,47 @@ import {
   HeaderLabel,
 } from '@backstage/core-components';
 import { useNavigate } from 'react-router-dom';
-import { CreateHypothesis } from '../components/CreateHypothesis';
+import { HypothesisForm } from '../components/HypothesisForm';
+import { useCreateHypothesis } from '../hooks/forms/useCreateHypothesis';
 import { NotificationProvider } from '../components/NotificationProvider';
 
-export const CreateHypothesisPage = () => {
+const CreateHypothesisPageContent = () => {
   const navigate = useNavigate();
+  const { formData, updateField, loading, isFormValid, handleSubmit } = useCreateHypothesis();
 
   const handleHypothesisCreated = () => {
     navigate('/hypo-stage');
   };
 
+  const onSubmit = () => {
+    handleSubmit(handleHypothesisCreated);
+  };
+
+  return (
+    <Page themeId="tool">
+      <Header title="Create New Hypothesis" subtitle="Add a new hypothesis to the system">
+        <HeaderLabel label="Owner" value="Pedro" />
+        <HeaderLabel label="Lifecycle" value="Alpha" />
+      </Header>
+
+      <Content>
+        <HypothesisForm
+          mode="create"
+          formData={formData}
+          onFieldChange={updateField}
+          isFormValid={isFormValid}
+          loading={loading}
+          onSubmit={onSubmit}
+        />
+      </Content>
+    </Page>
+  );
+};
+
+export const CreateHypothesisPage = () => {
   return (
     <NotificationProvider>
-      <Page themeId="tool">
-        <Header title="Create New Hypothesis" subtitle="Add a new hypothesis to the system">
-          <HeaderLabel label="Owner" value="Pedro" />
-          <HeaderLabel label="Lifecycle" value="Alpha" />
-        </Header>
-
-        <Content>
-          <Grid container spacing={3} direction="column">
-            <Grid item>
-              <CreateHypothesis onHypothesisCreated={handleHypothesisCreated} />
-            </Grid>
-          </Grid>
-        </Content>
-      </Page>
+      <CreateHypothesisPageContent />
     </NotificationProvider>
   );
 };
