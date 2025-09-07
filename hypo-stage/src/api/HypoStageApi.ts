@@ -1,5 +1,5 @@
 import { createApiRef, DiscoveryApi, FetchApi } from "@backstage/core-plugin-api";
-import { CreateHypothesisInput, UpdateHypothesisInput, Hypothesis, HypothesisEvent } from "@internal/plugin-hypo-stage-backend";
+import { CreateHypothesisInput, UpdateHypothesisInput, Hypothesis, HypothesisEvent, CreateTechnicalPlanningInput, TechnicalPlanning, UpdateTechnicalPlanningInput } from "@internal/plugin-hypo-stage-backend";
 
 export interface HypoStageApi {
   getEntityRefs: () => Promise<string[]>;
@@ -7,6 +7,9 @@ export interface HypoStageApi {
   getHypotheses: () => Promise<Hypothesis[]>;
   updateHypothesis: (id: string, input: UpdateHypothesisInput) => Promise<Hypothesis>;
   getEvents: (id: string) => Promise<HypothesisEvent[]>;
+  createTechnicalPlanning: (hypothesisId: string, input: CreateTechnicalPlanningInput) => Promise<TechnicalPlanning>;
+  updateTechnicalPlanning: (technicalPlanningId: string, input: UpdateTechnicalPlanningInput) => Promise<TechnicalPlanning>;
+  deleteTechnicalPlanning: (technicalPlanningId: string) => Promise<void>;
 }
 
 export class HypoStageApiClient implements HypoStageApi {
@@ -82,6 +85,51 @@ export class HypoStageApiClient implements HypoStageApi {
     }
 
     return response.json();
+  }
+
+  async createTechnicalPlanning(hypothesisId: string, input: CreateTechnicalPlanningInput): Promise<TechnicalPlanning> {
+    const baseUrl = await this.discoveryApi.getBaseUrl('hypo-stage');
+    const response = await this.fetchApi.fetch(`${baseUrl}/hypotheses/${hypothesisId}/technical_plannings`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(input),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to create technical planning: ${response.statusText}`);
+    }
+
+    return response.json();
+  }
+
+  async updateTechnicalPlanning(technicalPlanningId: string, input: UpdateTechnicalPlanningInput): Promise<TechnicalPlanning> {
+    const baseUrl = await this.discoveryApi.getBaseUrl('hypo-stage');
+    const response = await this.fetchApi.fetch(`${baseUrl}/technical_plannings/${technicalPlanningId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(input),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to update technical planning: ${response.statusText}`);
+    }
+
+    return response.json();
+  }
+
+  async deleteTechnicalPlanning(technicalPlanningId: string): Promise<void> {
+    const baseUrl = await this.discoveryApi.getBaseUrl('hypo-stage');
+    const response = await this.fetchApi.fetch(`${baseUrl}/technical_plannings/${technicalPlanningId}`, {
+      method: 'DELETE',
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to delete technical planning: ${response.statusText}`);
+    }
   }
 }
 

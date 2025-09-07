@@ -5,7 +5,8 @@ import {
   MenuItem,
   CircularProgress,
   Typography,
-  Box
+  Box,
+  Chip
 } from '@material-ui/core';
 import { useApi } from '@backstage/core-plugin-api';
 import useAsync from 'react-use/lib/useAsync';
@@ -18,12 +19,54 @@ interface EntityRefSelectProps {
   required?: boolean;
   disabled?: boolean;
   className?: string;
+  availableEntityRefs: string[];
+}
+
+interface EntityRefMultiSelectProps {
+  value: string[];
+  onChange: (value: string[]) => void;
+  label?: string;
+  required?: boolean;
+  disabled?: boolean;
+  className?: string;
 }
 
 export const EntityRefSelect: React.FC<EntityRefSelectProps> = ({
   value,
   onChange,
   label = 'Owner/Team',
+  required = false,
+  disabled = false,
+  className,
+  availableEntityRefs
+}) => {
+  const handleChange = (event: React.ChangeEvent<{ value: unknown }>) => {
+    onChange(event.target.value as string);
+  };
+
+  return (
+    <FormControl fullWidth className={className} required={required}>
+      <InputLabel>{label}</InputLabel>
+      <Select
+        value={value}
+        onChange={handleChange}
+        label={label}
+        disabled={disabled}
+      >
+        {availableEntityRefs.map((entityRef) => (
+          <MenuItem key={entityRef} value={entityRef}>
+            {entityRef}
+          </MenuItem>
+        ))}
+      </Select>
+    </FormControl>
+  );
+};
+
+export const EntityRefMultiSelect: React.FC<EntityRefMultiSelectProps> = ({
+  value,
+  onChange,
+  label = 'Entity References',
   required = false,
   disabled = false,
   className
@@ -36,7 +79,7 @@ export const EntityRefSelect: React.FC<EntityRefSelectProps> = ({
   );
 
   const handleChange = (event: React.ChangeEvent<{ value: unknown }>) => {
-    onChange(event.target.value as string);
+    onChange(event.target.value as string[]);
   };
 
   if (loading) {
@@ -64,10 +107,18 @@ export const EntityRefSelect: React.FC<EntityRefSelectProps> = ({
     <FormControl fullWidth className={className} required={required}>
       <InputLabel>{label}</InputLabel>
       <Select
+        multiple
         value={value}
         onChange={handleChange}
         label={label}
         disabled={disabled}
+        renderValue={(selected) => (
+          <Box style={{ display: 'flex', flexWrap: 'wrap' }}>
+            {(selected as string[]).map((entityRef) => (
+              <Chip key={entityRef} label={entityRef} size="small" style={{ margin: '2px' }} />
+            ))}
+          </Box>
+        )}
       >
         {entityRefs?.map((entityRef) => (
           <MenuItem key={entityRef} value={entityRef}>

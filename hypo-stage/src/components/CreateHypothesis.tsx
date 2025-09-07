@@ -13,28 +13,22 @@ import {
   List,
   ListItem,
   ListItemText,
-  ListItemSecondaryAction,
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
-  Grid
+  ListItemSecondaryAction
 } from '@material-ui/core';
 import { Alert } from '@material-ui/lab';
 import Add from '@material-ui/icons/Add';
 import Delete from '@material-ui/icons/Delete';
-import ExpandMore from '@material-ui/icons/ExpandMore';
 import { useState } from 'react';
 import { useApi } from '@backstage/core-plugin-api';
 import { HypoStageApiRef } from '../api/HypoStageApi';
 import { useStyles } from '../hooks/useStyles';
 import { LikertScale } from './LikertScale';
-import { EntityRefSelect } from './EntityRefSelect';
+import { EntityRefMultiSelect } from './EntityRefSelect';
 import {
   CreateHypothesisInput,
   SourceType,
   QualityAttribute,
-  LikertScale as LikertScaleType,
-  ActionType
+  LikertScale as LikertScaleType
 } from '@internal/plugin-hypo-stage-backend';
 
 interface CreateHypothesisProps {
@@ -45,7 +39,7 @@ export const CreateHypothesis = ({ onHypothesisCreated }: CreateHypothesisProps)
   const classes = useStyles();
   const api = useApi(HypoStageApiRef);
 
-  const [entityRef, setEntityRef] = useState('');
+  const [entityRefs, setEntityRefs] = useState<string[]>([]);
   const [statement, setStatement] = useState('');
   const [sourceType, setSourceType] = useState<SourceType | ''>('');
   const [relatedArtefacts, setRelatedArtefacts] = useState<string[]>([]);
@@ -78,12 +72,6 @@ export const CreateHypothesis = ({ onHypothesisCreated }: CreateHypothesisProps)
     }
   };
 
-  // Technical Planning sub-form state
-  const [techPlanActionType, setTechPlanActionType] = useState<ActionType | ''>('');
-  const [techPlanDescription, setTechPlanDescription] = useState('');
-  const [techPlanExpectedOutcome, setTechPlanExpectedOutcome] = useState('');
-  const [techPlanDocumentation, setTechPlanDocumentation] = useState('');
-  const [techPlanTargetDate, setTechPlanTargetDate] = useState('');
   const [notes, setNotes] = useState('');
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -91,24 +79,15 @@ export const CreateHypothesis = ({ onHypothesisCreated }: CreateHypothesisProps)
   const [showError, setShowError] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
-  const isFormValid = entityRef &&
+  const isFormValid = entityRefs.length > 0 &&
     statement.trim().length >= 20 &&
     statement.trim().length <= 500 &&
     sourceType &&
     qualityAttributes.length > 0 &&
     uncertainty !== '' &&
-    impact !== '' &&
-    techPlanActionType &&
-    techPlanDescription.trim().length > 0 &&
-    techPlanDescription.trim().length <= 500 &&
-    techPlanExpectedOutcome.trim().length > 0 &&
-    techPlanExpectedOutcome.trim().length <= 500 &&
-    techPlanDocumentation &&
-    techPlanTargetDate;
+    impact !== '';
 
-  const isArtefactValid = (artefact: string): boolean => {
-    return artefact.trim().length > 0 && artefact.trim().startsWith('http');
-  };
+
 
   const handleAddArtefact = () => {
     if (newArtefact.trim() && !relatedArtefacts.includes(newArtefact.trim())) {
@@ -137,39 +116,26 @@ export const CreateHypothesis = ({ onHypothesisCreated }: CreateHypothesisProps)
 
     try {
       const hypothesisData: CreateHypothesisInput = {
+        entityRefs,
         statement: statement.trim(),
         sourceType: sourceType as SourceType,
         relatedArtefacts,
         qualityAttributes,
         uncertainty: uncertainty as LikertScaleType,
         impact: impact as LikertScaleType,
-        technicalPlanning: {
-          entityRef,
-          actionType: techPlanActionType as ActionType,
-          description: techPlanDescription.trim(),
-          expectedOutcome: techPlanExpectedOutcome.trim(),
-          documentation: techPlanDocumentation.trim(),
-          targetDate: techPlanTargetDate,
-        },
         notes: notes.trim() || null,
       };
 
       await api.createHypothesis(hypothesisData);
 
       // Reset form
-      setEntityRef('');
+      setEntityRefs([]);
       setStatement('');
       setSourceType('');
       setRelatedArtefacts([]);
       setQualityAttributes([]);
       setUncertainty('');
       setImpact('');
-      // Reset technical planning sub-form
-      setTechPlanActionType('');
-      setTechPlanDescription('');
-      setTechPlanExpectedOutcome('');
-      setTechPlanDocumentation('');
-      setTechPlanTargetDate('');
       setNotes('');
 
       // Show success message
@@ -197,6 +163,22 @@ export const CreateHypothesis = ({ onHypothesisCreated }: CreateHypothesisProps)
         </Typography>
 
         <div className={classes.formGrid}>
+          {/* Entity References */}
+          <div className={classes.fullWidth}>
+            <EntityRefMultiSelect
+              value={entityRefs}
+              onChange={setEntityRefs}
+              label="Entity References"
+              required
+              className={classes.inputField}
+            />
+            {entityRefs.length === 0 && (
+              <Typography variant="body2" color="textSecondary">
+                Please select at least one entity reference for this hypothesis.
+              </Typography>
+            )}
+          </div>
+
           {/* Hypothesis Statement */}
           <div className={classes.fullWidth}>
             <TextField
@@ -357,123 +339,7 @@ export const CreateHypothesis = ({ onHypothesisCreated }: CreateHypothesisProps)
             />
           </div>
 
-          {/* Technical Planning / Actions */}
-          <div className={classes.fullWidth}>
-            <Accordion defaultExpanded>
-              <AccordionSummary expandIcon={<ExpandMore />}>
-                <Typography variant="h6">Technical Planning & Actions</Typography>
-              </AccordionSummary>
-              <AccordionDetails>
-                <Grid container spacing={2}>
-                  {/* Owner */}
-                  <Grid item xs={12} md={6}>
-                    <EntityRefSelect
-                      value={entityRef}
-                      onChange={setEntityRef}
-                      label="Owner"
-                      required
-                      className={classes.inputField}
-                    />
-                  </Grid>
 
-                  {/* Action Type */}
-                  <Grid item xs={12} md={6}>
-                    <FormControl variant="outlined" fullWidth required className={classes.inputField}>
-                      <InputLabel>Action Type</InputLabel>
-                      <Select
-                        value={techPlanActionType}
-                        onChange={(e) => setTechPlanActionType(e.target.value as ActionType)}
-                        label="Action Type"
-                      >
-                        <MenuItem value="Experiment">Experiment</MenuItem>
-                        <MenuItem value="Analytics">Analytics</MenuItem>
-                        <MenuItem value="Spike">Spike</MenuItem>
-                        <MenuItem value="Tracer Bullet">Tracer Bullet</MenuItem>
-                        <MenuItem value="Modularization">Modularization</MenuItem>
-                        <MenuItem value="Trigger">Trigger</MenuItem>
-                        <MenuItem value="Guideline">Guideline</MenuItem>
-                        <MenuItem value="Other">Other</MenuItem>
-                      </Select>
-                    </FormControl>
-                  </Grid>
-
-                  {/* Description */}
-                  <Grid item xs={12}>
-                    <TextField
-                      variant="outlined"
-                      fullWidth
-                      required
-                      multiline
-                      label="Description"
-                      placeholder="Brief description of the technical action"
-                      value={techPlanDescription}
-                      onChange={(e) => setTechPlanDescription(e.target.value)}
-                      helperText={`${techPlanDescription.length}/500 characters`}
-                      className={classes.inputField}
-                    />
-                  </Grid>
-
-                  {/* Target Date */}
-                  <Grid item xs={12} md={6}>
-                    <TextField
-                      variant="outlined"
-                      fullWidth
-                      type="date"
-                      label="Target Iteration/Sprint"
-                      value={techPlanTargetDate}
-                      onChange={(e) => setTechPlanTargetDate(e.target.value)}
-                      helperText="Required: Target date for completion"
-                      className={classes.inputField}
-                      required
-                      InputLabelProps={{
-                        shrink: true,
-                      }}
-                    />
-                  </Grid>
-
-                  {/* Expected Outcome */}
-                  <Grid item xs={12} md={6}>
-                    <TextField
-                      variant="outlined"
-                      fullWidth
-                      required
-                      label="Expected Outcome"
-                      placeholder="What do you expect to learn or achieve?"
-                      value={techPlanExpectedOutcome}
-                      onChange={(e) => setTechPlanExpectedOutcome(e.target.value)}
-                      helperText={`${techPlanExpectedOutcome.length}/500 characters`}
-                      className={classes.inputField}
-                    />
-                  </Grid>
-
-                  {/* Documentation Link */}
-                  <Grid item xs={12}>
-                    <TextField
-                      variant="outlined"
-                      fullWidth
-                      required
-                      label="Documentation Link"
-                      placeholder="e.g., https://example.com/docs/technical-planning"
-                      value={techPlanDocumentation}
-                      onChange={(e) => setTechPlanDocumentation(e.target.value)}
-                      helperText="Required: Link to technical documentation, design docs, or planning materials"
-                      className={classes.inputField}
-                    />
-                    {techPlanDocumentation.length > 0 && !isArtefactValid(techPlanDocumentation) && (
-                      <Typography className={`${classes.validationMessage} ${classes.validationError}`}>
-                        ⚠️ Please provide a valid URL starting with http:// or https://
-                      </Typography>
-                    )}
-                    {techPlanDocumentation.length > 0 && isArtefactValid(techPlanDocumentation) && (
-                      <Typography className={`${classes.validationMessage} ${classes.validationSuccess}`}>
-                        ✅ Valid documentation link provided
-                      </Typography>
-                    )}
-                  </Grid>
-                </Grid>
-              </AccordionDetails>
-            </Accordion>
-          </div>
 
           {/* Notes/Comments */}
           <div className={classes.fullWidth}>

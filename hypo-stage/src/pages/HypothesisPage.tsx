@@ -15,6 +15,12 @@ import {
   ListItem,
   ListItemText,
   ListItemIcon,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
+  CircularProgress,
 } from '@material-ui/core';
 import {
   Header,
@@ -33,6 +39,8 @@ import Link from '@material-ui/icons/Link';
 import Notes from '@material-ui/icons/Notes';
 import ArrowBack from '@material-ui/icons/ArrowBack';
 import Edit from '@material-ui/icons/Edit';
+import EditIcon from '@material-ui/icons/Edit';
+import DeleteIcon from '@material-ui/icons/Delete';
 import { Hypothesis, HypothesisEvent } from '@internal/plugin-hypo-stage-backend';
 import {
   LineChart,
@@ -40,10 +48,11 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip,
   Legend,
   ResponsiveContainer,
 } from 'recharts';
+import { TechnicalPlanningForm } from '../components/TechnicalPlanningForm';
+import { EditTechnicalPlanningForm } from '../components/EditTechnicalPlanningForm';
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -186,6 +195,49 @@ export const HypothesisPage = () => {
   const [events, setEvents] = useState<HypothesisEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+  const [showTechnicalPlanningForm, setShowTechnicalPlanningForm] = useState(false);
+  const [editingTechnicalPlanningId, setEditingTechnicalPlanningId] = useState<string | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [technicalPlanningToDelete, setTechnicalPlanningToDelete] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const refreshHypothesis = async () => {
+    try {
+      const hypotheses = await hypoStageApi.getHypotheses();
+      const found = hypotheses.find(h => h.id === hypothesisId);
+      if (found) {
+        setHypothesis(found);
+      }
+    } catch (err) {
+      setError(err as Error);
+    }
+  };
+
+  const handleDeleteClick = (technicalPlanningId: string) => {
+    setTechnicalPlanningToDelete(technicalPlanningId);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!technicalPlanningToDelete || !hypothesisId) return;
+
+    setIsDeleting(true);
+    try {
+      await hypoStageApi.deleteTechnicalPlanning(technicalPlanningToDelete);
+      setDeleteDialogOpen(false);
+      setTechnicalPlanningToDelete(null);
+      await refreshHypothesis();
+    } catch (err) {
+      setError(err as Error);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const handleDeleteCancel = () => {
+    setDeleteDialogOpen(false);
+    setTechnicalPlanningToDelete(null);
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -508,80 +560,163 @@ export const HypothesisPage = () => {
                   Technical Planning
                 </Typography>
 
-                {hypothesis.technicalPlanning ? (
+                {hypothesis.technicalPlannings && hypothesis.technicalPlannings.length > 0 ? (
                   <Grid container spacing={3}>
-                    <Grid item xs={12} md={6}>
-                      <Paper variant="outlined" style={{ padding: 16 }}>
-                        <Typography variant="h6" gutterBottom>
-                          Action Type
-                        </Typography>
-                        <Typography variant="body2" paragraph>
-                          {hypothesis.technicalPlanning.actionType}
-                        </Typography>
-                      </Paper>
-                    </Grid>
+                    {hypothesis.technicalPlannings.map((techPlan, index) => (
+                      <Grid item xs={12} key={techPlan.id}>
+                        <Paper variant="outlined" style={{ padding: 16, marginBottom: 16 }}>
+                          <Box display="flex" justifyContent="space-between" alignItems="center" style={{ marginBottom: 16 }}>
+                            <Typography variant="h6">
+                              Technical Planning #{index + 1}
+                            </Typography>
+                            <Box display="flex">
+                              <Button
+                                variant="outlined"
+                                size="small"
+                                startIcon={<EditIcon />}
+                                onClick={() => setEditingTechnicalPlanningId(techPlan.id)}
+                                disabled={editingTechnicalPlanningId === techPlan.id}
+                                style={{ marginRight: 8 }}
+                              >
+                                Edit
+                              </Button>
+                              <Button
+                                variant="outlined"
+                                size="small"
+                                color="secondary"
+                                startIcon={<DeleteIcon />}
+                                onClick={() => handleDeleteClick(techPlan.id)}
+                                disabled={editingTechnicalPlanningId === techPlan.id}
+                              >
+                                Delete
+                              </Button>
+                            </Box>
+                          </Box>
 
-                    <Grid item xs={12} md={6}>
-                      <Paper variant="outlined" style={{ padding: 16 }}>
-                        <Typography variant="h6" gutterBottom>
-                          Target Date
-                        </Typography>
-                        <Typography variant="body2" paragraph>
-                          {hypothesis.technicalPlanning.targetDate}
-                        </Typography>
-                      </Paper>
-                    </Grid>
+                          {editingTechnicalPlanningId === techPlan.id ? (
+                            <EditTechnicalPlanningForm
+                              technicalPlanning={techPlan}
+                              onSave={() => {
+                                setEditingTechnicalPlanningId(null);
+                                refreshHypothesis();
+                              }}
+                              onCancel={() => setEditingTechnicalPlanningId(null)}
+                            />
+                          ) : (
+                            <Grid container spacing={2}>
+                              <Grid item xs={12} md={6}>
+                                <Typography variant="h6" gutterBottom>
+                                  Action Type
+                                </Typography>
+                                <Typography variant="body2" paragraph>
+                                  {techPlan.actionType}
+                                </Typography>
+                              </Grid>
 
-                    <Grid item xs={12}>
-                      <Paper variant="outlined" style={{ padding: 16 }}>
-                        <Typography variant="h6" gutterBottom>
-                          Description
-                        </Typography>
-                        <Typography variant="body2" paragraph>
-                          {hypothesis.technicalPlanning.description}
-                        </Typography>
-                      </Paper>
-                    </Grid>
+                              <Grid item xs={12} md={6}>
+                                <Typography variant="h6" gutterBottom>
+                                  Target Date
+                                </Typography>
+                                <Typography variant="body2" paragraph>
+                                  {new Date(techPlan.targetDate).toLocaleDateString()}
+                                </Typography>
+                              </Grid>
 
-                    <Grid item xs={12}>
-                      <Paper variant="outlined" style={{ padding: 16 }}>
-                        <Typography variant="h6" gutterBottom>
-                          Expected Outcome
-                        </Typography>
-                        <Typography variant="body2" paragraph>
-                          {hypothesis.technicalPlanning.expectedOutcome}
-                        </Typography>
-                      </Paper>
-                    </Grid>
+                              <Grid item xs={12}>
+                                <Typography variant="h6" gutterBottom>
+                                  Description
+                                </Typography>
+                                <Typography variant="body2" paragraph>
+                                  {techPlan.description}
+                                </Typography>
+                              </Grid>
 
-                    <Grid item xs={12}>
-                      <Paper variant="outlined" style={{ padding: 16 }}>
-                        <Typography variant="h6" gutterBottom>
-                          Entity Reference
-                        </Typography>
-                        <Typography variant="body2" paragraph>
-                          {hypothesis.technicalPlanning.entityRef}
-                        </Typography>
-                      </Paper>
-                    </Grid>
+                              <Grid item xs={12}>
+                                <Typography variant="h6" gutterBottom>
+                                  Expected Outcome
+                                </Typography>
+                                <Typography variant="body2" paragraph>
+                                  {techPlan.expectedOutcome}
+                                </Typography>
+                              </Grid>
 
-                    <Grid item xs={12}>
-                      <Paper variant="outlined" style={{ padding: 16 }}>
-                        <Typography variant="h6" gutterBottom>
-                          Documentation
-                        </Typography>
-                        <Typography variant="body2" paragraph>
-                          <a href={hypothesis.technicalPlanning.documentation} target="_blank" rel="noopener noreferrer">
-                            {hypothesis.technicalPlanning.documentation}
-                          </a>
-                        </Typography>
-                      </Paper>
-                    </Grid>
+                              <Grid item xs={12}>
+                                <Typography variant="h6" gutterBottom>
+                                  Owner
+                                </Typography>
+                                <Typography variant="body2" paragraph>
+                                  {techPlan.entityRef}
+                                </Typography>
+                              </Grid>
+
+                              <Grid item xs={12}>
+                                <Typography variant="h6" gutterBottom>
+                                  Documentation
+                                </Typography>
+                                <Typography variant="body2" paragraph>
+                                  {techPlan.documentations.map((doc, docIndex) => (
+                                    <div key={docIndex} style={{ marginBottom: 8 }}>
+                                      <a href={doc} target="_blank" rel="noopener noreferrer">
+                                        {doc}
+                                      </a>
+                                    </div>
+                                  ))}
+                                </Typography>
+                              </Grid>
+                            </Grid>
+                          )}
+                        </Paper>
+                      </Grid>
+                    ))}
+
+                    {/* Add another technical planning button */}
+                    {!showTechnicalPlanningForm && (
+                      <Grid item xs={12}>
+                        <Button
+                          variant="contained"
+                          color="primary"
+                          onClick={() => setShowTechnicalPlanningForm(true)}
+                          style={{ marginTop: 16 }}
+                        >
+                          Add Another Technical Planning
+                        </Button>
+                      </Grid>
+                    )}
                   </Grid>
                 ) : (
-                  <Typography variant="body2" color="textSecondary">
-                    No technical planning information available
-                  </Typography>
+                  <Box>
+                    <Typography variant="body2" color="textSecondary" style={{ marginBottom: 16 }}>
+                      No technical planning information available
+                    </Typography>
+                    {!showTechnicalPlanningForm && (
+                      <Button
+                        variant="contained"
+                        color="primary"
+                        onClick={() => setShowTechnicalPlanningForm(true)}
+                      >
+                        Add Technical Planning
+                      </Button>
+                    )}
+                  </Box>
+                )}
+
+                {showTechnicalPlanningForm && (
+                  <Box style={{ marginTop: 24 }}>
+                    <TechnicalPlanningForm
+                      hypothesisId={hypothesis.id}
+                      availableEntityRefs={hypothesis.entityRefs}
+                      onTechnicalPlanningCreated={() => {
+                        refreshHypothesis();
+                      }}
+                    />
+                    <Button
+                      variant="outlined"
+                      onClick={() => setShowTechnicalPlanningForm(false)}
+                      style={{ marginTop: 16 }}
+                    >
+                      Cancel Adding Technical Planning
+                    </Button>
+                  </Box>
                 )}
               </CardContent>
             </Card>
@@ -646,6 +781,37 @@ export const HypothesisPage = () => {
           </Grid>
         </Grid>
       </Content>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog
+        open={deleteDialogOpen}
+        onClose={handleDeleteCancel}
+        aria-labelledby="delete-dialog-title"
+        aria-describedby="delete-dialog-description"
+      >
+        <DialogTitle id="delete-dialog-title">
+          Delete Technical Planning
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText id="delete-dialog-description">
+            Are you sure you want to delete this technical planning entry? This action cannot be undone.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleDeleteCancel} disabled={isDeleting}>
+            Cancel
+          </Button>
+          <Button
+            onClick={handleDeleteConfirm}
+            color="secondary"
+            variant="contained"
+            disabled={isDeleting}
+            startIcon={isDeleting ? <CircularProgress size={20} color="inherit" /> : <DeleteIcon />}
+          >
+            {isDeleting ? 'Deleting...' : 'Delete'}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Page>
   );
 };
