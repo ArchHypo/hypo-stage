@@ -11,6 +11,7 @@ import {
 import { useApi } from '@backstage/core-plugin-api';
 import useAsync from 'react-use/lib/useAsync';
 import { HypoStageApiRef } from '../api/HypoStageApi';
+import { useStyles } from '../hooks/useStyles';
 
 interface EntityRefSelectProps {
   value: string;
@@ -40,6 +41,8 @@ export const EntityRefSelect: React.FC<EntityRefSelectProps> = ({
   className,
   availableEntityRefs
 }) => {
+  const classes = useStyles();
+
   const handleChange = (event: React.ChangeEvent<{ value: unknown }>) => {
     onChange(event.target.value as string);
   };
@@ -71,6 +74,7 @@ export const EntityRefMultiSelect: React.FC<EntityRefMultiSelectProps> = ({
   disabled = false,
   className
 }) => {
+  const classes = useStyles();
   const hypoStageApi = useApi(HypoStageApiRef);
 
   const { value: entityRefs, loading, error } = useAsync(
@@ -86,7 +90,7 @@ export const EntityRefMultiSelect: React.FC<EntityRefMultiSelectProps> = ({
     return (
       <Box display="flex" alignItems="center" justifyContent="center" p={2}>
         <CircularProgress size={24} />
-        <Typography variant="body2" style={{ marginLeft: 8 }}>
+        <Typography variant="body2" className={classes.loadingText}>
           Loading entity refs...
         </Typography>
       </Box>
@@ -113,9 +117,9 @@ export const EntityRefMultiSelect: React.FC<EntityRefMultiSelectProps> = ({
         label={label}
         disabled={disabled}
         renderValue={(selected) => (
-          <Box style={{ display: 'flex', flexWrap: 'wrap' }}>
+          <Box className={classes.flexWrap}>
             {(selected as string[]).map((entityRef) => (
-              <Chip key={entityRef} label={entityRef} size="small" style={{ margin: '2px' }} />
+              <Chip key={entityRef} label={entityRef} size="small" className={classes.smallChip} />
             ))}
           </Box>
         )}

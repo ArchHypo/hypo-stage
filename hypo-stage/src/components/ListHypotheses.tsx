@@ -1,4 +1,3 @@
-import { makeStyles } from '@material-ui/core/styles';
 import {
   Table,
   TableColumn,
@@ -9,82 +8,7 @@ import useAsync from 'react-use/lib/useAsync';
 import { useApi } from '@backstage/core-plugin-api';
 import { HypoStageApiRef } from '../api/HypoStageApi';
 import { Hypothesis } from '@internal/plugin-hypo-stage-backend';
-
-const useStyles = makeStyles({
-  statusChip: {
-    padding: '4px 8px',
-    borderRadius: '12px',
-    fontSize: '12px',
-    fontWeight: 'bold',
-    textTransform: 'uppercase',
-  },
-  statusInProgress: {
-    backgroundColor: '#fff3cd',
-    color: '#856404',
-  },
-  statusValidated: {
-    backgroundColor: '#d4edda',
-    color: '#155724',
-  },
-  statusPlanning: {
-    backgroundColor: '#cce5ff',
-    color: '#004085',
-  },
-  statusTesting: {
-    backgroundColor: '#f8d7da',
-    color: '#721c24',
-  },
-  statusCompleted: {
-    backgroundColor: '#d1ecf1',
-    color: '#0c5460',
-  },
-  statusResearch: {
-    backgroundColor: '#e2e3e5',
-    color: '#383d41',
-  },
-  uncertaintyVeryHigh: {
-    backgroundColor: '#f8d7da',
-    color: '#721c24',
-  },
-  uncertaintyHigh: {
-    backgroundColor: '#f8d7da',
-    color: '#721c24',
-  },
-  uncertaintyMedium: {
-    backgroundColor: '#fff3cd',
-    color: '#856404',
-  },
-  uncertaintyLow: {
-    backgroundColor: '#d4edda',
-    color: '#155724',
-  },
-  uncertaintyVeryLow: {
-    backgroundColor: '#d4edda',
-    color: '#155724',
-  },
-  impactVeryHigh: {
-    backgroundColor: '#f8d7da',
-    color: '#721c24',
-    fontWeight: 'bold',
-  },
-  impactHigh: {
-    backgroundColor: '#f8d7da',
-    color: '#721c24',
-    fontWeight: 'bold',
-  },
-  impactMedium: {
-    backgroundColor: '#fff3cd',
-    color: '#856404',
-  },
-  impactLow: {
-    backgroundColor: '#d4edda',
-    color: '#155724',
-  },
-  impactVeryLow: {
-    backgroundColor: '#d4edda',
-    color: '#155724',
-  },
-});
+import { useStyles, getStatusClass, getUncertaintyClass, getImpactClass } from '../hooks/useStyles';
 
 type DenseTableProps = {
   hypotheses: Hypothesis[];
@@ -92,59 +16,6 @@ type DenseTableProps = {
 
 export const DenseTable = ({ hypotheses }: DenseTableProps) => {
   const classes = useStyles();
-
-  const getStatusClass = (status: string) => {
-    switch (status) {
-      case 'In Progress':
-        return classes.statusInProgress;
-      case 'Validated':
-        return classes.statusValidated;
-      case 'Planning':
-        return classes.statusPlanning;
-      case 'Testing':
-        return classes.statusTesting;
-      case 'Completed':
-        return classes.statusCompleted;
-      case 'Research':
-        return classes.statusResearch;
-      default:
-        return classes.statusInProgress;
-    }
-  };
-
-  const getUncertaintyClass = (uncertainty: string) => {
-    switch (uncertainty) {
-      case 'Very High':
-        return classes.uncertaintyVeryHigh;
-      case 'High':
-        return classes.uncertaintyHigh;
-      case 'Medium':
-        return classes.uncertaintyMedium;
-      case 'Low':
-        return classes.uncertaintyLow;
-      case 'Very Low':
-        return classes.uncertaintyVeryLow;
-      default:
-        return classes.uncertaintyMedium;
-    }
-  };
-
-  const getImpactClass = (impact: string) => {
-    switch (impact) {
-      case 'Very High':
-        return classes.impactVeryHigh;
-      case 'High':
-        return classes.impactHigh;
-      case 'Medium':
-        return classes.impactMedium;
-      case 'Low':
-        return classes.impactLow;
-      case 'Very Low':
-        return classes.impactVeryLow;
-      default:
-        return classes.impactMedium;
-    }
-  };
 
   const formatDate = (date: Date) => {
     return new Date(date).toLocaleDateString();
@@ -164,12 +35,7 @@ export const DenseTable = ({ hypotheses }: DenseTableProps) => {
       statement: (
         <a
           href={`/hypo-stage/hypothesis/${hypothesis.id}`}
-          style={{
-            color: '#007bff',
-            textDecoration: 'none',
-            fontWeight: 'bold',
-            fontSize: '14px'
-          }}
+          className={classes.linkText}
           onClick={(e) => {
             e.preventDefault();
             window.location.href = `/hypo-stage/hypothesis/${hypothesis.id}`;
@@ -179,17 +45,17 @@ export const DenseTable = ({ hypotheses }: DenseTableProps) => {
         </a>
       ),
       uncertainty: (
-        <span className={`${classes.statusChip} ${getUncertaintyClass(hypothesis.uncertainty)}`}>
+        <span className={`${classes.statusChip} ${getUncertaintyClass(hypothesis.uncertainty, classes)}`}>
           {hypothesis.uncertainty}
         </span>
       ),
       impact: (
-        <span className={`${classes.statusChip} ${getImpactClass(hypothesis.impact)}`}>
+        <span className={`${classes.statusChip} ${getImpactClass(hypothesis.impact, classes)}`}>
           {hypothesis.impact}
         </span>
       ),
       status: (
-        <span className={`${classes.statusChip} ${getStatusClass(hypothesis.status)}`}>
+        <span className={`${classes.statusChip} ${getStatusClass(hypothesis.status, classes)}`}>
           {hypothesis.status}
         </span>
       ),

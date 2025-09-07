@@ -1,0 +1,108 @@
+import { useState, useEffect, useCallback } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { useApi } from '@backstage/core-plugin-api';
+import { HypoStageApiRef } from '../../api/HypoStageApi';
+import { useFormState } from '../useFormState';
+import { useApiCall } from '../useApiCall';
+import { useNotifications } from '../../components/NotificationProvider';
+import { UpdateHypothesisInput, Status, SourceType, QualityAttribute, LikertScale } from '@internal/plugin-hypo-stage-backend';
+
+interface EditHypothesisFormData {
+  status: Status;
+  sourceType: SourceType;
+  relatedArtefacts: string[];
+  qualityAttributes: QualityAttribute[];
+  uncertainty: LikertScale;
+  impact: LikertScale;
+  notes: string;
+}
+
+export const useEditHypothesis = () => {
+  const { hypothesisId } = useParams<{ hypothesisId: string }>();
+  const navigate = useNavigate();
+  const api = useApi(HypoStageApiRef);
+  const { showSuccess, showError } = useNotifications();
+  const { formData, updateField, updateFields } = useFormState<EditHypothesisFormData>({
+    status: 'Open',
+    sourceType: 'Other',
+    relatedArtefacts: [],
+    qualityAttributes: [],
+    uncertainty: 'Medium',
+    impact: 'Medium',
+    notes: '',
+  });
+  const { loading, execute } = useApiCall();
+
+  const [hypothesis, setHypothesis] = useState<any>(null);
+
+  const isFormValid = formData.status &&
+    formData.sourceType &&
+    formData.qualityAttributes.length > 0;
+
+  const loadHypothesis = useCallback(async () => {
+    if (!hypothesisId) return;
+
+    try {
+      const hypotheses = await api.getHypotheses();
+      const found = hypotheses.find(h => h.id === hypothesisId);
+
+      if (found) {
+        setHypothesis(found);
+        // Populate form with existing data
+        updateFields({
+          status: found.status,
+          sourceType: found.sourceType,
+          relatedArtefacts: found.relatedArtefacts,
+          qualityAttributes: found.qualityAttributes,
+          uncertainty: found.uncertainty,
+          impact: found.impact,
+          notes: found.notes || '',
+        });
+      } else {
+        throw new Error('Hypothesis not found');
+      }
+    } catch (error) {
+      showError(error instanceof Error ? error.message : 'Failed to load hypothesis');
+    }
+  }, [api, hypothesisId, updateFields, showError]);
+
+  const handleSubmit = useCallback(async () => {
+    if (!isFormValid || !hypothesisId) return;
+
+    try {
+      const hypothesisData: UpdateHypothesisInput = {
+        status: formData.status,
+        sourceType: formData.sourceType,
+        relatedArtefacts: formData.relatedArtefacts,
+        qualityAttributes: formData.qualityAttributes,
+        uncertainty: formData.uncertainty,
+        impact: formData.impact,
+        notes: formData.notes.trim() || null,
+      };
+
+      await execute(() => api.updateHypothesis(hypothesisId, hypothesisData));
+
+      showSuccess('Hypothesis updated successfully! Redirecting...');
+
+      // Navigate back to hypothesis page after a short delay
+      setTimeout(() => {
+        navigate(`/hypo-stage/hypothesis/${hypothesisId}`);
+      }, 1500);
+    } catch (error) {
+      showError(error instanceof Error ? error.message : 'Failed to update hypothesis');
+    }
+  }, [api, hypothesisId, formData, isFormValid, execute, showSuccess, showError, navigate]);
+
+  useEffect(() => {
+    loadHypothesis();
+  }, [loadHypothesis]);
+
+  return {
+    hypothesis,
+    formData,
+    updateField,
+    loading,
+    isFormValid,
+    handleSubmit
+  };
+};

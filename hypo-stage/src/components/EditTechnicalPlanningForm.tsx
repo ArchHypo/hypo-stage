@@ -98,7 +98,7 @@ export const EditTechnicalPlanningForm = ({
 
   return (
     <>
-      <Paper style={{ padding: 16, marginTop: 16 }}>
+      <Paper className={classes.paperContainer}>
         <Typography variant="h6" gutterBottom>
           Edit Technical Planning
         </Typography>
@@ -114,12 +114,11 @@ export const EditTechnicalPlanningForm = ({
           value={expectedOutcome}
           onChange={(e) => setExpectedOutcome(e.target.value)}
           helperText={`${expectedOutcome.length}/500 characters`}
-          className={classes.inputField}
-          style={{ marginBottom: 16 }}
+          className={`${classes.inputField} ${classes.inputFieldWithMargin}`}
         />
 
         {/* Documentations */}
-        <Typography variant="subtitle1" style={{ color: 'rgba(255, 255, 255, 0.9)', marginBottom: '16px', fontWeight: 600 }}>
+        <Typography variant="subtitle1" className={classes.subtitle}>
           Documentation Links
         </Typography>
         <TextField
@@ -129,8 +128,7 @@ export const EditTechnicalPlanningForm = ({
           value={newDocumentation}
           onChange={(e) => setNewDocumentation(e.target.value)}
           onKeyDown={handleKeyPress}
-          className={classes.inputField}
-          style={{ marginBottom: 16 }}
+          className={`${classes.inputField} ${classes.inputFieldWithMargin}`}
           InputProps={{
             endAdornment: (
               <Button
@@ -138,7 +136,7 @@ export const EditTechnicalPlanningForm = ({
                 onClick={handleAddDocumentation}
                 disabled={!newDocumentation.trim() || documentations.includes(newDocumentation.trim())}
                 size="small"
-                style={{ margin: '8px' }}
+                className={classes.iconButton}
               >
                 <Add />
                 Add Link
@@ -148,7 +146,7 @@ export const EditTechnicalPlanningForm = ({
         />
 
         {documentations.length > 0 && (
-          <List dense style={{ marginBottom: 16 }}>
+          <List dense className={classes.denseListBottom}>
             {documentations.map((doc, index) => (
               <ListItem key={index}>
                 <ListItemText
@@ -174,7 +172,7 @@ export const EditTechnicalPlanningForm = ({
         )}
 
         {documentations.length === 0 && (
-          <Typography variant="body2" color="textSecondary" style={{ marginBottom: 16 }}>
+          <Typography variant="body2" color="textSecondary" className={classes.marginBottom}>
             No documentation links added yet. Add links to relevant documentation, design docs, or planning materials.
           </Typography>
         )}
@@ -187,7 +185,7 @@ export const EditTechnicalPlanningForm = ({
             onClick={handleSubmit}
             disabled={!isFormValid || isSubmitting}
             startIcon={isSubmitting ? <CircularProgress size={20} color="inherit" /> : <Save />}
-            style={{ marginRight: 16 }}
+            className={classes.secondaryButton}
           >
             {isSubmitting ? 'Saving...' : 'Save Changes'}
           </Button>

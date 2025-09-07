@@ -1,27 +1,4 @@
-import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import {
-  makeStyles,
-  Grid,
-  Card,
-  CardContent,
-  Typography,
-  Chip,
-  Button,
-  Divider,
-  Box,
-  Paper,
-  List,
-  ListItem,
-  ListItemText,
-  ListItemIcon,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogContentText,
-  DialogActions,
-  CircularProgress,
-} from '@material-ui/core';
+import { Button, Grid } from '@material-ui/core';
 import {
   Header,
   Page,
@@ -30,366 +7,24 @@ import {
   Progress,
   ResponseErrorPanel,
 } from '@backstage/core-components';
-import { useApi } from '@backstage/core-plugin-api';
-import { HypoStageApiRef } from '../api/HypoStageApi';
-import Assessment from '@material-ui/icons/Assessment';
-import Timeline from '@material-ui/icons/Timeline';
-import Description from '@material-ui/icons/Description';
-import Link from '@material-ui/icons/Link';
-import Notes from '@material-ui/icons/Notes';
+import { useHypothesisData } from '../hooks/useHypothesisData';
+import { formatDate } from '../utils/formatters';
+import { HypothesisDetails } from './HypothesisPage/components/HypothesisDetails';
+import { QualityAttributesCard } from './HypothesisPage/components/QualityAttributesCard';
+import { RelatedArtefactsCard } from './HypothesisPage/components/RelatedArtefactsCard';
+import { TechnicalPlanningCard } from './HypothesisPage/components/TechnicalPlanningCard';
+import { EvolutionChart } from './HypothesisPage/components/EvolutionChart';
+import { NotificationProvider } from '../components/NotificationProvider';
+import { useNavigate, useParams } from 'react-router-dom';
+import { useStyles } from '../hooks/useStyles';
 import ArrowBack from '@material-ui/icons/ArrowBack';
 import Edit from '@material-ui/icons/Edit';
-import EditIcon from '@material-ui/icons/Edit';
-import DeleteIcon from '@material-ui/icons/Delete';
-import { Hypothesis, HypothesisEvent } from '@internal/plugin-hypo-stage-backend';
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Legend,
-  ResponsiveContainer,
-} from 'recharts';
-import { TechnicalPlanningForm } from '../components/TechnicalPlanningForm';
-import { EditTechnicalPlanningForm } from '../components/EditTechnicalPlanningForm';
-
-const useStyles = makeStyles(theme => ({
-  root: {
-    flexGrow: 1,
-  },
-  card: {
-    height: '100%',
-    display: 'flex',
-    flexDirection: 'column',
-  },
-  chip: {
-    margin: theme.spacing(0.5),
-  },
-  statusChip: {
-    padding: '8px 16px',
-    borderRadius: '16px',
-    fontSize: '14px',
-    fontWeight: 'bold',
-    textTransform: 'uppercase',
-  },
-  statusInProgress: {
-    backgroundColor: '#fff3cd',
-    color: '#856404',
-  },
-  statusValidated: {
-    backgroundColor: '#d4edda',
-    color: '#155724',
-  },
-  statusPlanning: {
-    backgroundColor: '#cce5ff',
-    color: '#004085',
-  },
-  statusTesting: {
-    backgroundColor: '#f8d7da',
-    color: '#721c24',
-  },
-  statusCompleted: {
-    backgroundColor: '#d1ecf1',
-    color: '#0c5460',
-  },
-  statusResearch: {
-    backgroundColor: '#e2e3e5',
-    color: '#383d41',
-  },
-  statusOpen: {
-    backgroundColor: '#cce5ff',
-    color: '#004085',
-  },
-  statusInReview: {
-    backgroundColor: '#fff3cd',
-    color: '#856404',
-  },
-  statusDiscarded: {
-    backgroundColor: '#f8d7da',
-    color: '#721c24',
-  },
-  statusTriggerFired: {
-    backgroundColor: '#d1ecf1',
-    color: '#0c5460',
-  },
-  statusOther: {
-    backgroundColor: '#e2e3e5',
-    color: '#383d41',
-  },
-  uncertaintyVeryHigh: {
-    backgroundColor: '#f8d7da',
-    color: '#721c24',
-  },
-  uncertaintyHigh: {
-    backgroundColor: '#f8d7da',
-    color: '#721c24',
-  },
-  uncertaintyMedium: {
-    backgroundColor: '#fff3cd',
-    color: '#856404',
-  },
-  uncertaintyLow: {
-    backgroundColor: '#d4edda',
-    color: '#155724',
-  },
-  uncertaintyVeryLow: {
-    backgroundColor: '#d4edda',
-    color: '#155724',
-  },
-  impactVeryHigh: {
-    backgroundColor: '#f8d7da',
-    color: '#721c24',
-    fontWeight: 'bold',
-  },
-  impactHigh: {
-    backgroundColor: '#f8d7da',
-    color: '#721c24',
-    fontWeight: 'bold',
-  },
-  impactMedium: {
-    backgroundColor: '#fff3cd',
-    color: '#856404',
-  },
-  impactLow: {
-    backgroundColor: '#d4edda',
-    color: '#155724',
-  },
-  impactVeryLow: {
-    backgroundColor: '#d4edda',
-    color: '#155724',
-  },
-  sectionTitle: {
-    marginBottom: theme.spacing(2),
-    display: 'flex',
-    alignItems: 'center',
-    gap: theme.spacing(1),
-  },
-  actionButtons: {
-    marginBottom: theme.spacing(3),
-  },
-  technicalPlanningSection: {
-    marginTop: theme.spacing(3),
-  },
-  qualityAttributesList: {
-    marginTop: theme.spacing(2),
-  },
-  relatedArtefactsList: {
-    marginTop: theme.spacing(2),
-  },
-  chartContainer: {
-    height: 400,
-    marginTop: theme.spacing(2),
-  },
-  chartCard: {
-    marginTop: theme.spacing(3),
-  },
-}));
 
 export const HypothesisPage = () => {
   const classes = useStyles();
-  const { hypothesisId } = useParams<{ hypothesisId: string }>();
   const navigate = useNavigate();
-  const hypoStageApi = useApi(HypoStageApiRef);
-  const [hypothesis, setHypothesis] = useState<Hypothesis | null>(null);
-  const [events, setEvents] = useState<HypothesisEvent[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
-  const [showTechnicalPlanningForm, setShowTechnicalPlanningForm] = useState(false);
-  const [editingTechnicalPlanningId, setEditingTechnicalPlanningId] = useState<string | null>(null);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [technicalPlanningToDelete, setTechnicalPlanningToDelete] = useState<string | null>(null);
-  const [isDeleting, setIsDeleting] = useState(false);
-
-  const refreshHypothesis = async () => {
-    try {
-      const hypotheses = await hypoStageApi.getHypotheses();
-      const found = hypotheses.find(h => h.id === hypothesisId);
-      if (found) {
-        setHypothesis(found);
-      }
-    } catch (err) {
-      setError(err as Error);
-    }
-  };
-
-  const handleDeleteClick = (technicalPlanningId: string) => {
-    setTechnicalPlanningToDelete(technicalPlanningId);
-    setDeleteDialogOpen(true);
-  };
-
-  const handleDeleteConfirm = async () => {
-    if (!technicalPlanningToDelete || !hypothesisId) return;
-
-    setIsDeleting(true);
-    try {
-      await hypoStageApi.deleteTechnicalPlanning(technicalPlanningToDelete);
-      setDeleteDialogOpen(false);
-      setTechnicalPlanningToDelete(null);
-      await refreshHypothesis();
-    } catch (err) {
-      setError(err as Error);
-    } finally {
-      setIsDeleting(false);
-    }
-  };
-
-  const handleDeleteCancel = () => {
-    setDeleteDialogOpen(false);
-    setTechnicalPlanningToDelete(null);
-  };
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        // Fetch hypothesis
-        const hypotheses = await hypoStageApi.getHypotheses();
-        const found = hypotheses.find(h => h.id === hypothesisId);
-        if (found) {
-          setHypothesis(found);
-          // Fetch events for the hypothesis
-          try {
-            if (hypothesisId) {
-              const hypothesisEvents = await hypoStageApi.getEvents(hypothesisId);
-              setEvents(hypothesisEvents);
-            }
-          } catch (eventErr) {
-            setEvents([]);
-          }
-        } else {
-          navigate('/hypo-stage');
-        }
-      } catch (err) {
-        setError(err as Error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (hypothesisId) {
-      fetchData();
-    }
-  }, [hypothesisId, hypoStageApi, navigate]);
-
-  const getStatusClass = (status: string) => {
-    switch (status) {
-      case 'Open':
-        return classes.statusOpen;
-      case 'In Review':
-        return classes.statusInReview;
-      case 'Validated':
-        return classes.statusValidated;
-      case 'Discarded':
-        return classes.statusDiscarded;
-      case 'Trigger-Fired':
-        return classes.statusTriggerFired;
-      case 'Other':
-        return classes.statusOther;
-      default:
-        return classes.statusInProgress;
-    }
-  };
-
-  const getUncertaintyClass = (uncertainty: string) => {
-    switch (uncertainty) {
-      case 'Very High':
-        return classes.uncertaintyVeryHigh;
-      case 'High':
-        return classes.uncertaintyHigh;
-      case 'Medium':
-        return classes.uncertaintyMedium;
-      case 'Low':
-        return classes.uncertaintyLow;
-      case 'Very Low':
-        return classes.uncertaintyVeryLow;
-      default:
-        return classes.uncertaintyMedium;
-    }
-  };
-
-  const getImpactClass = (impact: string) => {
-    switch (impact) {
-      case 'Very High':
-        return classes.impactVeryHigh;
-      case 'High':
-        return classes.impactHigh;
-      case 'Medium':
-        return classes.impactMedium;
-      case 'Low':
-        return classes.impactLow;
-      case 'Very Low':
-        return classes.impactVeryLow;
-      default:
-        return classes.impactMedium;
-    }
-  };
-
-  const formatDate = (date: Date) => {
-    return new Date(date).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  };
-
-  const getUncertaintyValue = (uncertainty: string) => {
-    switch (uncertainty) {
-      case 'Very High': return 5;
-      case 'High': return 4;
-      case 'Medium': return 3;
-      case 'Low': return 2;
-      case 'Very Low': return 1;
-      default: return 3;
-    }
-  };
-
-  const getImpactValue = (impact: string) => {
-    switch (impact) {
-      case 'Very High': return 5;
-      case 'High': return 4;
-      case 'Medium': return 3;
-      case 'Low': return 2;
-      case 'Very Low': return 1;
-      default: return 3;
-    }
-  };
-
-  const getValueLabel = (value: number) => {
-    switch (value) {
-      case 1: return 'Muito Baixo';
-      case 2: return 'Baixo';
-      case 3: return 'Médio';
-      case 4: return 'Alto';
-      case 5: return 'Muito Alto';
-      default: return value.toString();
-    }
-  };
-
-  const prepareChartData = () => {
-    if (!hypothesis || events.length === 0) return [];
-
-    const chartData: {
-      timestamp: string;
-      uncertainty: number | undefined;
-      impact: number | undefined;
-    }[] = [];
-
-    // Add values from events
-    events.forEach(event => {
-        const hasUncertainty = event.changes.uncertainty;
-        const hasImpact = event.changes.impact;
-        chartData.push({
-          timestamp: new Date(event.timestamp).toLocaleDateString('pt-BR'),
-          uncertainty: hasUncertainty ? getUncertaintyValue(event.changes.uncertainty) : undefined,
-          impact: hasImpact ? getImpactValue(event.changes.impact) : undefined,
-        });
-    });
-
-    return chartData;
-  };
+  const { hypothesisId } = useParams<{ hypothesisId: string }>();
+  const { hypothesis, events, loading, error, refreshHypothesis } = useHypothesisData(hypothesisId);
 
   if (loading) {
     return <Progress />;
@@ -400,418 +35,61 @@ export const HypothesisPage = () => {
   }
 
   return (
-    <Page themeId="tool">
-      <Header title="Hypothesis Dashboard" subtitle={`ID: ${hypothesis.id}`}>
-        <HeaderLabel label="Status" value={hypothesis.status} />
-        <HeaderLabel label="Created" value={formatDate(hypothesis.createdAt)} />
-        <HeaderLabel label="Updated" value={formatDate(hypothesis.updatedAt)} />
-      </Header>
+    <NotificationProvider>
+      <Page themeId="tool">
+        <Header title="Hypothesis Dashboard" subtitle={`ID: ${hypothesis.id}`}>
+          <HeaderLabel label="Status" value={hypothesis.status} />
+          <HeaderLabel label="Created" value={formatDate(hypothesis.createdAt)} />
+          <HeaderLabel label="Updated" value={formatDate(hypothesis.updatedAt)} />
+        </Header>
 
-      <Content>
-        <div className={classes.actionButtons}>
-          <Button
-            variant="outlined"
-            startIcon={<ArrowBack />}
-            onClick={() => navigate('/hypo-stage')}
-            style={{ marginRight: 16 }}
-          >
-            Back to List
-          </Button>
-          <Button
-            variant="contained"
-            color="primary"
-            startIcon={<Edit />}
-            onClick={() => navigate(`/hypo-stage/hypothesis/${hypothesis.id}/edit`)}
-          >
-            Edit Hypothesis
-          </Button>
-        </div>
+        <Content>
+          <div className={classes.marginBottom}>
+            <Button
+              variant="outlined"
+              startIcon={<ArrowBack />}
+              onClick={() => navigate('/hypo-stage')}
+              className={classes.marginRight}
+            >
+              Back to List
+            </Button>
+            <Button
+              variant="contained"
+              color="primary"
+              startIcon={<Edit />}
+              onClick={() => navigate(`/hypo-stage/hypothesis/${hypothesis.id}/edit`)}
+            >
+              Edit Hypothesis
+            </Button>
+          </div>
 
-        <Grid container spacing={3}>
-          {/* Main Hypothesis Information */}
-          <Grid item xs={12} md={8}>
-            <Card className={classes.card}>
-              <CardContent>
-                <Typography variant="h5" className={classes.sectionTitle}>
-                  <Description />
-                  Hypothesis Statement
-                </Typography>
-                <Typography variant="body1" paragraph>
-                  {hypothesis.statement}
-                </Typography>
+          <Grid container spacing={3}>
+            {/* Main Hypothesis Information */}
+            <Grid item xs={12} md={8}>
+              <HypothesisDetails hypothesis={hypothesis} />
+            </Grid>
 
-                <Divider style={{ margin: '24px 0' }} />
+            {/* Sidebar Information - Full Width */}
+            <Grid item xs={12} md={4}>
+              <QualityAttributesCard hypothesis={hypothesis} />
+            </Grid>
 
-                <Typography variant="h6" className={classes.sectionTitle}>
-                  <Assessment />
-                  Assessment
-                </Typography>
-                <Box display="flex" flexWrap="wrap" style={{ marginBottom: 16 }}>
-                  <Chip
-                    label={`Uncertainty: ${hypothesis.uncertainty}`}
-                    className={`${classes.statusChip} ${getUncertaintyClass(hypothesis.uncertainty)}`}
-                    style={{ margin: '0 8px 8px 0' }}
-                  />
-                  <Chip
-                    label={`Impact: ${hypothesis.impact}`}
-                    className={`${classes.statusChip} ${getImpactClass(hypothesis.impact)}`}
-                    style={{ margin: '0 8px 8px 0' }}
-                  />
-                  <Chip
-                    label={`Status: ${hypothesis.status}`}
-                    className={`${classes.statusChip} ${getStatusClass(hypothesis.status)}`}
-                    style={{ margin: '0 8px 8px 0' }}
-                  />
-                </Box>
+            <Grid item xs={12}>
+              <RelatedArtefactsCard hypothesis={hypothesis} />
+            </Grid>
 
-                <Typography variant="h6" className={classes.sectionTitle}>
-                  <Link />
-                  Source Information
-                </Typography>
-                <Typography variant="body2" color="textSecondary">
-                  Source Type: {hypothesis.sourceType}
-                </Typography>
+            {/* Evolution Chart Section */}
+            <Grid item xs={12}>
+              <EvolutionChart hypothesis={hypothesis} events={events} />
+            </Grid>
 
-                {hypothesis.notes && (
-                  <>
-                    <Divider style={{ margin: '24px 0' }} />
-                    <Typography variant="h6" className={classes.sectionTitle}>
-                      <Notes />
-                      Notes
-                    </Typography>
-                    <Typography variant="body2">
-                      {hypothesis.notes}
-                    </Typography>
-                  </>
-                )}
-              </CardContent>
-            </Card>
-          </Grid>
-
-          {/* Sidebar Information */}
-          <Grid item xs={12} md={4}>
-            <Grid container spacing={3}>
-              {/* Quality Attributes */}
-              <Grid item xs={12}>
-                <Card className={classes.card}>
-                  <CardContent>
-                    <Typography variant="h6" className={classes.sectionTitle}>
-                      <Assessment />
-                      Quality Attributes
-                    </Typography>
-                    {hypothesis.qualityAttributes.length > 0 ? (
-                      <List dense>
-                        {hypothesis.qualityAttributes.map((attr: string, index: number) => (
-                          <ListItem key={index}>
-                            <ListItemIcon>
-                              <Assessment fontSize="small" />
-                            </ListItemIcon>
-                            <ListItemText
-                              primary={attr}
-                            />
-                          </ListItem>
-                        ))}
-                      </List>
-                    ) : (
-                      <Typography variant="body2" color="textSecondary">
-                        No quality attributes defined
-                      </Typography>
-                    )}
-                  </CardContent>
-                </Card>
-              </Grid>
-
-              {/* Related Artefacts */}
-              <Grid item xs={12}>
-                <Card className={classes.card}>
-                  <CardContent>
-                    <Typography variant="h6" className={classes.sectionTitle}>
-                      <Link />
-                      Related Artefacts
-                    </Typography>
-                    {hypothesis.relatedArtefacts.length > 0 ? (
-                      <List dense>
-                        {hypothesis.relatedArtefacts.map((artefact: string, index: number) => (
-                          <ListItem key={index}>
-                            <ListItemIcon>
-                              <Link fontSize="small" />
-                            </ListItemIcon>
-                            <ListItemText primary={artefact} />
-                          </ListItem>
-                        ))}
-                      </List>
-                    ) : (
-                      <Typography variant="body2" color="textSecondary">
-                        No related artefacts
-                      </Typography>
-                    )}
-                  </CardContent>
-                </Card>
-              </Grid>
+            {/* Technical Planning Section */}
+            <Grid item xs={12}>
+              <TechnicalPlanningCard hypothesis={hypothesis} onRefresh={refreshHypothesis} />
             </Grid>
           </Grid>
-
-          {/* Technical Planning Section */}
-          <Grid item xs={12}>
-            <Card className={classes.card}>
-              <CardContent>
-                <Typography variant="h5" className={classes.sectionTitle}>
-                  <Timeline />
-                  Technical Planning
-                </Typography>
-
-                {hypothesis.technicalPlannings && hypothesis.technicalPlannings.length > 0 ? (
-                  <Grid container spacing={3}>
-                    {hypothesis.technicalPlannings.map((techPlan, index) => (
-                      <Grid item xs={12} key={techPlan.id}>
-                        <Paper variant="outlined" style={{ padding: 16, marginBottom: 16 }}>
-                          <Box display="flex" justifyContent="space-between" alignItems="center" style={{ marginBottom: 16 }}>
-                            <Typography variant="h6">
-                              Technical Planning #{index + 1}
-                            </Typography>
-                            <Box display="flex">
-                              <Button
-                                variant="outlined"
-                                size="small"
-                                startIcon={<EditIcon />}
-                                onClick={() => setEditingTechnicalPlanningId(techPlan.id)}
-                                disabled={editingTechnicalPlanningId === techPlan.id}
-                                style={{ marginRight: 8 }}
-                              >
-                                Edit
-                              </Button>
-                              <Button
-                                variant="outlined"
-                                size="small"
-                                color="secondary"
-                                startIcon={<DeleteIcon />}
-                                onClick={() => handleDeleteClick(techPlan.id)}
-                                disabled={editingTechnicalPlanningId === techPlan.id}
-                              >
-                                Delete
-                              </Button>
-                            </Box>
-                          </Box>
-
-                          {editingTechnicalPlanningId === techPlan.id ? (
-                            <EditTechnicalPlanningForm
-                              technicalPlanning={techPlan}
-                              onSave={() => {
-                                setEditingTechnicalPlanningId(null);
-                                refreshHypothesis();
-                              }}
-                              onCancel={() => setEditingTechnicalPlanningId(null)}
-                            />
-                          ) : (
-                            <Grid container spacing={2}>
-                              <Grid item xs={12} md={6}>
-                                <Typography variant="h6" gutterBottom>
-                                  Action Type
-                                </Typography>
-                                <Typography variant="body2" paragraph>
-                                  {techPlan.actionType}
-                                </Typography>
-                              </Grid>
-
-                              <Grid item xs={12} md={6}>
-                                <Typography variant="h6" gutterBottom>
-                                  Target Date
-                                </Typography>
-                                <Typography variant="body2" paragraph>
-                                  {new Date(techPlan.targetDate).toLocaleDateString()}
-                                </Typography>
-                              </Grid>
-
-                              <Grid item xs={12}>
-                                <Typography variant="h6" gutterBottom>
-                                  Description
-                                </Typography>
-                                <Typography variant="body2" paragraph>
-                                  {techPlan.description}
-                                </Typography>
-                              </Grid>
-
-                              <Grid item xs={12}>
-                                <Typography variant="h6" gutterBottom>
-                                  Expected Outcome
-                                </Typography>
-                                <Typography variant="body2" paragraph>
-                                  {techPlan.expectedOutcome}
-                                </Typography>
-                              </Grid>
-
-                              <Grid item xs={12}>
-                                <Typography variant="h6" gutterBottom>
-                                  Owner
-                                </Typography>
-                                <Typography variant="body2" paragraph>
-                                  {techPlan.entityRef}
-                                </Typography>
-                              </Grid>
-
-                              <Grid item xs={12}>
-                                <Typography variant="h6" gutterBottom>
-                                  Documentation
-                                </Typography>
-                                <Typography variant="body2" paragraph>
-                                  {techPlan.documentations.map((doc, docIndex) => (
-                                    <div key={docIndex} style={{ marginBottom: 8 }}>
-                                      <a href={doc} target="_blank" rel="noopener noreferrer">
-                                        {doc}
-                                      </a>
-                                    </div>
-                                  ))}
-                                </Typography>
-                              </Grid>
-                            </Grid>
-                          )}
-                        </Paper>
-                      </Grid>
-                    ))}
-
-                    {/* Add another technical planning button */}
-                    {!showTechnicalPlanningForm && (
-                      <Grid item xs={12}>
-                        <Button
-                          variant="contained"
-                          color="primary"
-                          onClick={() => setShowTechnicalPlanningForm(true)}
-                          style={{ marginTop: 16 }}
-                        >
-                          Add Another Technical Planning
-                        </Button>
-                      </Grid>
-                    )}
-                  </Grid>
-                ) : (
-                  <Box>
-                    <Typography variant="body2" color="textSecondary" style={{ marginBottom: 16 }}>
-                      No technical planning information available
-                    </Typography>
-                    {!showTechnicalPlanningForm && (
-                      <Button
-                        variant="contained"
-                        color="primary"
-                        onClick={() => setShowTechnicalPlanningForm(true)}
-                      >
-                        Add Technical Planning
-                      </Button>
-                    )}
-                  </Box>
-                )}
-
-                {showTechnicalPlanningForm && (
-                  <Box style={{ marginTop: 24 }}>
-                    <TechnicalPlanningForm
-                      hypothesisId={hypothesis.id}
-                      availableEntityRefs={hypothesis.entityRefs}
-                      onTechnicalPlanningCreated={() => {
-                        refreshHypothesis();
-                      }}
-                    />
-                    <Button
-                      variant="outlined"
-                      onClick={() => setShowTechnicalPlanningForm(false)}
-                      style={{ marginTop: 16 }}
-                    >
-                      Cancel Adding Technical Planning
-                    </Button>
-                  </Box>
-                )}
-              </CardContent>
-            </Card>
-          </Grid>
-
-          {/* Evolution Chart Section */}
-          <Grid item xs={12}>
-            <Card className={`${classes.card} ${classes.chartCard}`}>
-              <CardContent>
-                <Typography variant="h5" className={classes.sectionTitle}>
-                  <Assessment />
-                  Evolução da Incerteza e Impacto
-                </Typography>
-
-                {events.length > 0 ? (
-                  <div className={classes.chartContainer}>
-                    <ResponsiveContainer width="100%" height="100%">
-                      <LineChart data={prepareChartData()}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis
-                          dataKey="timestamp"
-                          angle={-45}
-                          textAnchor="end"
-                          height={80}
-                        />
-                        <YAxis
-                          domain={[1, 5]}
-                          ticks={[1, 2, 3, 4, 5]}
-                          tickFormatter={getValueLabel}
-                        />
-                        <Legend
-                          formatter={(value) => value === 'uncertainty' ? 'Incerteza' : 'Impacto'}
-                        />
-                        <Line
-                          type="monotone"
-                          dataKey="uncertainty"
-                          stroke="#8884d8"
-                          strokeWidth={2}
-                          dot={{ fill: '#8884d8', strokeWidth: 2, r: 4 }}
-                          activeDot={{ r: 6 }}
-                          connectNulls={false}
-                        />
-                        <Line
-                          type="monotone"
-                          dataKey="impact"
-                          stroke="#82ca9d"
-                          strokeWidth={2}
-                          dot={{ fill: '#82ca9d', strokeWidth: 2, r: 4 }}
-                          activeDot={{ r: 6 }}
-                          connectNulls={false}
-                        />
-                      </LineChart>
-                    </ResponsiveContainer>
-                  </div>
-                ) : (
-                  <Typography variant="body2" color="textSecondary">
-                    Nenhum evento encontrado para mostrar a evolução
-                  </Typography>
-                )}
-              </CardContent>
-            </Card>
-          </Grid>
-        </Grid>
-      </Content>
-
-      {/* Delete Confirmation Dialog */}
-      <Dialog
-        open={deleteDialogOpen}
-        onClose={handleDeleteCancel}
-        aria-labelledby="delete-dialog-title"
-        aria-describedby="delete-dialog-description"
-      >
-        <DialogTitle id="delete-dialog-title">
-          Delete Technical Planning
-        </DialogTitle>
-        <DialogContent>
-          <DialogContentText id="delete-dialog-description">
-            Are you sure you want to delete this technical planning entry? This action cannot be undone.
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleDeleteCancel} disabled={isDeleting}>
-            Cancel
-          </Button>
-          <Button
-            onClick={handleDeleteConfirm}
-            color="secondary"
-            variant="contained"
-            disabled={isDeleting}
-            startIcon={isDeleting ? <CircularProgress size={20} color="inherit" /> : <DeleteIcon />}
-          >
-            {isDeleting ? 'Deleting...' : 'Delete'}
-          </Button>
-        </DialogActions>
-      </Dialog>
-    </Page>
+        </Content>
+      </Page>
+    </NotificationProvider>
   );
 };
