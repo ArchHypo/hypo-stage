@@ -1,11 +1,10 @@
-import { Card, CardContent, Typography, Divider, Box } from '@material-ui/core';
+import { Card, CardContent, Typography, Divider, Box, Chip } from '@material-ui/core';
 import Assessment from '@material-ui/icons/Assessment';
 import Description from '@material-ui/icons/Description';
 import Link from '@material-ui/icons/Link';
 import Notes from '@material-ui/icons/Notes';
-import { StatusChip } from '../../../components/StatusChip';
 import { Hypothesis } from '@internal/plugin-hypo-stage-backend';
-import { useStyles } from '../../../hooks/useStyles';
+import { getImpactClass, getStatusClass, getUncertaintyClass, useStyles } from '../../../hooks/useStyles';
 
 interface HypothesisDetailsProps {
   hypothesis: Hypothesis;
@@ -45,9 +44,18 @@ export const HypothesisDetails: React.FC<HypothesisDetailsProps> = ({
           Assessment
         </Typography>
         <Box className={`${classes.flexWrap} ${classes.marginBottom}`}>
-          <StatusChip value={hypothesis.uncertainty} type="uncertainty" />
-          <StatusChip value={hypothesis.impact} type="impact" />
-          <StatusChip value={hypothesis.status} type="status" />
+          <Chip
+            label={hypothesis.status}
+            className={`${classes.statusChip} ${getStatusClass(hypothesis.status, classes)}`}
+          />
+          <Chip
+            label={hypothesis.uncertainty}
+            className={`${classes.statusChip} ${getUncertaintyClass(hypothesis.uncertainty, classes)}`}
+          />
+          <Chip
+            label={hypothesis.impact}
+            className={`${classes.statusChip} ${getImpactClass(hypothesis.impact, classes)}`}
+          />
         </Box>
 
         <Typography variant="h6" style={{
