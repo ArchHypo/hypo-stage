@@ -5,12 +5,11 @@ interface TextFieldProps {
   value: string;
   onChange: (value: string) => void;
   required?: boolean;
-  multiline?: boolean;
+  disabled?: boolean;
   rows?: number;
   placeholder?: string;
   helperText?: string;
   error?: boolean;
-  className?: string;
   type?: string;
 }
 
@@ -19,23 +18,24 @@ export const CustomTextField: React.FC<TextFieldProps> = ({
   value,
   onChange,
   required = false,
-  multiline = false,
+  disabled = false,
   rows = 1,
   placeholder,
   helperText,
   error = false,
-  className,
   type = 'text'
 }) => {
   return (
     <TextField
+    fullWidth
       variant="outlined"
-      fullWidth
       required={required}
-      multiline={multiline}
-      minRows={multiline ? rows : undefined}
+      disabled={disabled}
+      multiline={rows > 1}
+      minRows={rows > 1 ? rows : undefined}
       label={label}
       placeholder={placeholder}
+      helperText={helperText}
       value={value}
       onChange={(e) => onChange(e.target.value)}
       error={error}

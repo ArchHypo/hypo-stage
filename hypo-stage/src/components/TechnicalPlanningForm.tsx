@@ -1,18 +1,19 @@
-import { Typography, Button, Paper, CircularProgress, Grid, TextField, Box, FormControl, InputLabel, Select, MenuItem } from '@material-ui/core';
+import { Typography, Button, Paper, CircularProgress, Grid, Box } from '@material-ui/core';
 import Add from '@material-ui/icons/Add';
 import Save from '@material-ui/icons/Save';
 import { useStyles } from '../hooks/useStyles';
-import { EntityRefSelect } from './EntityRefSelect';
 import { UrlListField } from './forms/UrlListField';
 import { CreateTechnicalPlanningFormData } from '../hooks/forms/useCreateTechnicalPlanning';
 import { EditTechnicalPlanningFormData } from '../hooks/forms/useEditTechnicalPlanning';
-import { TechnicalPlanning, ActionType } from '@internal/plugin-hypo-stage-backend';
+import { TechnicalPlanning } from '@internal/plugin-hypo-stage-backend';
 import { ACTION_TYPE_OPTIONS } from '../utils/constants';
+import { CustomSelectField, CustomTextField } from './forms/FormField';
 
 interface BaseTechnicalPlanningFormProps {
   isFormValid: boolean;
   loading: boolean;
   onSubmit?: () => void;
+  onCancel?: () => void;
 }
 
 interface CreateTechnicalPlanningFormProps extends BaseTechnicalPlanningFormProps {
@@ -32,7 +33,7 @@ interface EditTechnicalPlanningFormProps extends BaseTechnicalPlanningFormProps 
 
 export const TechnicalPlanningForm: React.FC<CreateTechnicalPlanningFormProps | EditTechnicalPlanningFormProps> = (props) => {
   const classes = useStyles();
-  const { mode, formData, onFieldChange, isFormValid, loading, onSubmit } = props;
+  const { mode, formData, onFieldChange, isFormValid, loading, onSubmit, onCancel } = props;
 
   const isCreateMode = mode === 'create';
   const isEditMode = mode === 'edit';
@@ -56,163 +57,71 @@ export const TechnicalPlanningForm: React.FC<CreateTechnicalPlanningFormProps | 
 
       <div className={classes.formGrid}>
         <Grid container spacing={3}>
-          {/* Entity Reference - only in create mode */}
-          {isCreateMode && (
-            <Grid item xs={12} md={6}>
-              <EntityRefSelect
-                value={formData.entityRef}
-                onChange={(value) => onFieldChange('entityRef', value)}
-                label="Owner"
-                required
-                availableEntityRefs={props.availableEntityRefs}
-              />
-            </Grid>
-          )}
-
-          {/* Entity Reference - read-only in edit mode */}
-          {isEditMode && (
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Owner"
-                value={props.technicalPlanning.entityRef}
-                variant="outlined"
-                InputProps={{
-                  readOnly: true,
-                }}
-                helperText="Owner cannot be edited (read-only)"
-              />
-            </Grid>
-          )}
-
-          {/* Action Type - only in create mode */}
-          {isCreateMode && (
-            <Grid item xs={12} md={6}>
-              <FormControl fullWidth variant="outlined" required>
-                <InputLabel>Action Type</InputLabel>
-                <Select
-                  value={formData.actionType}
-                  onChange={(e) => onFieldChange('actionType', e.target.value as ActionType | '')}
-                  label="Action Type"
-                >
-                  {ACTION_TYPE_OPTIONS.map((option) => (
-                    <MenuItem key={option.value} value={option.value}>
-                      {option.label}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Grid>
-          )}
-
-          {/* Action Type - read-only in edit mode */}
-          {isEditMode && (
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Action Type"
-                value={props.technicalPlanning.actionType}
-                variant="outlined"
-                InputProps={{
-                  readOnly: true,
-                }}
-                helperText="Action type cannot be edited (read-only)"
-              />
-            </Grid>
-          )}
-
-          {/* Target Date - only in create mode */}
-          {isCreateMode && (
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Target Date"
-                type="date"
-                value={formData.targetDate}
-                onChange={(e) => onFieldChange('targetDate', e.target.value)}
-                required
-                variant="outlined"
-                InputLabelProps={{
-                  shrink: true,
-                }}
-                helperText="Required: Target date for completion"
-              />
-            </Grid>
-          )}
-
-          {/* Target Date - read-only in edit mode */}
-          {isEditMode && (
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Target Date"
-                value={new Date(props.technicalPlanning.targetDate).toLocaleDateString()}
-                variant="outlined"
-                InputProps={{
-                  readOnly: true,
-                }}
-                helperText="Target date cannot be edited (read-only)"
-              />
-            </Grid>
-          )}
-
-          {/* Description - only in create mode */}
-          {isCreateMode && (
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                label="Description"
-                value={formData.description}
-                onChange={(e) => onFieldChange('description', e.target.value)}
-                required
-                multiline
-                minRows={3}
-                variant="outlined"
-                placeholder="Brief description of the technical action"
-                helperText={`${formData.description.length}/500 characters`}
-              />
-            </Grid>
-          )}
-
-          {/* Description - read-only in edit mode */}
-          {isEditMode && (
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                label="Description"
-                value={props.technicalPlanning.description}
-                variant="outlined"
-                multiline
-                minRows={3}
-                InputProps={{
-                  readOnly: true,
-                }}
-                helperText="Description cannot be edited (read-only)"
-              />
-            </Grid>
-          )}
-
-          {/* Expected Outcome - editable in both modes */}
+          {/* Entity reference */}
           <Grid item xs={12}>
-            <TextField
-              fullWidth
+            <CustomSelectField
+              label="Owner"
+              value={isCreateMode ? formData.entityRef : props.technicalPlanning.entityRef}
+              onChange={isCreateMode ? (value) => onFieldChange('entityRef', value) : () => {}}
+              options={isCreateMode ? props.availableEntityRefs.map((entityRef) => ({ value: entityRef, label: entityRef })) : [{value: props.technicalPlanning.entityRef, label: props.technicalPlanning.entityRef}]}
+              required
+              disabled={isEditMode}
+            />
+          </Grid>
+
+          {/* Action type */}
+          <Grid item xs={12} md={6}>
+            <CustomSelectField
+              label="Action Type"
+              value={isCreateMode ? formData.actionType : props.technicalPlanning.actionType}
+              onChange={isCreateMode ? (value) => onFieldChange('actionType', value) : () => {}}
+              options={ACTION_TYPE_OPTIONS}
+              required
+              disabled={isEditMode}
+            />
+          </Grid>
+
+          {/* Target date */}
+          <Grid item xs={12} md={6}>
+            <CustomTextField
+              label="Target Date"
+              value={isCreateMode ? formData.targetDate : new Date(props.technicalPlanning.targetDate).toISOString().split('T')[0]}
+              onChange={isCreateMode ? (value) => onFieldChange('targetDate', value) : () => {}}
+              required
+              disabled={isEditMode}
+              type="date"
+            />
+          </Grid>
+
+          {/* Description */}
+          <Grid item xs={12}>
+            <CustomTextField
+              label="Description"
+              value={isCreateMode ? formData.description : props.technicalPlanning.description}
+              onChange={isCreateMode ? (value) => onFieldChange('description', value) : () => {}}
+              required
+              disabled={isEditMode}
+              rows={3}
+              placeholder="Brief description of the technical action"
+              helperText={`${isCreateMode ? formData.description.length : props.technicalPlanning.description.length}/500 characters`}
+            />
+          </Grid>
+
+          {/* Expected outcome */}
+          <Grid item xs={12}>
+            <CustomTextField
               label="Expected Outcome"
               value={formData.expectedOutcome}
-              onChange={(e) => onFieldChange('expectedOutcome', e.target.value)}
+              onChange={(value) => onFieldChange('expectedOutcome', value)}
               required
-              multiline
-              minRows={3}
-              variant="outlined"
+              rows={3}
               placeholder="What do you expect to learn or achieve?"
               helperText={`${formData.expectedOutcome.length}/500 characters`}
             />
           </Grid>
 
-          {/* Documentation Links - editable in both modes */}
+          {/* Documentation links */}
           <Grid item xs={12}>
-            <Typography variant="h6" gutterBottom>
-              Documentation Links
-            </Typography>
             <UrlListField
               label="Documentation Links"
               urls={formData.documentations}
@@ -223,7 +132,7 @@ export const TechnicalPlanningForm: React.FC<CreateTechnicalPlanningFormProps | 
           </Grid>
         </Grid>
 
-        {/* Submit button */}
+        {/* Submit and Cancel buttons */}
         <Box>
           <Button
             variant="contained"
@@ -235,6 +144,17 @@ export const TechnicalPlanningForm: React.FC<CreateTechnicalPlanningFormProps | 
           >
             {loading ? 'Submitting...' : title}
           </Button>
+          {onCancel && (
+            <Button
+              variant="outlined"
+              size="large"
+              onClick={onCancel}
+              disabled={loading}
+              className={classes.marginLeft}
+            >
+              Cancel
+            </Button>
+          )}
         </Box>
       </div>
     </Paper>

@@ -13,16 +13,6 @@ import useAsync from 'react-use/lib/useAsync';
 import { HypoStageApiRef } from '../api/HypoStageApi';
 import { useStyles } from '../hooks/useStyles';
 
-interface EntityRefSelectProps {
-  value: string;
-  onChange: (value: string) => void;
-  label?: string;
-  required?: boolean;
-  disabled?: boolean;
-  className?: string;
-  availableEntityRefs: string[];
-}
-
 interface EntityRefMultiSelectProps {
   value: string[];
   onChange: (value: string[]) => void;
@@ -31,40 +21,6 @@ interface EntityRefMultiSelectProps {
   disabled?: boolean;
   className?: string;
 }
-
-export const EntityRefSelect: React.FC<EntityRefSelectProps> = ({
-  value,
-  onChange,
-  label = 'Owner/Team',
-  required = false,
-  disabled = false,
-  className,
-  availableEntityRefs
-}) => {
-  const classes = useStyles();
-
-  const handleChange = (event: React.ChangeEvent<{ value: unknown }>) => {
-    onChange(event.target.value as string);
-  };
-
-  return (
-    <FormControl fullWidth className={className} required={required}>
-      <InputLabel>{label}</InputLabel>
-      <Select
-        value={value}
-        onChange={handleChange}
-        label={label}
-        disabled={disabled}
-      >
-        {availableEntityRefs.map((entityRef) => (
-          <MenuItem key={entityRef} value={entityRef}>
-            {entityRef}
-          </MenuItem>
-        ))}
-      </Select>
-    </FormControl>
-  );
-};
 
 export const EntityRefMultiSelect: React.FC<EntityRefMultiSelectProps> = ({
   value,

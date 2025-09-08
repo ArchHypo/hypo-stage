@@ -21,7 +21,6 @@ interface UrlListFieldProps {
   onUrlsChange: (urls: string[]) => void;
   placeholder?: string;
   helperText?: string;
-  className?: string;
 }
 
 export const UrlListField: React.FC<UrlListFieldProps> = ({
@@ -29,8 +28,7 @@ export const UrlListField: React.FC<UrlListFieldProps> = ({
   urls,
   onUrlsChange,
   placeholder = 'https://example.com/document',
-  helperText,
-  className
+  helperText
 }) => {
   const classes = useStyles();
   const [newUrl, setNewUrl] = useState('');
@@ -54,7 +52,7 @@ export const UrlListField: React.FC<UrlListFieldProps> = ({
   };
 
   return (
-    <Box className={className}>
+    <Box>
       <Typography variant="subtitle1" className={classes.subtitle}>
         {label}
       </Typography>
