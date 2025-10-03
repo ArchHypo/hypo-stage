@@ -3,17 +3,17 @@ import { SourceType, QualityAttribute, ActionType, Status } from '@internal/plug
 /**
  * Source type options
  */
-export const SOURCE_TYPE_OPTIONS: { value: SourceType; label: string }[] = [
-  { value: 'Requirements', label: 'Requirements' },
-  { value: 'Solution', label: 'Solution' },
-  { value: 'Quality Attribute', label: 'Quality Attribute' },
-  { value: 'Other', label: 'Other' },
+export const SOURCE_TYPE_OPTIONS: { value: SourceType; label: string, description?: string }[] = [
+  { value: 'Requirements', label: 'Requirements', description: 'Requirements from the customer or the team' },
+  { value: 'Solution', label: 'Solution', description: 'Solution from the team' },
+  { value: 'Quality Attribute', label: 'Quality Attribute', description: 'Quality Attribute from the team' },
+  { value: 'Other', label: 'Other', description: 'Other' },
 ];
 
 /**
  * Quality attribute options
  */
-export const QUALITY_ATTRIBUTE_OPTIONS: { value: QualityAttribute; label: string }[] = [
+export const QUALITY_ATTRIBUTE_OPTIONS: { value: QualityAttribute; label: string, description?: string }[] = [
   { value: 'Performance', label: 'Performance' },
   { value: 'Reliability', label: 'Reliability' },
   { value: 'Availability', label: 'Availability' },
@@ -37,7 +37,7 @@ export const QUALITY_ATTRIBUTE_OPTIONS: { value: QualityAttribute; label: string
 /**
  * Action type options
  */
-export const ACTION_TYPE_OPTIONS: { value: ActionType; label: string }[] = [
+export const ACTION_TYPE_OPTIONS: { value: ActionType; label: string, description?: string }[] = [
   { value: 'Experiment', label: 'Experiment' },
   { value: 'Analytics', label: 'Analytics' },
   { value: 'Spike', label: 'Spike' },

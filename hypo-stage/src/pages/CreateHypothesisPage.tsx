@@ -11,7 +11,7 @@ import { NotificationProvider } from '../providers/NotificationProvider';
 
 const CreateHypothesisPageContent = () => {
   const navigate = useNavigate();
-  const { formData, updateField, loading, isFormValid, handleSubmit } = useCreateHypothesis();
+  const { entityRefs, formData, updateField, loading, isFormValid, handleSubmit } = useCreateHypothesis();
 
   const handleHypothesisCreated = () => {
     navigate('/hypo-stage');
@@ -31,6 +31,7 @@ const CreateHypothesisPageContent = () => {
       <Content>
         <HypothesisForm
           mode="create"
+          entityRefs={entityRefs}
           formData={formData}
           onFieldChange={updateField}
           isFormValid={isFormValid}

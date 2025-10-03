@@ -10,9 +10,12 @@ export const useStyles = makeStyles((theme: Theme) =>
     formContainer: {
       borderRadius: '16px',
       padding: '32px',
-      color: 'white',
+      color: theme.palette.text.primary,
+      backgroundColor: theme.palette.background.paper,
       marginBottom: '24px',
-      boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
+      boxShadow: theme.palette.type === 'dark'
+        ? '0 8px 32px rgba(0, 0, 0, 0.3)'
+        : '0 8px 32px rgba(0, 0, 0, 0.1)',
     },
     cardContainer: {
       marginBottom: '16px',
@@ -53,19 +56,19 @@ export const useStyles = makeStyles((theme: Theme) =>
       marginBottom: '16px',
     },
     subtitle: {
-      color: 'rgba(255, 255, 255, 0.9)',
+      color: theme.palette.text.secondary,
       marginBottom: '16px',
       fontWeight: 600,
     },
     helperText: {
       fontSize: '14px',
-      opacity: 0.8,
+      color: theme.palette.text.secondary,
       marginBottom: '16px',
       lineHeight: 1.5,
     },
     secondaryText: {
       fontSize: '14px',
-      color: 'rgba(255, 255, 255, 0.7)',
+      color: theme.palette.text.secondary,
       marginTop: '8px',
     },
     linkText: {
@@ -78,21 +81,21 @@ export const useStyles = makeStyles((theme: Theme) =>
     // Form & Input Styles
     inputField: {
       '& .MuiOutlinedInput-root': {
-        backgroundColor: 'rgba(255, 255, 255, 0.95)',
+        backgroundColor: theme.palette.background.default,
         borderRadius: '12px',
         '&:hover': {
-          backgroundColor: 'rgba(255, 255, 255, 1)',
+          backgroundColor: theme.palette.background.default,
         },
         '&.Mui-focused': {
-          backgroundColor: 'rgba(255, 255, 255, 1)',
+          backgroundColor: theme.palette.background.default,
         },
       },
       '& .MuiInputLabel-root': {
-        color: 'rgba(255, 255, 255, 0.8)',
+        color: theme.palette.text.secondary,
         fontWeight: 600,
       },
       '& .MuiInputLabel-root.Mui-focused': {
-        color: 'rgba(255, 255, 255, 1)',
+        color: theme.palette.primary.main,
       },
     },
     inputFieldWithMargin: {
@@ -141,12 +144,16 @@ export const useStyles = makeStyles((theme: Theme) =>
 
     // Rating & Star Styles
     ratingSection: {
-      backgroundColor: 'rgba(255, 255, 255, 0.1)',
+      backgroundColor: theme.palette.type === 'dark'
+        ? 'rgba(255, 255, 255, 0.1)'
+        : 'rgba(0, 0, 0, 0.05)',
       borderRadius: '12px',
       padding: '20px',
       marginTop: '20px',
       backdropFilter: 'blur(10px)',
-      border: '1px solid rgba(255, 255, 255, 0.2)',
+      border: theme.palette.type === 'dark'
+        ? '1px solid rgba(255, 255, 255, 0.2)'
+        : '1px solid rgba(0, 0, 0, 0.1)',
     },
     ratingTitle: {
       fontSize: '18px',
@@ -158,7 +165,7 @@ export const useStyles = makeStyles((theme: Theme) =>
     },
     ratingDescription: {
       fontSize: '14px',
-      opacity: 0.8,
+      color: theme.palette.text.secondary,
       marginBottom: '16px',
       lineHeight: 1.5,
     },
@@ -169,7 +176,7 @@ export const useStyles = makeStyles((theme: Theme) =>
       marginBottom: '16px',
     },
     starButton: {
-      color: 'rgba(255, 255, 255, 0.7)',
+      color: theme.palette.text.secondary,
       transition: 'all 0.2s ease',
       '&:hover': {
         transform: 'scale(1.1)',
@@ -181,19 +188,21 @@ export const useStyles = makeStyles((theme: Theme) =>
       filter: 'drop-shadow(0 0 8px rgba(255, 215, 0, 0.5))',
     },
     starInactive: {
-      color: 'rgba(255, 255, 255, 0.3)',
+      color: theme.palette.text.disabled,
     },
     ratingLabel: {
       fontSize: '14px',
       fontWeight: 600,
-      color: 'rgba(255, 255, 255, 0.9)',
+      color: theme.palette.text.primary,
       marginLeft: '12px',
     },
 
     // Chip & Badge Styles
     chip: {
-      backgroundColor: 'rgba(255, 255, 255, 0.2)',
-      color: 'white',
+      backgroundColor: theme.palette.type === 'dark'
+        ? 'rgba(255, 255, 255, 0.2)'
+        : 'rgba(0, 0, 0, 0.1)',
+      color: theme.palette.text.primary,
       fontWeight: 600,
       margin: '4px',
     },

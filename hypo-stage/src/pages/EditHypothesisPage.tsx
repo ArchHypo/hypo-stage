@@ -15,7 +15,7 @@ import { HypothesisForm } from '../components/HypothesisForm';
 const EditHypothesisPageContent = () => {
   const { hypothesisId } = useParams<{ hypothesisId: string }>();
   const navigate = useNavigate();
-  const { hypothesis, formData, updateField, loading, isFormValid, handleSubmit } = useEditHypothesis(hypothesisId);
+  const { entityRefs, hypothesis, formData, updateField, loading, isFormValid, handleSubmit } = useEditHypothesis(hypothesisId);
 
 
   if (loading) {
@@ -49,6 +49,7 @@ const EditHypothesisPageContent = () => {
       <Content>
         <HypothesisForm
           mode="edit"
+          entityRefs={entityRefs}
           hypothesis={hypothesis}
           formData={formData}
           onFieldChange={updateField}

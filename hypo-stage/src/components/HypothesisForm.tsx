@@ -1,8 +1,7 @@
-import { Typography, Button, Paper, CircularProgress, Grid, TextField, Box } from '@material-ui/core';
+import { Typography, Button, Paper, CircularProgress, Grid, Box } from '@material-ui/core';
 import Add from '@material-ui/icons/Add';
 import { useStyles } from '../hooks/useStyles';
-import { EntityRefMultiSelect } from './EntityRefSelect';
-import { CustomSelectField } from './forms/FormField';
+import { CustomSelectField, CustomTextField } from './forms/FormField';
 import { validateHypothesisStatement } from '../utils/validators';
 import { QUALITY_ATTRIBUTE_OPTIONS, SOURCE_TYPE_OPTIONS, STATUS_OPTIONS } from '../utils/constants';
 import { LikertScaleField } from './forms/LikertScaleField';
@@ -14,6 +13,7 @@ import { EditHypothesisFormData } from '../hooks/forms/useEditHypothesis';
 import { UrlListField } from './forms/UrlListField';
 
 interface BaseHypothesisFormProps {
+  entityRefs: string[];
   isFormValid: boolean;
   loading: boolean;
   onSubmit?: () => void;
@@ -62,55 +62,34 @@ export const HypothesisForm: React.FC<CreateHypothesisFormProps | EditHypothesis
 
       <div className={classes.formGrid}>
         <Grid container spacing={3}>
-          {/* Entity references - only in create mode */}
-          {isCreateMode && (
-            <Grid item xs={12}>
-              <EntityRefMultiSelect
-                value={formData.entityRefs}
-                onChange={(value) => onFieldChange('entityRefs', value)}
-                label="Entity References"
-                required
-                className={classes.inputField}
-              />
-              {formData.entityRefs.length === 0 && (
-                <Typography variant="body2" color="textSecondary">
-                  Please select at least one entity reference for this hypothesis.
-                </Typography>
-              )}
-            </Grid>
-          )}
-          {/* Entity References - read-only in edit mode */}
-          {isEditMode && (
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                label="Entity References"
-                value={props.hypothesis.entityRefs.join(', ')}
-                variant="outlined"
-                InputProps={{
-                  readOnly: true,
-                }}
-                helperText="Entity references cannot be edited (read-only)"
-              />
-            </Grid>
-          )}
-
-          {/* Hypothesis statement - editable in create mode, read-only in edit mode */}
+          {/* Entity references */}
           <Grid item xs={12}>
-            <TextField
-                fullWidth
+            <CustomSelectField
+              label="Entity References"
+              value={formData.entityRefs}
+              onChange={(value) => onFieldChange('entityRefs', value)}
+              options={props.entityRefs.map((entityRef) => ({ value: entityRef, label: entityRef }))}
+              required
+              multiple
+            />
+            {formData.entityRefs.length === 0 && (
+              <Typography variant="body2" color="textSecondary">
+                Please select at least one entity reference for this hypothesis.
+              </Typography>
+            )}
+          </Grid>
+
+          {/* Hypothesis statement */}
+          <Grid item xs={12}>
+            <CustomTextField
                 label="Hypothesis Statement"
                 value={isCreateMode ? formData.statement : props.hypothesis.statement}
-                onChange={isCreateMode ? (e) => onFieldChange('statement', e.target.value) : undefined}
+                onChange={isCreateMode ? (value) => onFieldChange('statement', value) : () => {}}
                 required
-                multiline
-                minRows={4}
-                variant="outlined"
+                disabled={isEditMode}
+                rows={4}
                 placeholder="e.g., The current access control library is compatible with the organization's Single Sign-On protocol."
-                helperText={isCreateMode ? `${formData.statement.length}/500 characters` : undefined}
-                InputProps={{
-                  readOnly: isEditMode,
-                }}
+                helperText={`${isCreateMode ? formData.statement.length : props.hypothesis.statement.length}/500 characters`}
               />
               {isCreateMode && !statementValidation.isValid && formData.statement.length > 0 && (
                 <Typography variant="body2" color="error" className={classes.validationMessage}>
@@ -119,7 +98,7 @@ export const HypothesisForm: React.FC<CreateHypothesisFormProps | EditHypothesis
               )}
           </Grid>
 
-          {/* Status - only in edit mode */}
+          {/* Status */}
           {isEditMode && (
             <Grid item xs={12} md={6}>
               <CustomSelectField
@@ -198,14 +177,11 @@ export const HypothesisForm: React.FC<CreateHypothesisFormProps | EditHypothesis
 
           {/* Notes */}
           <Grid item xs={12}>
-            <TextField
-              fullWidth
+            <CustomTextField
               label="Notes/Comments"
               value={formData.notes}
-              onChange={(e) => onFieldChange('notes', e.target.value)}
-              multiline
-              minRows={4}
-              variant="outlined"
+              onChange={(value) => onFieldChange('notes', value)}
+              rows={4}
               placeholder="Additional notes, comments, or observations about this hypothesis..."
             />
           </Grid>

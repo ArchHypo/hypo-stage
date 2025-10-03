@@ -64,6 +64,7 @@ export const UrlListField: React.FC<UrlListFieldProps> = ({
         value={newUrl}
         onChange={(e) => setNewUrl(e.target.value)}
         onKeyDown={handleKeyPress}
+        className={classes.inputField}
         InputProps={{
           endAdornment: (
             <Button

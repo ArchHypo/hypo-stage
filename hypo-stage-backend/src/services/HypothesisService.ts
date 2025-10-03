@@ -98,6 +98,7 @@ export async function createHypothesisService({
           .update({
             updatedAt: new Date(),
             ...input,
+            entityRefs: JSON.stringify(input.entityRefs),
             relatedArtefacts: JSON.stringify(input.relatedArtefacts),
             qualityAttributes: JSON.stringify(input.qualityAttributes),
           })

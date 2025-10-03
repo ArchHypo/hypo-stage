@@ -1,4 +1,5 @@
-import { TextField, FormControl, InputLabel, Select, MenuItem } from '@material-ui/core';
+import { TextField, FormControl, InputLabel, Select, MenuItem, Typography } from '@material-ui/core';
+import { useStyles } from '../../hooks/useStyles';
 
 interface TextFieldProps {
   label: string;
@@ -25,9 +26,11 @@ export const CustomTextField: React.FC<TextFieldProps> = ({
   error = false,
   type = 'text'
 }) => {
+  const classes = useStyles();
+
   return (
     <TextField
-    fullWidth
+      fullWidth
       variant="outlined"
       required={required}
       disabled={disabled}
@@ -41,6 +44,7 @@ export const CustomTextField: React.FC<TextFieldProps> = ({
       error={error}
       type={type}
       InputLabelProps={type === 'date' ? { shrink: true } : undefined}
+      className={classes.inputField}
     />
   );
 };
@@ -49,7 +53,7 @@ interface SelectFieldProps {
   label: string;
   value: string | string[];
   onChange: (value: string | string[]) => void;
-  options: { value: string; label: string }[];
+  options: { value: string; label: string, description?: string }[];
   required?: boolean;
   multiple?: boolean;
   disabled?: boolean;
@@ -64,8 +68,10 @@ export const CustomSelectField: React.FC<SelectFieldProps> = ({
   multiple = false,
   disabled = false
 }) => {
+  const classes = useStyles();
+
   return (
-    <FormControl fullWidth variant="outlined" required={required}>
+    <FormControl fullWidth variant="outlined" required={required} className={classes.inputField}>
       <InputLabel>{label}</InputLabel>
       <Select
         value={value}
@@ -73,10 +79,19 @@ export const CustomSelectField: React.FC<SelectFieldProps> = ({
         label={label}
         multiple={multiple}
         disabled={disabled}
+        renderValue={(selected) => {
+          if (multiple) {
+            return Array.isArray(selected)
+              ? selected.map(val => options.find(opt => opt.value === val)?.label).join(', ')
+              : '';
+          }
+          return options.find(opt => opt.value === selected)?.label || '';
+        }}
       >
         {options.map((option) => (
-          <MenuItem key={option.value} value={option.value}>
-            {option.label}
+          <MenuItem key={option.value} value={option.value} style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 4 }}>
+            <Typography variant="body1">{option.label}</Typography>
+            {option.description && <Typography variant="body2" color="textSecondary">{option.description}</Typography>}
           </MenuItem>
         ))}
       </Select>

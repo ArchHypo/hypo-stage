@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useApi } from '@backstage/core-plugin-api';
 import { HypoStageApiRef } from '../../api/HypoStageApi';
 import { CreateHypothesisInput, SourceType, QualityAttribute, LikertScale } from '@internal/plugin-hypo-stage-backend';
@@ -21,6 +21,7 @@ export const useCreateHypothesis = () => {
   const api = useApi(HypoStageApiRef);
   const { loading, execute } = useApiCall();
   const { showSuccess, showError } = useNotifications();
+  const [entityRefs, setEntityRefs] = useState<string[]>([]);
   const { formData, updateField, resetForm } = useFormState<CreateHypothesisFormData>({
     entityRefs: [],
     statement: '',
@@ -39,6 +40,11 @@ export const useCreateHypothesis = () => {
     formData.qualityAttributes.length > 0 &&
     formData.uncertainty !== '' &&
     formData.impact !== '';
+
+  const loadEntityRefs = useCallback(async () => {
+    const allEntityRefs = await api.getEntityRefs();
+    setEntityRefs(allEntityRefs);
+  }, [api]);
 
   const handleSubmit = useCallback(async (onSuccess?: () => void) => {
     if (!isFormValid) return;
@@ -65,7 +71,12 @@ export const useCreateHypothesis = () => {
     }
   }, [api, formData, isFormValid, execute, showSuccess, showError, resetForm]);
 
+  useEffect(() => {
+    loadEntityRefs();
+  }, [loadEntityRefs]);
+
   return {
+    entityRefs,
     formData,
     updateField,
     loading,
