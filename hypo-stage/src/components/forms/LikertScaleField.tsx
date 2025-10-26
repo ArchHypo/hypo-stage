@@ -1,3 +1,4 @@
+import React from 'react';
 import { Typography, IconButton } from '@material-ui/core';
 import TrendingUp from '@material-ui/icons/TrendingUp';
 import Help from '@material-ui/icons/Help';
