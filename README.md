@@ -17,8 +17,28 @@ The ArchHypo Plugin integrates architectural hypothesis management into your Bac
 ### Prerequisites
 
 - Backstage application (v1.16.0 or later)
-- Node.js (v16 or later)
+- Node.js (v20 or later)
 - Yarn package manager
+
+### Step 0: Clone and Deploy Plugin Directories
+
+Clone this repository:
+
+```bash
+git clone git@github.com:cmhpedro/hypo-stage.git
+cd hypo-stage
+```
+
+After cloning the repository, **each directory must be copied separately** into your Backstage project under the `plugins/` directory:
+
+1. Copy the `hypo-stage` directory to your Backstage project's `plugins/` folder
+2. Copy the `hypo-stage-backend` directory to your Backstage project's `plugins/` folder
+
+```bash
+# Example command structure
+cp -r hypo-stage /path/to/your/backstage/plugins/
+cp -r hypo-stage-backend /path/to/your/backstage/plugins/
+```
 
 ### Step 1: Install the Plugin Packages
 
@@ -72,6 +92,8 @@ import LaptopMacIcon from '@material-ui/icons/LaptopMac';
 
 ### Step 3: Configure the Backend
 
+#### 3.1 Add Backend Plugin
+
 Add the ArchHypo backend plugin to your backend:
 
 ```ts
@@ -87,6 +109,37 @@ backend.add(import('@internal/plugin-hypo-stage-backend'));
 
 backend.start();
 ```
+
+#### 3.2 Configure APIs in Backstage
+
+**Important**: In order for `hypo-stage-backend` to work properly, you must add the following API definition to your Backstage application
+in the respective files:
+
+```ts
+// packages/app/src/apis.ts
+
+// Make sure to also import these references
+import {
+   // Other imports already exists
++  discoveryApiRef,
++  fetchApiRef,
+ } from '@backstage/core-plugin-api';
+
+import { 
+  HypoStageApiClient, 
+  HypoStageApiRef 
+} from '@internal/plugin-hypo-stage';
+
+// Add to the API factory array right after 
+createApiFactory({
+  api: HypoStageApiRef,
+  deps: {
+    discoveryApi: discoveryApiRef,
+    fetchApi: fetchApiRef,
+  },
+  factory: ({ discoveryApi, fetchApi }) =>
+    new HypoStageApiClient({ discoveryApi, fetchApi }),
+}),
 
 ## Usage
 
