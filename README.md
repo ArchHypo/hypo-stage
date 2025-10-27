@@ -140,6 +140,7 @@ createApiFactory({
   factory: ({ discoveryApi, fetchApi }) =>
     new HypoStageApiClient({ discoveryApi, fetchApi }),
 }),
+```
 
 ## Usage
 
