@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { default as React, useState } from 'react';
 import {
   Card,
   CardContent,
