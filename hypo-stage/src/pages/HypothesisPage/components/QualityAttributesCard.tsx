@@ -1,4 +1,3 @@
-import React from 'react';
 import { Card, CardContent, Typography, List, ListItem, ListItemIcon, ListItemText } from '@material-ui/core';
 import Assessment from '@material-ui/icons/Assessment';
 import { Hypothesis } from '@internal/plugin-hypo-stage-backend';
