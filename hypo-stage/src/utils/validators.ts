@@ -18,12 +18,8 @@ export const validateHypothesisStatement = (statement: string): { isValid: boole
  * Validate URL format
  */
 export const validateUrl = (url: string): boolean => {
-  try {
-    new URL(url);
-    return true;
-  } catch {
-    return false;
-  }
+  const urlPattern = /^https?:\/\/.+/;
+  return urlPattern.test(url);
 };
 
 /**
