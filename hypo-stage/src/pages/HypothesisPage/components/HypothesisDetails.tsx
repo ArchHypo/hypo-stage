@@ -1,3 +1,4 @@
+import { default as React } from 'react';
 import { Card, CardContent, Typography, Divider, Box, Chip } from '@material-ui/core';
 import Assessment from '@material-ui/icons/Assessment';
 import Description from '@material-ui/icons/Description';

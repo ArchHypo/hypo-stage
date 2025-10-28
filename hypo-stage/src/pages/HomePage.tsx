@@ -1,3 +1,4 @@
+import { default as React } from 'react';
 import { Grid, Button } from '@material-ui/core';
 import {
   Header,
