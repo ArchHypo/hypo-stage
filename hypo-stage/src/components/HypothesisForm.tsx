@@ -1,4 +1,3 @@
-import React from 'react';
 import { Typography, Button, Paper, CircularProgress, Grid, Box } from '@material-ui/core';
 import Add from '@material-ui/icons/Add';
 import { useStyles } from '../hooks/useStyles';
