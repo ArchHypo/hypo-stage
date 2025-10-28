@@ -1,6 +1,10 @@
-import { Knex } from 'knex';
+// @ts-check
 
-export async function up(knex: Knex): Promise<void> {
+/**
+ * @param {import('knex').Knex} knex
+ * @returns {Promise<void>}
+ */
+exports.up = async function up(knex) {
   await knex.schema.createTable('hypothesisEvents', table => {
     table.timestamp('timestamp').defaultTo(knex.fn.now());
     table.uuid('id').primary().defaultTo(knex.fn.uuid());
@@ -11,8 +15,12 @@ export async function up(knex: Knex): Promise<void> {
     // Foreign key constraint
     table.foreign('hypothesisId').references('id').inTable('hypothesis').onDelete('CASCADE');
   });
-}
+};
 
-export async function down(knex: Knex): Promise<void> {
+/**
+ * @param {import('knex').Knex} knex
+ * @returns {Promise<void>}
+ */
+exports.down = async function down(knex) {
   await knex.schema.dropTable('hypothesisEvents');
-}
+};

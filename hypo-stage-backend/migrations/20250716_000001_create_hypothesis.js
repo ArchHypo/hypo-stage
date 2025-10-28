@@ -1,6 +1,10 @@
-import { Knex } from 'knex';
+// @ts-check
 
-export async function up(knex: Knex): Promise<void> {
+/**
+ * @param {import('knex').Knex} knex
+ * @returns {Promise<void>}
+ */
+exports.up = async function up(knex) {
   await knex.schema.createTable('hypothesis', table => {
     table.timestamp('createdAt').defaultTo(knex.fn.now());
     table.timestamp('updatedAt').defaultTo(knex.fn.now());
@@ -15,8 +19,12 @@ export async function up(knex: Knex): Promise<void> {
     table.string('impact').notNullable();
     table.text('notes').nullable();
   });
-}
+};
 
-export async function down(knex: Knex): Promise<void> {
+/**
+ * @param {import('knex').Knex} knex
+ * @returns {Promise<void>}
+ */
+exports.down = async function down(knex) {
   await knex.schema.dropTable('hypothesis');
-}
+};
