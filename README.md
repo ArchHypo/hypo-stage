@@ -1,6 +1,6 @@
-# ArchHypo Plugin for Backstage
+# HypoStage
 
-The ArchHypo Plugin integrates architectural hypothesis management into your Backstage environment, enabling teams to document, track, and validate architectural decisions effectively. This plugin provides a comprehensive framework for managing architectural hypotheses with uncertainty assessment, quality attributes tracking, and technical planning capabilities.
+HypoStage integrates architectural hypothesis management into your Backstage environment, enabling teams to document, track, and validate architectural decisions effectively. This plugin provides a comprehensive framework for managing architectural hypotheses with uncertainty assessment, quality attributes tracking, and technical planning capabilities.
 
 ## Features
 
@@ -125,12 +125,12 @@ import {
 +  fetchApiRef,
  } from '@backstage/core-plugin-api';
 
-import { 
-  HypoStageApiClient, 
-  HypoStageApiRef 
+import {
+  HypoStageApiClient,
+  HypoStageApiRef
 } from '@internal/plugin-hypo-stage';
 
-// Add to the API factory array right after 
+// Add to the API factory array right after
 createApiFactory({
   api: HypoStageApiRef,
   deps: {
