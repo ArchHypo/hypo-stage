@@ -6,9 +6,18 @@ Backend plugin for [HypoStage](https://github.com/ArchHypo/hypo-stage): persiste
 
 ## Table of contents
 
+- [Requirements](#requirements)
 - [Build, test and lint](#build-test-and-lint)
 - [What this package provides](#what-this-package-provides)
+- [Database migrations](#database-migrations)
 - [Installation into a Backstage app](#installation-into-a-backstage-app)
+
+---
+
+## Requirements
+
+- **Backstage backend** with `coreServices.database` configured (PostgreSQL or SQLite in `app-config.yaml`).
+- **PostgreSQL** (recommended for production) or SQLite (e.g. for local dev). For a local Postgres instance without modifying your app, use the repo’s Docker Compose: from the [repository root](https://github.com/ArchHypo/hypo-stage), run `make start-dependencies` (see [Running with Docker](https://github.com/ArchHypo/hypo-stage#running-with-docker) in the main README).
 
 ---
 
@@ -47,6 +56,18 @@ For full validation (deps, build, test, lint for both frontend and backend), use
   - `POST /hypotheses/:id/technical_plannings`, `PUT/DELETE /technical_plannings/:id`
 - **Database** – Uses Backstage’s `coreServices.database` (Knex). Migrations in `migrations/` (hypothesis, hypothesisEvents, technicalPlanning tables).
 - **Catalog integration** – Uses `CatalogService` for entity refs and team filtering (optional `spec.team` on components).
+
+---
+
+## Database migrations
+
+Migrations run **automatically** when the Backstage backend starts: the plugin calls `database.getClient()` and runs `migrate.latest()` from the `migrations/` directory (unless the Backstage config sets `database.migrations.skip`). No manual migration step is required.
+
+| Migration | Tables / purpose |
+|-----------|-------------------|
+| `20250716_000001_create_hypothesis.js` | `hypothesis` table |
+| `20250827_000002_create_hypothesis_events.js` | `hypothesis_events` table (evolution history) |
+| `20250902_00003_create_technical_planning.js` | `technical_planning` table |
 
 ---
 

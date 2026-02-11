@@ -6,6 +6,7 @@ Frontend plugin for [HypoStage](https://github.com/ArchHypo/hypo-stage): archite
 
 ## Table of contents
 
+- [Requirements](#requirements)
 - [Build, test and lint](#build-test-and-lint)
 - [What this package provides](#what-this-package-provides)
   - [Pages (routed)](#pages-routed)
@@ -13,6 +14,14 @@ Frontend plugin for [HypoStage](https://github.com/ArchHypo/hypo-stage): archite
   - [API](#api)
   - [Reusable components (for custom UIs)](#reusable-components-for-custom-uis)
 - [Installation into a Backstage app](#installation-into-a-backstage-app)
+
+---
+
+## Requirements
+
+- **Backend plugin** — The HypoStage backend (`@internal/plugin-hypo-stage-backend`) must be installed in the same Backstage app and registered in `packages/backend/src/index.ts`. The backend provides the REST API and database used by this frontend.
+- **API registration** — The app must register `HypoStageApiRef` in `packages/app/src/apis.ts` (or equivalent) with `HypoStageApiClient` so that the UI can call the backend. See the [main README – Step 3.2](https://github.com/ArchHypo/hypo-stage#32-register-the-frontend-api--in-packagesappsrcapits).
+- **Backend running** — The Backstage backend must be running with a configured database (PostgreSQL or SQLite). Migrations run automatically on backend startup.
 
 ---
 
@@ -31,10 +40,12 @@ From **this directory** only:
 
 ```bash
 yarn install          # if not already installed from root
-yarn build            # needs dist-types from root first; use root `yarn build`
+yarn build            # requires type declarations: run `yarn build` (or `yarn build:types`) from repo root first
 yarn test
 yarn lint
 ```
+
+Building from this directory alone will fail until the root has been built at least once, because the Backstage CLI build expects TypeScript declaration output from the root `yarn build:types` step.
 
 For full validation (deps, build, test, lint for both frontend and backend), use the [main README](https://github.com/ArchHypo/hypo-stage/blob/main/README.md) and run `make validate` at the repo root.
 

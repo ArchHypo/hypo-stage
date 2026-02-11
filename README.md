@@ -4,11 +4,13 @@ HypoStage integrates architectural hypothesis management into your Backstage env
 
 ## Table of contents
 
+- [Repository structure](#repository-structure)
 - [Features](#features)
 - [Prerequisites](#prerequisites)
 - [Building the project](#building-the-project)
 - [Running tests](#running-tests)
 - [Code style (lint)](#code-style-lint)
+- [CI (GitHub Actions)](#ci-github-actions)
 - [Validating usage](#validating-usage)
 - [Running with Docker](#running-with-docker)
   - [1. Start dependencies (PostgreSQL)](#1-start-dependencies-postgresql)
@@ -36,6 +38,19 @@ HypoStage integrates architectural hypothesis management into your Backstage env
 
 ---
 
+## Repository structure
+
+This repository is a **monorepo** (Yarn workspaces):
+
+| Path | Package | Description |
+|------|---------|-------------|
+| `hypo-stage/` | `@internal/plugin-hypo-stage` | Frontend plugin: UI, pages, catalog tab, API client |
+| `hypo-stage-backend/` | `@internal/plugin-hypo-stage-backend` | Backend plugin: REST API, database, HypothesisService |
+
+Root `package.json` scripts (`yarn build`, `yarn test`, `yarn lint`) run across both packages. Use the root for building, testing, and linting; use the [Makefile](#makefile-reference) for convenience targets.
+
+---
+
 ## Features
 
 - **Hypothesis Management**: Create, edit, and track architectural hypotheses with detailed metadata
@@ -52,7 +67,8 @@ HypoStage integrates architectural hypothesis management into your Backstage env
 
 - **Node.js** v20 or later ([nvm](https://github.com/nvm-sh/nvm) recommended: `nvm install 20 && nvm use 20`)
 - **Yarn** package manager
-- **Docker & Docker Compose** (optional, for running with a generic Backstage instance)
+- **PostgreSQL** (or SQLite) for the backend — when integrating into a Backstage app, the backend must have a database configured. For local development you can use the repo’s [Docker Compose](#running-with-docker) Postgres.
+- **Docker & Docker Compose** (optional, for running a local Postgres and/or a generic Backstage instance)
 
 ---
 
@@ -118,6 +134,22 @@ make lint
 ```
 
 Lint runs the Backstage CLI linter in both `hypo-stage` and `hypo-stage-backend`. You may see warnings about frontend importing types from the backend package; these are acceptable for this plugin’s shared types.
+
+---
+
+## CI (GitHub Actions)
+
+On every **pull request** and **push** to `main` or `master`, GitHub Actions runs a single job:
+
+1. **Install** — `yarn install --ignore-engines --frozen-lockfile`
+2. **Type-check** — `yarn build:types` (TypeScript for both packages)
+3. **Build** — `yarn workspaces run build` (Backstage CLI build)
+4. **Lint** — `yarn lint`
+5. **Test** — `yarn test`
+
+A **PostgreSQL 16** service container is started so backend tests can run against a real database. The workflow uses `concurrency` to cancel in-flight runs when a new push is made to the same branch.
+
+Configuration: [.github/workflows/ci.yml](.github/workflows/ci.yml).
 
 ---
 
@@ -196,7 +228,7 @@ cp -r hypo-stage-backend /path/to/your/backstage/plugins/
 
 ### Step 1: Install the plugin packages
 
-From your Backstage application root:
+From your Backstage application root (adjust `packages/app` and `packages/backend` if your app uses different paths, e.g. `apps/web` or `apps/backend`):
 
 ```bash
 # Frontend plugin
