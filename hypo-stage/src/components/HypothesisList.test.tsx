@@ -237,6 +237,9 @@ describe('HypothesisList', () => {
       const user = userEvent.setup();
       await renderWithProviders(<HypothesisList />);
 
+      await waitFor(() => {
+        expect(screen.getByText('First test hypothesis statement')).toBeInTheDocument();
+      });
       const deleteButtons = screen.getAllByLabelText(/Delete hypothesis/i);
       await user.click(deleteButtons[0]);
 

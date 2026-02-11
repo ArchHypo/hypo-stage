@@ -165,7 +165,7 @@ const HypothesisPageContent = ({
                 <TextField
                   fullWidth
                   multiline
-                  rows={2}
+                  minRows={2}
                   placeholder="Type the hypothesis name here..."
                   value={deleteConfirmText}
                   onChange={(e) => setDeleteConfirmText(e.target.value)}

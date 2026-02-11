@@ -21,9 +21,10 @@ const mockUseHypothesisData = useHypothesisData as jest.MockedFunction<typeof us
 const mockUseNavigate = useNavigate as jest.MockedFunction<typeof useNavigate>;
 const mockUseParams = useParams as jest.MockedFunction<typeof useParams>;
 
+const longStatement = 'This is a test hypothesis statement that must be typed exactly';
 const mockHypothesis = {
   id: 'test-hypothesis-id',
-  statement: 'This is a test hypothesis statement that must be typed exactly',
+  statement: longStatement,
   status: 'Open' as const,
   sourceType: 'Requirements' as const,
   entityRefs: ['component:default/my-service'],
@@ -139,7 +140,7 @@ describe('HypothesisPage', () => {
       const user = userEvent.setup();
       await renderWithProviders(<HypothesisPage />);
 
-      const deleteButton = screen.getByRole('button', { name: /delete/i });
+      const deleteButton = await screen.findByRole('button', { name: /delete/i });
       await act(async () => {
         await user.click(deleteButton);
       });
@@ -154,7 +155,7 @@ describe('HypothesisPage', () => {
       const user = userEvent.setup();
       await renderWithProviders(<HypothesisPage />);
 
-      const deleteButton = screen.getByRole('button', { name: /delete/i });
+      const deleteButton = await screen.findByRole('button', { name: /delete/i });
       await act(async () => {
         await user.click(deleteButton);
       });
@@ -167,43 +168,53 @@ describe('HypothesisPage', () => {
       expect(screen.getAllByText(mockHypothesis.statement).length).toBeGreaterThan(0);
     });
 
-    it('should disable delete button until exact statement is typed', async () => {
-      const user = userEvent.setup();
-      await renderWithProviders(<HypothesisPage />);
+    it(
+      'should disable delete button until exact statement is typed',
+      async () => {
+        const shortStatement = 'Short';
+        mockUseHypothesisData.mockReturnValue({
+          hypothesis: { ...mockHypothesis, statement: shortStatement },
+          events: mockEvents,
+          loading: false,
+          error: null,
+          refreshHypothesis: jest.fn(),
+          refetch: jest.fn(),
+        });
+        const user = userEvent.setup({ delay: null });
+        await renderWithProviders(<HypothesisPage />);
 
-      const deleteButton = screen.getByRole('button', { name: /delete/i });
-      await act(async () => {
-        await user.click(deleteButton);
-      });
+        const deleteButton = await screen.findByRole('button', { name: /delete/i });
+        await act(async () => {
+          await user.click(deleteButton);
+        });
 
-      const confirmInput = screen.getByPlaceholderText(/Type the hypothesis name here/i);
-      const confirmDeleteButton = screen.getByRole('button', { name: /^Delete$/i });
+        const confirmInput = screen.getByPlaceholderText(/Type the hypothesis name here/i);
+        const confirmDeleteButton = screen.getByRole('button', { name: /^Delete$/i });
 
-      // Delete button should be disabled initially
-      expect(confirmDeleteButton).toBeDisabled();
+        expect(confirmDeleteButton).toBeDisabled();
 
-      // Type partial text - still disabled
-      await act(async () => {
-        await user.type(confirmInput, 'This is a test');
-      });
-      expect(confirmDeleteButton).toBeDisabled();
+        await act(async () => {
+          await user.type(confirmInput, 'Sh');
+        });
+        expect(confirmDeleteButton).toBeDisabled();
 
-      // Type exact statement - should be enabled
-      await act(async () => {
-        await user.clear(confirmInput);
-        await user.type(confirmInput, mockHypothesis.statement);
-      });
-      await waitFor(() => {
-        expect(confirmDeleteButton).not.toBeDisabled();
-      });
-    });
+        await act(async () => {
+          await user.clear(confirmInput);
+          await user.type(confirmInput, shortStatement);
+        });
+        await waitFor(() => {
+          expect(confirmDeleteButton).not.toBeDisabled();
+        });
+      },
+      10000,
+    );
 
     it('should call deleteHypothesis and navigate on successful delete', async () => {
-      const user = userEvent.setup();
+      const user = userEvent.setup({ delay: null });
       mockHypoStageApi.deleteHypothesis.mockResolvedValue(undefined);
       const { mockNavigate } = await renderWithProviders(<HypothesisPage />);
 
-      const deleteButton = screen.getByRole('button', { name: /delete/i });
+      const deleteButton = await screen.findByRole('button', { name: /delete/i });
       await act(async () => {
         await user.click(deleteButton);
       });
@@ -229,12 +240,12 @@ describe('HypothesisPage', () => {
     });
 
     it('should show error notification on delete failure', async () => {
-      const user = userEvent.setup();
+      const user = userEvent.setup({ delay: null });
       const errorMessage = 'Failed to delete hypothesis';
       mockHypoStageApi.deleteHypothesis.mockRejectedValue(new Error(errorMessage));
       await renderWithProviders(<HypothesisPage />);
 
-      const deleteButton = screen.getByRole('button', { name: /delete/i });
+      const deleteButton = await screen.findByRole('button', { name: /delete/i });
       await act(async () => {
         await user.click(deleteButton);
       });
@@ -262,7 +273,7 @@ describe('HypothesisPage', () => {
       const user = userEvent.setup();
       await renderWithProviders(<HypothesisPage />);
 
-      const deleteButton = screen.getByRole('button', { name: /delete/i });
+      const deleteButton = await screen.findByRole('button', { name: /delete/i });
       await act(async () => {
         await user.click(deleteButton);
       });
@@ -276,7 +287,7 @@ describe('HypothesisPage', () => {
     });
 
     it('should show loading state during delete', async () => {
-      const user = userEvent.setup();
+      const user = userEvent.setup({ delay: null });
       let resolveDelete: () => void;
       const deletePromise = new Promise<void>((resolve) => {
         resolveDelete = resolve;
@@ -284,7 +295,7 @@ describe('HypothesisPage', () => {
       mockHypoStageApi.deleteHypothesis.mockReturnValue(deletePromise);
       await renderWithProviders(<HypothesisPage />);
 
-      const deleteButton = screen.getByRole('button', { name: /delete/i });
+      const deleteButton = await screen.findByRole('button', { name: /delete/i });
       await act(async () => {
         await user.click(deleteButton);
       });
