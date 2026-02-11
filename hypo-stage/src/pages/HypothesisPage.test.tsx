@@ -1,5 +1,5 @@
 import { default as React } from 'react';
-import { act, screen, waitFor } from '@testing-library/react';
+import { act, screen, waitFor, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 import { TestApiProvider, renderInTestApp } from '@backstage/test-utils';
@@ -193,15 +193,10 @@ describe('HypothesisPage', () => {
 
         expect(confirmDeleteButton).toBeDisabled();
 
-        await act(async () => {
-          await user.type(confirmInput, 'Sh');
-        });
+        fireEvent.change(confirmInput, { target: { value: 'Sh' } });
         expect(confirmDeleteButton).toBeDisabled();
 
-        await act(async () => {
-          await user.clear(confirmInput);
-          await user.type(confirmInput, shortStatement);
-        });
+        fireEvent.change(confirmInput, { target: { value: shortStatement } });
         await waitFor(() => {
           expect(confirmDeleteButton).not.toBeDisabled();
         });
@@ -220,18 +215,14 @@ describe('HypothesisPage', () => {
       });
 
       const confirmInput = screen.getByPlaceholderText(/Type the hypothesis name here/i);
-      await act(async () => {
-        await user.type(confirmInput, mockHypothesis.statement);
-      });
+      fireEvent.change(confirmInput, { target: { value: mockHypothesis.statement } });
 
       const confirmDeleteButton = screen.getByRole('button', { name: /^Delete$/i });
       await waitFor(() => {
         expect(confirmDeleteButton).not.toBeDisabled();
       });
 
-      await act(async () => {
-        await user.click(confirmDeleteButton);
-      });
+      await user.click(confirmDeleteButton);
 
       await waitFor(() => {
         expect(mockHypoStageApi.deleteHypothesis).toHaveBeenCalledWith('test-hypothesis-id');
@@ -251,18 +242,14 @@ describe('HypothesisPage', () => {
       });
 
       const confirmInput = screen.getByPlaceholderText(/Type the hypothesis name here/i);
-      await act(async () => {
-        await user.type(confirmInput, mockHypothesis.statement);
-      });
+      fireEvent.change(confirmInput, { target: { value: mockHypothesis.statement } });
 
       const confirmDeleteButton = screen.getByRole('button', { name: /^Delete$/i });
       await waitFor(() => {
         expect(confirmDeleteButton).not.toBeDisabled();
       });
 
-      await act(async () => {
-        await user.click(confirmDeleteButton);
-      });
+      await user.click(confirmDeleteButton);
 
       await waitFor(() => {
         expect(screen.getByText(errorMessage)).toBeInTheDocument();
@@ -301,18 +288,14 @@ describe('HypothesisPage', () => {
       });
 
       const confirmInput = screen.getByPlaceholderText(/Type the hypothesis name here/i);
-      await act(async () => {
-        await user.type(confirmInput, mockHypothesis.statement);
-      });
+      fireEvent.change(confirmInput, { target: { value: mockHypothesis.statement } });
 
       const confirmDeleteButton = screen.getByRole('button', { name: /^Delete$/i });
       await waitFor(() => {
         expect(confirmDeleteButton).not.toBeDisabled();
       });
 
-      await act(async () => {
-        await user.click(confirmDeleteButton);
-      });
+      await user.click(confirmDeleteButton);
 
       // Should show "Deleting…" text
       expect(screen.getByText(/Deleting…/i)).toBeInTheDocument();

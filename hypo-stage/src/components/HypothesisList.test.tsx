@@ -237,13 +237,10 @@ describe('HypothesisList', () => {
       const user = userEvent.setup();
       await renderWithProviders(<HypothesisList />);
 
-      await waitFor(() => {
-        expect(screen.getByText('First test hypothesis statement')).toBeInTheDocument();
-      });
-      const deleteButtons = screen.getAllByLabelText(/Delete hypothesis/i);
+      const deleteButtons = await screen.findAllByLabelText(/Delete hypothesis/i);
       await user.click(deleteButtons[0]);
 
-      expect(screen.getByText('Delete hypothesis?')).toBeInTheDocument();
+      expect(await screen.findByText('Delete hypothesis?')).toBeInTheDocument();
     });
 
     it('should show correct hypothesis statement in delete dialog', async () => {
