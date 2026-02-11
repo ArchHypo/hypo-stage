@@ -1,4 +1,4 @@
-# HypoStage CI: build, test, and lint on every PR and push to main.
+# HypoStage CI: lint, build, and test on every PR and push to main.
 # Requires Node.js 20+ (see package.json engines).
 
 name: CI
@@ -15,7 +15,7 @@ defaults:
 
 jobs:
   validate:
-    name: Build, test & lint
+    name: Lint, build & test
     runs-on: ubuntu-latest
 
     services:
@@ -53,11 +53,11 @@ jobs:
       - name: Install dependencies
         run: yarn install --ignore-engines --frozen-lockfile
 
+      - name: Lint
+        run: yarn lint
+
       - name: Build
         run: yarn build
 
       - name: Test
         run: yarn test
-
-      - name: Lint
-        run: yarn lint
