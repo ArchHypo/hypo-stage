@@ -306,6 +306,32 @@ export const useStyles = makeStyles((theme: Theme) =>
       color: '#155724',
     },
 
+    // Focus tags (ArchHypo: need attention / can postpone)
+    focusChipNeedAttention: {
+      padding: '2px 8px',
+      borderRadius: 12,
+      fontSize: 11,
+      fontWeight: 'bold',
+      textTransform: 'uppercase',
+      whiteSpace: 'nowrap',
+      display: 'inline-block',
+      flexShrink: 0,
+      backgroundColor: theme.palette.warning?.main ?? '#ed6c02',
+      color: theme.palette.warning?.contrastText ?? '#fff',
+    },
+    focusChipCanPostpone: {
+      padding: '2px 8px',
+      borderRadius: 12,
+      fontSize: 11,
+      fontWeight: 'bold',
+      textTransform: 'uppercase',
+      whiteSpace: 'nowrap',
+      display: 'inline-block',
+      flexShrink: 0,
+      backgroundColor: theme.palette.success?.main ?? '#2e7d32',
+      color: theme.palette.success?.contrastText ?? '#fff',
+    },
+
     // Validation & Error Styles
     validationMessage: {
       fontSize: '12px',

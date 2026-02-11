@@ -1,3 +1,4 @@
+import { default as React } from 'react';
 import { createDevApp } from '@backstage/dev-utils';
 import { hypoStagePlugin, HypoStagePage, CreateHypothesisPage, HypothesisPage, EditHypothesisPage } from '../src/plugin';
 

@@ -74,6 +74,7 @@ export interface HypothesisService {
   getAll(): Promise<Hypothesis[]>;
   update(id: string, input: UpdateHypothesisInput): Promise<Hypothesis>;
   getEvents(id: string): Promise<HypothesisEvent[]>;
+  deleteHypothesis(id: string): Promise<void>;
   createTechnicalPlanning(hypothesisId: string, input: CreateTechnicalPlanningInput): Promise<TechnicalPlanning>;
   updateTechnicalPlanning(hypothesisId: string, input: UpdateTechnicalPlanningInput): Promise<TechnicalPlanning>;
   deleteTechnicalPlanning(id: string): Promise<void>;

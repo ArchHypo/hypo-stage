@@ -1,5 +1,7 @@
 # HypoStage Backend
 
+HypoStage is an [ArchHypo](https://github.com/ArchHypo) plugin for Backstage.
+
 ## Installation
 
 This plugin is installed via the `@internal/plugin-hypo-stage-backend` package. To install it to your backend package, run the following command:

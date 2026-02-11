@@ -29,6 +29,100 @@ export async function createRouter({
     res.json(entities.items.map(entity => stringifyEntityRef(entity)));
   });
 
+  router.get('/hypotheses/teams', async (req, res) => {
+    const auth = await httpAuth.credentials(req);
+    const [hypotheses, catalogResponse] = await Promise.all([
+      hypothesisService.getAll(),
+      catalogService.getEntities({ filter: { kind: 'component' } }, { credentials: auth }),
+    ]);
+    const refsSet = new Set<string>();
+    for (const h of hypotheses) {
+      for (const ref of h.entityRefs || []) refsSet.add(ref);
+    }
+    const teams = new Set<string>();
+    for (const entity of catalogResponse.items) {
+      if (refsSet.has(stringifyEntityRef(entity))) {
+        const team = (entity as { spec?: { team?: string } }).spec?.team;
+        if (team) teams.add(team);
+      }
+    }
+    res.json(Array.from(teams).sort());
+  });
+
+  router.get('/hypotheses/referenced-entity-refs', async (_req, res) => {
+    const hypotheses = await hypothesisService.getAll();
+    const refsSet = new Set<string>();
+    for (const h of hypotheses) {
+      for (const ref of h.entityRefs || []) refsSet.add(ref);
+    }
+    res.json(Array.from(refsSet).sort());
+  });
+
+  /** Lightweight stats for dashboard: same filters as GET /hypotheses, optional time bound (sinceDays). */
+  router.get('/hypotheses/stats', async (req, res) => {
+    const entityRef = req.query.entityRef as string | undefined;
+    const team = req.query.team as string | undefined;
+    const sinceDays = req.query.sinceDays !== undefined ? Number(req.query.sinceDays) : undefined;
+
+    let hypotheses = await hypothesisService.getAll();
+
+    if (entityRef) {
+      hypotheses = hypotheses.filter(
+        h => Array.isArray(h.entityRefs) && h.entityRefs.includes(entityRef),
+      );
+    }
+
+    if (team) {
+      const auth = await httpAuth.credentials(req);
+      const entities = await catalogService.getEntities(
+        { filter: { kind: 'component', 'spec.team': team } },
+        { credentials: auth },
+      );
+      const teamRefs = new Set(entities.items.map(e => stringifyEntityRef(e)));
+      hypotheses = hypotheses.filter(
+        h => Array.isArray(h.entityRefs) && h.entityRefs.some(ref => teamRefs.has(ref)),
+      );
+    }
+
+    const cutoff =
+      sinceDays !== undefined && Number.isFinite(sinceDays) && sinceDays > 0
+        ? new Date(Date.now() - sinceDays * 24 * 60 * 60 * 1000)
+        : null;
+    const filtered = cutoff
+      ? hypotheses.filter(h => new Date(h.updatedAt) >= cutoff)
+      : hypotheses;
+
+    const byStatus: Record<string, number> = {};
+    const byUncertainty: Record<string, number> = {};
+    const byImpact: Record<string, number> = {};
+    let inLast30Days = 0;
+    let needAttention = 0;
+    let canPostpone = 0;
+    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+    const highUncertainty = (u: string) => u === 'High' || u === 'Very High';
+    const highImpact = (i: string) => i === 'High' || i === 'Very High';
+    const lowImpact = (i: string) => i === 'Very Low' || i === 'Low';
+
+    for (const h of filtered) {
+      byStatus[h.status] = (byStatus[h.status] ?? 0) + 1;
+      byUncertainty[h.uncertainty] = (byUncertainty[h.uncertainty] ?? 0) + 1;
+      byImpact[h.impact] = (byImpact[h.impact] ?? 0) + 1;
+      if (new Date(h.createdAt) >= thirtyDaysAgo) inLast30Days += 1;
+      if (highUncertainty(h.uncertainty) && highImpact(h.impact)) needAttention += 1;
+      if (lowImpact(h.impact)) canPostpone += 1;
+    }
+
+    res.json({
+      total: filtered.length,
+      byStatus,
+      byUncertainty,
+      byImpact,
+      inLast30Days,
+      needAttention,
+      canPostpone,
+    });
+  });
+
   router.post('/hypotheses', async (req, res) => {
     const parsed = createHypothesisSchema.safeParse(req.body);
 
@@ -41,8 +135,29 @@ export async function createRouter({
     res.status(201).json(createdHypothesis);
   });
 
-  router.get('/hypotheses', async (_req, res) => {
-    const hypotheses = await hypothesisService.getAll();
+  router.get('/hypotheses', async (req, res) => {
+    const entityRef = req.query.entityRef as string | undefined;
+    const team = req.query.team as string | undefined;
+
+    let hypotheses = await hypothesisService.getAll();
+
+    if (entityRef) {
+      hypotheses = hypotheses.filter(
+        h => Array.isArray(h.entityRefs) && h.entityRefs.includes(entityRef),
+      );
+    }
+
+    if (team) {
+      const auth = await httpAuth.credentials(req);
+      const entities = await catalogService.getEntities(
+        { filter: { kind: 'component', 'spec.team': team } },
+        { credentials: auth },
+      );
+      const teamRefs = new Set(entities.items.map(e => stringifyEntityRef(e)));
+      hypotheses = hypotheses.filter(
+        h => Array.isArray(h.entityRefs) && h.entityRefs.some(ref => teamRefs.has(ref)),
+      );
+    }
 
     res.json(hypotheses);
   });
@@ -63,6 +178,12 @@ export async function createRouter({
     const events = await hypothesisService.getEvents(req.params.id);
 
     res.json(events);
+  });
+
+  router.delete('/hypotheses/:id', async (req, res) => {
+    await hypothesisService.deleteHypothesis(req.params.id);
+
+    res.status(204).send();
   });
 
   router.post('/hypotheses/:id/technical_plannings', async (req, res) => {

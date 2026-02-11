@@ -1,20 +1,21 @@
 import { default as React } from 'react';
 import { Typography, Button, Paper, CircularProgress, Grid, Box } from '@material-ui/core';
 import Add from '@material-ui/icons/Add';
-import { useStyles } from '../hooks/useStyles';
-import { CustomSelectField, CustomTextField } from './forms/FormField';
-import { validateHypothesisStatement } from '../utils/validators';
-import { QUALITY_ATTRIBUTE_OPTIONS, SOURCE_TYPE_OPTIONS, STATUS_OPTIONS } from '../utils/constants';
-import { LikertScaleField } from './forms/LikertScaleField';
-import { getRatingNumber, getRatingString } from '../utils/formatters';
-import { Hypothesis } from '@internal/plugin-hypo-stage-backend';
 import Save from '@material-ui/icons/Save';
+import { Hypothesis } from '@internal/plugin-hypo-stage-backend';
 import { CreateHypothesisFormData } from '../hooks/forms/useCreateHypothesis';
 import { EditHypothesisFormData } from '../hooks/forms/useEditHypothesis';
+import { validateHypothesisStatement } from '../utils/validators';
+import { QUALITY_ATTRIBUTE_OPTIONS, SOURCE_TYPE_OPTIONS, STATUS_OPTIONS } from '../utils/constants';
+import { getRatingNumber, getRatingString } from '../utils/formatters';
+import { CustomSelectField, CustomTextField } from './forms/FormField';
+import { EntityReferencesAutocomplete } from './forms/EntityReferencesAutocomplete';
+import { QualityAttributesField } from './forms/QualityAttributesField';
+import { LikertScaleField } from './forms/LikertScaleField';
 import { UrlListField } from './forms/UrlListField';
+import { useStyles } from '../hooks/useStyles';
 
 interface BaseHypothesisFormProps {
-  entityRefs: string[];
   isFormValid: boolean;
   loading: boolean;
   onSubmit?: () => void;
@@ -65,19 +66,17 @@ export const HypothesisForm: React.FC<CreateHypothesisFormProps | EditHypothesis
         <Grid container spacing={3}>
           {/* Entity references */}
           <Grid item xs={12}>
-            <CustomSelectField
+            <EntityReferencesAutocomplete
               label="Entity References"
               value={formData.entityRefs}
               onChange={(value) => onFieldChange('entityRefs', value)}
-              options={props.entityRefs.map((entityRef) => ({ value: entityRef, label: entityRef }))}
               required
-              multiple
+              helperText={
+                formData.entityRefs.length === 0
+                  ? 'Please select at least one entity reference. Type to search catalog components.'
+                  : undefined
+              }
             />
-            {formData.entityRefs.length === 0 && (
-              <Typography variant="body2" color="textSecondary">
-                Please select at least one entity reference for this hypothesis.
-              </Typography>
-            )}
           </Grid>
 
           {/* Hypothesis statement */}
@@ -148,18 +147,18 @@ export const HypothesisForm: React.FC<CreateHypothesisFormProps | EditHypothesis
             <Typography variant="h6" gutterBottom>
               Quality Attributes
             </Typography>
-            <CustomSelectField
-              label="Quality Attributes"
+            <QualityAttributesField
+              label="Quality Attributes (select one or more)"
               value={formData.qualityAttributes}
               onChange={(value) => onFieldChange('qualityAttributes', value)}
               options={QUALITY_ATTRIBUTE_OPTIONS}
-              multiple
+              required
+              helperText={
+                formData.qualityAttributes.length === 0
+                  ? 'Please select at least one quality attribute that this hypothesis affects. Click the field to open the list; each option shows a short concept in parentheses.'
+                  : undefined
+              }
             />
-            {formData.qualityAttributes.length === 0 && (
-              <Typography variant="body2" color="textSecondary" className={classes.secondaryText}>
-                Please select at least one quality attribute that this hypothesis affects.
-              </Typography>
-            )}
           </Grid>
 
           {/* Related artefacts */}

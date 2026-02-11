@@ -1,5 +1,16 @@
-import { default as React } from 'react';
-import { Button, Grid } from '@material-ui/core';
+import { default as React, useState } from 'react';
+import {
+  Button,
+  Grid,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
+  CircularProgress,
+  TextField,
+  Box,
+} from '@material-ui/core';
 import {
   Header,
   Page,
@@ -18,26 +29,59 @@ import { EvolutionChart } from './HypothesisPage/components/EvolutionChart';
 import { NotificationProvider } from '../providers/NotificationProvider';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useStyles } from '../hooks/useStyles';
+import { useApi } from '@backstage/core-plugin-api';
+import { HypoStageApiRef } from '../api/HypoStageApi';
+import { useNotifications } from '../providers/NotificationProvider';
 import ArrowBack from '@material-ui/icons/ArrowBack';
 import Edit from '@material-ui/icons/Edit';
+import DeleteIcon from '@material-ui/icons/Delete';
+import { Hypothesis, HypothesisEvent } from '@internal/plugin-hypo-stage-backend';
 
-export const HypothesisPage = () => {
+/** Inner content that uses useNotifications; must be rendered inside NotificationProvider. */
+const HypothesisPageContent = ({
+  hypothesis,
+  events,
+  refreshHypothesis,
+}: {
+  hypothesis: Hypothesis;
+  events: HypothesisEvent[];
+  refreshHypothesis: () => void;
+}) => {
   const classes = useStyles();
   const navigate = useNavigate();
-  const { hypothesisId } = useParams<{ hypothesisId: string }>();
-  const { hypothesis, events, loading, error, refreshHypothesis } = useHypothesisData(hypothesisId);
+  const hypoStageApi = useApi(HypoStageApiRef);
+  const { showSuccess, showError } = useNotifications();
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
+  const [isDeleting, setIsDeleting] = useState(false);
 
-  if (loading) {
-    return <Progress />;
-  }
+  const handleDeleteClick = () => {
+    setDeleteConfirmText('');
+    setDeleteDialogOpen(true);
+  };
 
-  if (error || !hypothesis) {
-    return <ResponseErrorPanel error={error || new Error('Hypothesis not found')} />;
-  }
+  const handleDeleteCancel = () => {
+    setDeleteDialogOpen(false);
+    setDeleteConfirmText('');
+  };
+
+  const handleDeleteConfirm = async () => {
+    setIsDeleting(true);
+    try {
+      await hypoStageApi.deleteHypothesis(hypothesis.id);
+      showSuccess('Hypothesis and all its technical planning have been deleted.');
+      setDeleteDialogOpen(false);
+      setDeleteConfirmText('');
+      navigate('/hypo-stage');
+    } catch (err) {
+      showError(err instanceof Error ? err.message : 'Failed to delete hypothesis');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   return (
-    <NotificationProvider>
-      <Page themeId="tool">
+    <Page themeId="tool">
         <Header title="Hypothesis Dashboard" subtitle={`ID: ${hypothesis.id}`}>
           <HeaderLabel label="Status" value={hypothesis.status} />
           <HeaderLabel label="Created" value={formatDate(hypothesis.createdAt)} />
@@ -59,8 +103,17 @@ export const HypothesisPage = () => {
               color="primary"
               startIcon={<Edit />}
               onClick={() => navigate(`/hypo-stage/hypothesis/${hypothesis.id}/edit`)}
+              className={classes.marginRight}
             >
               Edit Hypothesis
+            </Button>
+            <Button
+              variant="outlined"
+              color="secondary"
+              startIcon={<DeleteIcon />}
+              onClick={handleDeleteClick}
+            >
+              Delete
             </Button>
           </div>
 
@@ -89,8 +142,87 @@ export const HypothesisPage = () => {
               <TechnicalPlanningList hypothesis={hypothesis} onRefresh={refreshHypothesis} />
             </Grid>
           </Grid>
+
+          <Dialog
+            open={deleteDialogOpen}
+            onClose={handleDeleteCancel}
+            aria-labelledby="delete-hypothesis-dialog-title"
+            aria-describedby="delete-hypothesis-dialog-description"
+            maxWidth="sm"
+            fullWidth
+          >
+            <DialogTitle id="delete-hypothesis-dialog-title">
+              Delete hypothesis?
+            </DialogTitle>
+            <DialogContent>
+              <DialogContentText id="delete-hypothesis-dialog-description">
+                This will permanently delete this hypothesis and all its technical planning. This action cannot be undone.
+              </DialogContentText>
+              <DialogContentText>
+                To confirm, type the complete hypothesis name below. Copy and paste is not allowed.
+              </DialogContentText>
+              <Box mt={2} mb={1}>
+                <TextField
+                  fullWidth
+                  multiline
+                  rows={2}
+                  placeholder="Type the hypothesis name here..."
+                  value={deleteConfirmText}
+                  onChange={(e) => setDeleteConfirmText(e.target.value)}
+                  onPaste={(e) => e.preventDefault()}
+                  inputProps={{
+                    'aria-label': 'Confirm hypothesis name',
+                    'data-testid': 'delete-hypothesis-confirm-input',
+                  }}
+                  disabled={isDeleting}
+                />
+              </Box>
+              <DialogContentText variant="body2" color="textSecondary" component="div">
+                <strong>Reference — type this exactly:</strong>
+                <Box component="p" style={{ wordBreak: 'break-word', userSelect: 'none' }}>
+                  {hypothesis.statement}
+                </Box>
+              </DialogContentText>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={handleDeleteCancel} disabled={isDeleting}>
+                Cancel
+              </Button>
+              <Button
+                onClick={handleDeleteConfirm}
+                color="secondary"
+                variant="contained"
+                disabled={isDeleting || deleteConfirmText.trim() !== hypothesis.statement}
+                startIcon={isDeleting ? <CircularProgress size={16} /> : <DeleteIcon />}
+              >
+                {isDeleting ? 'Deleting…' : 'Delete'}
+              </Button>
+            </DialogActions>
+          </Dialog>
         </Content>
       </Page>
+  );
+};
+
+export const HypothesisPage = () => {
+  const { hypothesisId } = useParams<{ hypothesisId: string }>();
+  const { hypothesis, events, loading, error, refreshHypothesis } = useHypothesisData(hypothesisId);
+
+  if (loading) {
+    return <Progress />;
+  }
+
+  if (error || !hypothesis) {
+    return <ResponseErrorPanel error={error || new Error('Hypothesis not found')} />;
+  }
+
+  return (
+    <NotificationProvider>
+      <HypothesisPageContent
+        hypothesis={hypothesis}
+        events={events}
+        refreshHypothesis={refreshHypothesis}
+      />
     </NotificationProvider>
   );
 };
