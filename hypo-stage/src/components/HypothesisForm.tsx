@@ -87,7 +87,7 @@ export const HypothesisForm: React.FC<CreateHypothesisFormProps | EditHypothesis
                 onChange={isCreateMode ? (value) => onFieldChange('statement', value) : () => {}}
                 required
                 disabled={isEditMode}
-                minRows={4}
+                rows={4}
                 placeholder="e.g., The current access control library is compatible with the organization's Single Sign-On protocol."
                 helperText={`${isCreateMode ? formData.statement.length : props.hypothesis.statement.length}/500 characters`}
               />
@@ -181,7 +181,7 @@ export const HypothesisForm: React.FC<CreateHypothesisFormProps | EditHypothesis
               label="Notes/Comments"
               value={formData.notes}
               onChange={(value) => onFieldChange('notes', value)}
-              minRows={4}
+              rows={4}
               placeholder="Additional notes, comments, or observations about this hypothesis..."
             />
           </Grid>

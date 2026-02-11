@@ -102,7 +102,7 @@ export const TechnicalPlanningForm: React.FC<CreateTechnicalPlanningFormProps | 
               onChange={isCreateMode ? (value) => onFieldChange('description', value) : () => {}}
               required
               disabled={isEditMode}
-              minRows={3}
+              rows={3}
               placeholder="Brief description of the technical action"
               helperText={`${isCreateMode ? formData.description.length : props.technicalPlanning.description.length}/500 characters`}
             />
@@ -115,7 +115,7 @@ export const TechnicalPlanningForm: React.FC<CreateTechnicalPlanningFormProps | 
               value={formData.expectedOutcome}
               onChange={(value) => onFieldChange('expectedOutcome', value)}
               required
-              minRows={3}
+              rows={3}
               placeholder="What do you expect to learn or achieve?"
               helperText={`${formData.expectedOutcome.length}/500 characters`}
             />
