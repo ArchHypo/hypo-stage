@@ -151,6 +151,20 @@ export async function createHypothesisService({
     }));
   },
 
+  async deleteHypothesis(id: string): Promise<void> {
+    logger.info('Deleting hypothesis and related data', { id });
+
+    await db.transaction(async (trx) => {
+      await trx('technicalPlanning').where('hypothesisId', id).del();
+      await trx('hypothesisEvents').where('hypothesisId', id).del();
+      const deletedCount = await trx('hypothesis').where('id', id).del();
+
+      if (deletedCount === 0) {
+        throw new Error('Hypothesis not found');
+      }
+    });
+  },
+
   async createTechnicalPlanning(hypothesisId: string, input: CreateTechnicalPlanningInput): Promise<TechnicalPlanning> {
     logger.info('Creating technical planning', { hypothesisId, input });
 

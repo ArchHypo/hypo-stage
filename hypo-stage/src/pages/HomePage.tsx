@@ -21,7 +21,7 @@ export const HomePage = () => {
     <NotificationProvider>
       <Page themeId="tool">
         <Header title="Welcome to Hypo Stage!" subtitle="A usable ArchHypo framework">
-          <HeaderLabel label="Owner" value="Pedro" />
+          <HeaderLabel label="Owner" value="ArchHypo" />
           <HeaderLabel label="Lifecycle" value="Alpha" />
         </Header>
 

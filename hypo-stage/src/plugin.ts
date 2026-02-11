@@ -5,6 +5,8 @@ import {
 
 import { rootRouteRef, createHypothesisRouteRef, hypothesisRouteRef, editHypothesisRouteRef } from './routes';
 
+export { HYPO_STAGE_FEATURE_FLAG } from './featureFlags';
+
 export const hypoStagePlugin = createPlugin({
   id: 'hypo-stage',
   routes: {

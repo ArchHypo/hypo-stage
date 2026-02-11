@@ -1,0 +1,29 @@
+# Docker Compose for HypoStage plugin validation.
+# Start with: make start-dependencies  (or docker-compose up -d)
+# Stop with:  make stop-dependencies  (or docker-compose down --volumes)
+#
+# Use this PostgreSQL instance when running a Backstage app that includes the
+# HypoStage plugin. In your Backstage app's app-config.yaml (or environment),
+# point the backend database to this service (host: localhost, port: 5432).
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: hypo-stage-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: backstage
+    ports:
+      - "5432:5432"
+    volumes:
+      - hypo-stage-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  hypo-stage-pgdata:
+    driver: local

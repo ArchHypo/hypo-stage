@@ -11,27 +11,27 @@ export const SOURCE_TYPE_OPTIONS: { value: SourceType; label: string, descriptio
 ];
 
 /**
- * Quality attribute options
+ * Quality attribute options: concept explanation plus examples in parentheses
  */
-export const QUALITY_ATTRIBUTE_OPTIONS: { value: QualityAttribute; label: string, description?: string }[] = [
-  { value: 'Performance', label: 'Performance' },
-  { value: 'Reliability', label: 'Reliability' },
-  { value: 'Availability', label: 'Availability' },
-  { value: 'Scalability', label: 'Scalability' },
-  { value: 'Security', label: 'Security' },
-  { value: 'Maintainability', label: 'Maintainability' },
-  { value: 'Modifiability', label: 'Modifiability' },
-  { value: 'Usability', label: 'Usability' },
-  { value: 'Testability', label: 'Testability' },
-  { value: 'Deployability', label: 'Deployability' },
-  { value: 'Configurability', label: 'Configurability' },
-  { value: 'Recoverability', label: 'Recoverability' },
-  { value: 'Flexibility', label: 'Flexibility' },
-  { value: 'Interoperability', label: 'Interoperability' },
-  { value: 'Reusability', label: 'Reusability' },
-  { value: 'Extensibility', label: 'Extensibility' },
-  { value: 'Observability', label: 'Observability' },
-  { value: 'Auditability', label: 'Auditability' },
+export const QUALITY_ATTRIBUTE_OPTIONS: { value: QualityAttribute; label: string; description?: string }[] = [
+  { value: 'Performance', label: 'Performance (how fast and efficient the system is; e.g. response time, throughput, latency)' },
+  { value: 'Reliability', label: 'Reliability (how consistently the system behaves correctly; e.g. correctness, fault tolerance)' },
+  { value: 'Availability', label: 'Availability (how often the system is up and usable; e.g. uptime, fault recovery)' },
+  { value: 'Scalability', label: 'Scalability (how well the system handles growth in load or data; e.g. horizontal/vertical scaling)' },
+  { value: 'Security', label: 'Security (how well the system protects data and access; e.g. confidentiality, integrity, authentication)' },
+  { value: 'Maintainability', label: 'Maintainability (how easy it is to change and fix the system over time; e.g. code clarity, ease of changes)' },
+  { value: 'Modifiability', label: 'Modifiability (how easily the system can be changed with minimal side effects; e.g. change with minimal impact)' },
+  { value: 'Usability', label: 'Usability (how easy and pleasant the system is for end users; e.g. ease of use, learnability)' },
+  { value: 'Testability', label: 'Testability (how easy it is to verify behavior and find defects; e.g. verification, observability)' },
+  { value: 'Deployability', label: 'Deployability (how easily and safely changes reach production; e.g. release frequency, rollback)' },
+  { value: 'Configurability', label: 'Configurability (how much behavior can be changed without code changes; e.g. runtime/config)' },
+  { value: 'Recoverability', label: 'Recoverability (how well the system restores after failure or data loss; e.g. restore after failure)' },
+  { value: 'Flexibility', label: 'Flexibility (how well the system adapts to new scenarios or requirements; e.g. adaptability)' },
+  { value: 'Interoperability', label: 'Interoperability (how well the system works with other systems and formats; e.g. integration)' },
+  { value: 'Reusability', label: 'Reusability (how well parts of the system can be used in multiple contexts; e.g. reuse across features)' },
+  { value: 'Extensibility', label: 'Extensibility (how easily new behavior can be added without breaking existing; e.g. add features)' },
+  { value: 'Observability', label: 'Observability (how well internal state and behavior can be inferred from outside; e.g. monitoring, logging, tracing)' },
+  { value: 'Auditability', label: 'Auditability (how well actions and data can be traced for compliance or review; e.g. audit trail)' },
 ];
 
 /**

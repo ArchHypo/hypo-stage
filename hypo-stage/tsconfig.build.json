@@ -1,0 +1,16 @@
+{
+  "extends": "@backstage/cli/config/tsconfig.json",
+  "compilerOptions": {
+    "outDir": "../dist-types/hypo-stage",
+    "rootDir": ".",
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "noEmit": false,
+    "baseUrl": ".",
+    "paths": {
+      "react-markdown": ["./stub-types/react-markdown.d.ts"]
+    }
+  },
+  "include": ["src", "dev"],
+  "exclude": ["node_modules", "**/*.test.ts", "**/*.test.tsx"]
+}

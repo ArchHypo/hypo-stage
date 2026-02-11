@@ -6,6 +6,7 @@ import { useApiCall } from '../useApiCall';
 import { useNotifications } from '../../providers/NotificationProvider';
 import { UpdateHypothesisInput, Status, SourceType, QualityAttribute, LikertScale, Hypothesis } from '@internal/plugin-hypo-stage-backend';
 
+/** Form data shape for the Edit Hypothesis form */
 export interface EditHypothesisFormData {
   entityRefs: string[];
   status: Status;
@@ -17,8 +18,11 @@ export interface EditHypothesisFormData {
   notes: string;
 }
 
+/**
+ * Hook for edit-hypothesis form: loads hypothesis by id, form state, validation, and submit.
+ * Entity references are loaded on demand via catalog search (EntityReferencesAutocomplete).
+ */
 export const useEditHypothesis = (hypothesisId: string | undefined) => {
-  const [entityRefs, setEntityRefs] = useState<string[]>([]);
   const [hypothesis, setHypothesis] = useState<Hypothesis | null>(null);
   const api = useApi(HypoStageApiRef);
   const { loading, execute } = useApiCall();
@@ -37,11 +41,6 @@ export const useEditHypothesis = (hypothesisId: string | undefined) => {
   const isFormValid = formData.status &&
     formData.sourceType &&
     formData.qualityAttributes.length > 0;
-
-  const loadEntityRefs = useCallback(async () => {
-    const allEntityRefs = await api.getEntityRefs();
-    setEntityRefs(allEntityRefs);
-  }, [api]);
 
   const loadHypothesis = useCallback(async () => {
     if (!hypothesisId) return;
@@ -96,15 +95,10 @@ export const useEditHypothesis = (hypothesisId: string | undefined) => {
   }, [hypothesisId, api, formData, isFormValid, execute, showSuccess, showError]);
 
   useEffect(() => {
-    loadEntityRefs();
-  }, [loadEntityRefs]);
-
-  useEffect(() => {
     loadHypothesis();
   }, [loadHypothesis]);
 
   return {
-    entityRefs,
     hypothesis,
     formData,
     updateField,

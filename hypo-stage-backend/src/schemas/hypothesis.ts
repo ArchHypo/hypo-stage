@@ -78,13 +78,34 @@ export const updateHypothesisSchema = z.object({
   notes: z.string().nullable(),
 });
 
+/** ISO date string YYYY-MM-DD; rejects invalid calendar dates and unreasonable years (e.g. typos like 20026). */
+const isoDateStringSchema = z
+  .string()
+  .regex(/^\d{4}-\d{2}-\d{2}$/, { message: 'Target date must be YYYY-MM-DD (e.g. 2026-02-07)' })
+  .refine(
+    (s) => {
+      const [y, m, d] = s.split('-').map(Number);
+      const year = y;
+      const month = m - 1;
+      const date = new Date(year, month, d);
+      return (
+        date.getFullYear() === year &&
+        date.getMonth() === month &&
+        date.getDate() === d &&
+        year >= 2000 &&
+        year <= 2100
+      );
+    },
+    { message: 'Target date must be a valid calendar date between 2000 and 2100' }
+  );
+
 export const createTechnicalPlanningSchema = z.object({
   entityRef: z.string(), // Backstage entity reference pattern
   actionType: actionTypeSchema,
   description: z.string().min(1).max(500),
   expectedOutcome: z.string().min(1).max(500),
   documentations: z.array(z.string().url()),
-  targetDate: z.string().date(),
+  targetDate: isoDateStringSchema,
 });
 
 export const updateTechnicalPlanningSchema = z.object({
