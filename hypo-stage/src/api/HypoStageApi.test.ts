@@ -116,15 +116,14 @@ describe('HypoStageApiClient', () => {
       );
     });
 
-    it('should throw when request fails', async () => {
+    it('should return empty array when request fails (optional for generic Backstage)', async () => {
       mockFetchApi.fetch!.mockResolvedValue({
         ok: false,
         statusText: 'Server Error',
       } as Response);
 
-      await expect(apiClient.getReferencedEntityRefs()).rejects.toThrow(
-        'Failed to fetch referenced entity refs: Server Error',
-      );
+      const result = await apiClient.getReferencedEntityRefs();
+      expect(result).toEqual([]);
     });
   });
 
@@ -204,15 +203,14 @@ describe('HypoStageApiClient', () => {
       );
     });
 
-    it('should throw when request fails', async () => {
+    it('should return empty array when request fails (optional for generic Backstage)', async () => {
       mockFetchApi.fetch!.mockResolvedValue({
         ok: false,
         statusText: 'Server Error',
       } as Response);
 
-      await expect(apiClient.getTeams()).rejects.toThrow(
-        'Failed to fetch teams: Server Error',
-      );
+      const result = await apiClient.getTeams();
+      expect(result).toEqual([]);
     });
   });
 

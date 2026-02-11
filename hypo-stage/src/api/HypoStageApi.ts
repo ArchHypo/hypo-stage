@@ -68,33 +68,49 @@ export class HypoStageApiClient implements HypoStageApi {
     this.fetchApi = options.fetchApi;
   }
 
+  /**
+   * All catalog component entity refs (for filter dropdown).
+   * Returns [] on failure so generic Backstage without catalog integration still shows the list.
+   */
   async getEntityRefs(): Promise<string[]> {
-    const baseUrl = await this.discoveryApi.getBaseUrl('hypo-stage');
-    const response = await this.fetchApi.fetch(`${baseUrl}/hypotheses/entity-refs`);
-
-    return response.json();
+    try {
+      const baseUrl = await this.discoveryApi.getBaseUrl('hypo-stage');
+      const response = await this.fetchApi.fetch(`${baseUrl}/hypotheses/entity-refs`);
+      if (!response.ok) return [];
+      return response.json();
+    } catch {
+      return [];
+    }
   }
 
+  /**
+   * Teams derived from components referenced by hypotheses (spec.team).
+   * Returns [] on failure or when catalog has no spec.team — keeps plugin working in any Backstage.
+   */
   async getTeams(): Promise<string[]> {
-    const baseUrl = await this.discoveryApi.getBaseUrl('hypo-stage');
-    const response = await this.fetchApi.fetch(`${baseUrl}/hypotheses/teams`);
-
-    if (!response.ok) {
-      throw new Error(`Failed to fetch teams: ${response.statusText}`);
+    try {
+      const baseUrl = await this.discoveryApi.getBaseUrl('hypo-stage');
+      const response = await this.fetchApi.fetch(`${baseUrl}/hypotheses/teams`);
+      if (!response.ok) return [];
+      return response.json();
+    } catch {
+      return [];
     }
-
-    return response.json();
   }
 
+  /**
+   * Entity refs that appear in at least one hypothesis (for filter dropdown).
+   * Returns [] on failure so the list still renders without component filter.
+   */
   async getReferencedEntityRefs(): Promise<string[]> {
-    const baseUrl = await this.discoveryApi.getBaseUrl('hypo-stage');
-    const response = await this.fetchApi.fetch(`${baseUrl}/hypotheses/referenced-entity-refs`);
-
-    if (!response.ok) {
-      throw new Error(`Failed to fetch referenced entity refs: ${response.statusText}`);
+    try {
+      const baseUrl = await this.discoveryApi.getBaseUrl('hypo-stage');
+      const response = await this.fetchApi.fetch(`${baseUrl}/hypotheses/referenced-entity-refs`);
+      if (!response.ok) return [];
+      return response.json();
+    } catch {
+      return [];
     }
-
-    return response.json();
   }
 
   async getHypothesesStats(options?: GetHypothesesStatsOptions): Promise<HypothesisStats> {
