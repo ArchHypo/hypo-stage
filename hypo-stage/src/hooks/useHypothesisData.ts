@@ -61,6 +61,9 @@ export const useHypothesisData = (hypothesisId?: string) => {
   useEffect(() => {
     if (hypothesisId) {
       fetchHypothesis();
+    } else {
+      setLoading(false);
+      setError(new Error('Hypothesis not found'));
     }
   }, [fetchHypothesis, hypothesisId]);
 

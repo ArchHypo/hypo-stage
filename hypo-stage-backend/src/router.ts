@@ -3,37 +3,64 @@ import express from 'express';
 import Router from 'express-promise-router';
 import { HypothesisService } from './types/hypothesis';
 import { CatalogService } from '@backstage/plugin-catalog-node';
-import { HttpAuthService } from '@backstage/backend-plugin-api';
+import { AuthService, HttpAuthService } from '@backstage/backend-plugin-api';
 import { stringifyEntityRef } from '@backstage/catalog-model';
 import { createHypothesisSchema, updateHypothesisSchema, createTechnicalPlanningSchema, updateTechnicalPlanningSchema } from './schemas/hypothesis';
 
 export async function createRouter({
+  auth: authService,
   httpAuth,
   hypothesisService,
   catalogService,
 }: {
+  auth: AuthService;
   httpAuth: HttpAuthService;
   hypothesisService: HypothesisService;
   catalogService: CatalogService;
 }): Promise<express.Router> {
   const router = Router();
+  
+  // CORS middleware for standalone dev mode
+  // Use request origin when present so it works with credentials; fallback to * for no-credentials requests
+  router.use((req, res, next) => {
+    const origin = req.headers.origin;
+    res.header('Access-Control-Allow-Origin', origin || '*');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+    res.header('Access-Control-Allow-Credentials', 'true');
+    if (req.method === 'OPTIONS') {
+      res.sendStatus(200);
+    } else {
+      next();
+    }
+  });
+  
   router.use(express.json());
 
   router.get('/hypotheses/entity-refs', async (req, res) => {
-    // https://backstage.io/docs/backend-system/core-services/http-auth/#getting-request-credentials
-    const auth = await httpAuth.credentials(req);
-    const entities = await catalogService.getEntities({filter: {
-      kind: 'component',
-    }}, { credentials: auth });
-
+    let credentials;
+    try {
+      credentials = await httpAuth.credentials(req);
+    } catch {
+      credentials = await authService.getNoneCredentials();
+    }
+    const entities = await catalogService.getEntities(
+      { filter: { kind: 'component' } },
+      { credentials },
+    );
     res.json(entities.items.map(entity => stringifyEntityRef(entity)));
   });
 
   router.get('/hypotheses/teams', async (req, res) => {
-    const auth = await httpAuth.credentials(req);
+    let credentials;
+    try {
+      credentials = await httpAuth.credentials(req);
+    } catch {
+      credentials = await authService.getNoneCredentials();
+    }
     const [hypotheses, catalogResponse] = await Promise.all([
       hypothesisService.getAll(),
-      catalogService.getEntities({ filter: { kind: 'component' } }, { credentials: auth }),
+      catalogService.getEntities({ filter: { kind: 'component' } }, { credentials }),
     ]);
     const refsSet = new Set<string>();
     for (const h of hypotheses) {
@@ -73,10 +100,15 @@ export async function createRouter({
     }
 
     if (team) {
-      const auth = await httpAuth.credentials(req);
+      let credentials;
+      try {
+        credentials = await httpAuth.credentials(req);
+      } catch {
+        credentials = await authService.getNoneCredentials();
+      }
       const entities = await catalogService.getEntities(
         { filter: { kind: 'component', 'spec.team': team } },
-        { credentials: auth },
+        { credentials },
       );
       const teamRefs = new Set(entities.items.map(e => stringifyEntityRef(e)));
       hypotheses = hypotheses.filter(
@@ -148,10 +180,15 @@ export async function createRouter({
     }
 
     if (team) {
-      const auth = await httpAuth.credentials(req);
+      let credentials;
+      try {
+        credentials = await httpAuth.credentials(req);
+      } catch {
+        credentials = await authService.getNoneCredentials();
+      }
       const entities = await catalogService.getEntities(
         { filter: { kind: 'component', 'spec.team': team } },
-        { credentials: auth },
+        { credentials },
       );
       const teamRefs = new Set(entities.items.map(e => stringifyEntityRef(e)));
       hypotheses = hypotheses.filter(

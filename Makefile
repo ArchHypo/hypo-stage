@@ -28,8 +28,8 @@ build: ## Build both frontend and backend plugins (declarations + Backstage CLI 
 ##@ Tests
 
 .PHONY: test
-test: ## Run all tests (frontend and backend)
-	yarn test
+test: ## Run all tests (frontend and backend), non-interactive
+	CI=true yarn test
 
 ##@ Lint
 
@@ -37,10 +37,34 @@ test: ## Run all tests (frontend and backend)
 lint: ## Run lint (code style) on both plugins
 	yarn lint
 
-##@ Validation
+##@ Run all
 
-.PHONY: validate
-validate: deps build test lint ## Install, build, test and lint (full validation)
+.PHONY: check
+check: ## Build, test, and lint in one go (non-interactive)
+	@tmpdir=$$(mktemp -d); build_log="$$tmpdir/build.log"; test_log="$$tmpdir/test.log"; lint_log="$$tmpdir/lint.log"; failed=0; \
+	echo ""; echo "=== Build ==="; \
+	start=$$(date +%s); $(MAKE) build 2>&1 | tee "$$build_log"; build_ret=$$?; end=$$(date +%s); build_duration=$$((end-start)); \
+	if [ $$build_ret -eq 0 ]; then echo "Build: OK ($${build_duration}s)"; else echo "Build: FAILED"; failed=1; fi; \
+	echo ""; echo "=== Test ==="; \
+	$(MAKE) test 2>&1 | tee "$$test_log"; test_ret=$$?; \
+	if [ $$test_ret -eq 0 ]; then \
+	  test_suites=$$(grep "Test Suites:" "$$test_log" | tail -1); test_tests=$$(grep "Tests:" "$$test_log" | tail -1); \
+	  echo "Test: OK ($$test_suites; $$test_tests)"; \
+	else echo "Test: FAILED"; failed=1; fi; \
+	echo ""; echo "=== Lint ==="; \
+	$(MAKE) lint 2>&1 | tee "$$lint_log"; lint_ret=$$?; \
+	lint_line=""; \
+	if [ $$lint_ret -eq 0 ]; then \
+	  lint_line=$$(grep -E "([0-9]+ problem|No problem|✔|✖)" "$$lint_log" | tail -1 | sed 's/^[[:space:]]*//'); \
+	  if [ -n "$$lint_line" ]; then echo "Lint: OK ($$lint_line)"; else echo "Lint: OK"; fi; \
+	else echo "Lint: FAILED"; failed=1; fi; \
+	echo ""; echo "--- Check summary ---"; \
+	echo "  Build:  $$([ $$build_ret -eq 0 ] && echo "passed ($${build_duration}s)" || echo "FAILED")"; \
+	if [ $$test_ret -eq 0 ]; then echo "  Test:   passed ($$test_suites; $$test_tests)"; else echo "  Test:   FAILED"; fi; \
+	if [ $$lint_ret -eq 0 ]; then echo "  Lint:   passed$$([ -n "$$lint_line" ] && echo " ($$lint_line)" || true)"; else echo "  Lint:   FAILED"; fi; \
+	echo ""; \
+	if [ $$failed -eq 0 ]; then echo "All steps passed."; else echo "One or more steps failed."; fi; \
+	rm -rf "$$tmpdir"; [ $$failed -eq 0 ] || exit 1
 
 ##@ Docker (generic Backstage)
 

@@ -47,7 +47,7 @@ yarn lint
 
 Building from this directory alone will fail until the root has been built at least once, because the Backstage CLI build expects TypeScript declaration output from the root `yarn build:types` step.
 
-For full validation (deps, build, test, lint for both frontend and backend), use the [main README](https://github.com/ArchHypo/hypo-stage/blob/main/README.md) and run `make validate` at the repo root.
+For full validation (deps, build, test, lint for both frontend and backend), see [Validating usage](https://github.com/ArchHypo/hypo-stage/blob/main/README.md#validating-usage) in the main README.
 
 ---
 

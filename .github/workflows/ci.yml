@@ -1,6 +1,12 @@
-# HypoStage CI: align with Backstage-app validation sequence and best practices.
-# Order: Install → Type-check → Build → Lint → Test (matches backstage-app: type-check + build before lint, then test).
-# Requires Node.js 20+ (see package.json engines).
+# HypoStage CI: runs the same validation as documented in the README
+# (install → make check). make check runs build → test → lint with staged output
+# and a final summary (timing, test/lint metrics). Requires Node.js 20+ (package.json engines).
+#
+# Validates:
+#   - Dependencies install with frozen lockfile
+#   - TypeScript compiles (build:types) and Backstage CLI build for both packages
+#   - All unit tests pass (frontend + backend; backend may use Postgres for future integration tests)
+#   - Lint passes for both packages
 
 name: CI
 
@@ -20,7 +26,7 @@ defaults:
 
 jobs:
   validate:
-    name: Type-check, build, lint & test
+    name: Install, build, lint & test
     runs-on: ubuntu-latest
 
     services:
@@ -58,14 +64,6 @@ jobs:
       - name: Install dependencies
         run: yarn install --ignore-engines --frozen-lockfile
 
-      - name: Type-check
-        run: yarn build:types
-
-      - name: Build
-        run: yarn workspaces run build
-
-      - name: Lint
-        run: yarn lint
-
-      - name: Test
-        run: yarn test
+      - name: Build, test & lint
+        run: make check
+        # Same as README: build → test → lint with section headers and summary (timing, Jest/ESLint metrics)

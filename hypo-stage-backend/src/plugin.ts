@@ -19,11 +19,12 @@ export const hypoStagePlugin = createBackendPlugin({
       deps: {
         logger: coreServices.logger,
         database: coreServices.database,
+        auth: coreServices.auth,
         httpAuth: coreServices.httpAuth,
         httpRouter: coreServices.httpRouter,
         catalogService: catalogServiceRef,
       },
-      async init({ logger, database, httpAuth, httpRouter, catalogService }) {
+      async init({ logger, database, auth, httpAuth, httpRouter, catalogService }) {
         // https://backstage.io/docs/backend-system/core-services/database
         const client = await database.getClient();
         const migrationsDir = resolvePackagePath(
@@ -43,7 +44,7 @@ export const hypoStagePlugin = createBackendPlugin({
         });
 
         // Create and register router
-        const router = await createRouter({ httpAuth, hypothesisService, catalogService });
+        const router = await createRouter({ auth, httpAuth, hypothesisService, catalogService });
         httpRouter.use(router);
       },
     });
