@@ -19,15 +19,21 @@ export async function createRouter({
   catalogService: CatalogService;
 }): Promise<express.Router> {
   const router = Router();
-  
-  // CORS middleware for standalone dev mode
-  // Use request origin when present so it works with credentials; fallback to * for no-credentials requests
+
+  // CORS for standalone dev: allow only trusted origins when credentials are used.
+  // Reflecting any request Origin with credentials: true would allow arbitrary sites to make credentialed requests.
+  const allowedOrigins = new Set([
+    'http://localhost:3000',
+    'http://127.0.0.1:3000',
+  ]);
   router.use((req, res, next) => {
-    const origin = req.headers.origin;
-    res.header('Access-Control-Allow-Origin', origin || '*');
+    const origin = req.headers.origin as string | undefined;
+    if (origin && allowedOrigins.has(origin)) {
+      res.header('Access-Control-Allow-Origin', origin);
+      res.header('Access-Control-Allow-Credentials', 'true');
+    }
     res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
     res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
-    res.header('Access-Control-Allow-Credentials', 'true');
     if (req.method === 'OPTIONS') {
       res.sendStatus(200);
     } else {
