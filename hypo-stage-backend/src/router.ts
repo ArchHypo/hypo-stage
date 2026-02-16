@@ -3,17 +3,15 @@ import express from 'express';
 import Router from 'express-promise-router';
 import { HypothesisService } from './types/hypothesis';
 import { CatalogService } from '@backstage/plugin-catalog-node';
-import { AuthService, HttpAuthService } from '@backstage/backend-plugin-api';
+import { HttpAuthService } from '@backstage/backend-plugin-api';
 import { stringifyEntityRef } from '@backstage/catalog-model';
 import { createHypothesisSchema, updateHypothesisSchema, createTechnicalPlanningSchema, updateTechnicalPlanningSchema } from './schemas/hypothesis';
 
 export async function createRouter({
-  auth: authService,
   httpAuth,
   hypothesisService,
   catalogService,
 }: {
-  auth: AuthService;
   httpAuth: HttpAuthService;
   hypothesisService: HypothesisService;
   catalogService: CatalogService;
@@ -44,12 +42,7 @@ export async function createRouter({
   router.use(express.json());
 
   router.get('/hypotheses/entity-refs', async (req, res) => {
-    let credentials;
-    try {
-      credentials = await httpAuth.credentials(req);
-    } catch {
-      credentials = await authService.getNoneCredentials();
-    }
+    const credentials = await httpAuth.credentials(req);
     const entities = await catalogService.getEntities(
       { filter: { kind: 'component' } },
       { credentials },
@@ -58,12 +51,7 @@ export async function createRouter({
   });
 
   router.get('/hypotheses/teams', async (req, res) => {
-    let credentials;
-    try {
-      credentials = await httpAuth.credentials(req);
-    } catch {
-      credentials = await authService.getNoneCredentials();
-    }
+    const credentials = await httpAuth.credentials(req);
     const [hypotheses, catalogResponse] = await Promise.all([
       hypothesisService.getAll(),
       catalogService.getEntities({ filter: { kind: 'component' } }, { credentials }),
@@ -106,12 +94,7 @@ export async function createRouter({
     }
 
     if (team) {
-      let credentials;
-      try {
-        credentials = await httpAuth.credentials(req);
-      } catch {
-        credentials = await authService.getNoneCredentials();
-      }
+      const credentials = await httpAuth.credentials(req);
       const entities = await catalogService.getEntities(
         { filter: { kind: 'component', 'spec.team': team } },
         { credentials },
@@ -186,12 +169,7 @@ export async function createRouter({
     }
 
     if (team) {
-      let credentials;
-      try {
-        credentials = await httpAuth.credentials(req);
-      } catch {
-        credentials = await authService.getNoneCredentials();
-      }
+      const credentials = await httpAuth.credentials(req);
       const entities = await catalogService.getEntities(
         { filter: { kind: 'component', 'spec.team': team } },
         { credentials },

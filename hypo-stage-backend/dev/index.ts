@@ -82,19 +82,20 @@ const mockCatalogServiceFactory = createServiceFactory({
     const mockCatalogService: CatalogService = {
       getEntities: async (request, options) => {
         let filtered = [...sampleCatalogEntities];
-        
-        // Apply filters if provided
+        let filters: Array<{ kind?: string; 'spec.team'?: string }> = [];
         if (request?.filter) {
-          request.filter.forEach(filter => {
-            if (filter.kind) {
-              filtered = filtered.filter(e => e.kind === filter.kind);
-            }
-            if (filter['spec.team']) {
-              filtered = filtered.filter(e => e.spec?.team === filter['spec.team']);
-            }
-          });
+          filters = Array.isArray(request.filter)
+            ? request.filter
+            : [request.filter];
         }
-        
+        for (const filter of filters) {
+          if (filter.kind) {
+            filtered = filtered.filter(e => e.kind === filter.kind);
+          }
+          if (filter['spec.team']) {
+            filtered = filtered.filter(e => e.spec?.team === filter['spec.team']);
+          }
+        }
         return { items: filtered, totalItems: filtered.length, pageInfo: {} };
       },
       getEntityByRef: async (entityRef, options) => {
@@ -111,19 +112,20 @@ const mockCatalogServiceFactory = createServiceFactory({
       },
       queryEntities: async (request, options) => {
         let filtered = [...sampleCatalogEntities];
-        
-        // Apply kind filter
+        let filters: Array<{ kind?: string; 'spec.team'?: string }> = [];
         if (request?.filter) {
-          request.filter.forEach(filter => {
-            if (filter.kind) {
-              filtered = filtered.filter(e => e.kind === filter.kind);
-            }
-            if (filter['spec.team']) {
-              filtered = filtered.filter(e => e.spec?.team === filter['spec.team']);
-            }
-          });
+          filters = Array.isArray(request.filter)
+            ? request.filter
+            : [request.filter];
         }
-        
+        for (const filter of filters) {
+          if (filter.kind) {
+            filtered = filtered.filter(e => e.kind === filter.kind);
+          }
+          if (filter['spec.team']) {
+            filtered = filtered.filter(e => e.spec?.team === filter['spec.team']);
+          }
+        }
         return { items: filtered, totalItems: filtered.length, pageInfo: {} };
       },
       refreshEntity: async (entityRef, options) => {},
