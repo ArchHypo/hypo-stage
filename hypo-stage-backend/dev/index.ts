@@ -2,22 +2,36 @@ import { createBackend } from '@backstage/backend-defaults';
 import { hypoStagePlugin } from '../src/plugin';
 import { catalogServiceRef } from '@backstage/plugin-catalog-node';
 import { CatalogService } from '@backstage/plugin-catalog-node';
-import { createServiceFactory, coreServices } from '@backstage/backend-plugin-api';
+import {
+  createServiceFactory,
+  coreServices,
+  type BackstageCredentials,
+  type BackstageUserPrincipal,
+  type HttpAuthService,
+} from '@backstage/backend-plugin-api';
 
 const backend = createBackend();
+
+// Guest credentials for standalone dev (no auth backend)
+const guestCredentials: BackstageCredentials<BackstageUserPrincipal> = {
+  $$type: '@backstage/BackstageCredentials',
+  principal: {
+    type: 'user',
+    userEntityRef: 'user:development/guest',
+  },
+};
 
 // Mock HTTP auth for standalone dev: no auth backend, so all requests are accepted
 // with a guest principal. Avoids 401 and duplicate service registration.
 const mockHttpAuthFactory = createServiceFactory({
   service: coreServices.httpAuth,
   deps: {},
-  factory: async () => ({
-    credentials: async () => ({
-      principal: { type: 'user', subject: 'user:development/guest' },
-    }),
-    issueUserCookie: async () => {},
-    issueLimitedUserCookie: async () => {},
-  }),
+  factory: async (): Promise<HttpAuthService> =>
+    ({
+      credentials: async () => guestCredentials,
+      issueUserCookie: async () => ({ expiresAt: new Date() }),
+      issueLimitedUserCookie: async () => {},
+    }) as HttpAuthService,
 });
 backend.add(mockHttpAuthFactory);
 
