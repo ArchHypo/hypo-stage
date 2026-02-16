@@ -17,23 +17,44 @@ export async function createRouter({
   catalogService: CatalogService;
 }): Promise<express.Router> {
   const router = Router();
+
+  // CORS for standalone dev: allow only trusted origins when credentials are used.
+  // Reflecting any request Origin with credentials: true would allow arbitrary sites to make credentialed requests.
+  const allowedOrigins = new Set([
+    'http://localhost:3000',
+    'http://127.0.0.1:3000',
+  ]);
+  router.use((req, res, next) => {
+    const origin = req.headers.origin as string | undefined;
+    if (origin && allowedOrigins.has(origin)) {
+      res.header('Access-Control-Allow-Origin', origin);
+      res.header('Access-Control-Allow-Credentials', 'true');
+    }
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+    if (req.method === 'OPTIONS') {
+      res.sendStatus(200);
+    } else {
+      next();
+    }
+  });
+  
   router.use(express.json());
 
   router.get('/hypotheses/entity-refs', async (req, res) => {
-    // https://backstage.io/docs/backend-system/core-services/http-auth/#getting-request-credentials
-    const auth = await httpAuth.credentials(req);
-    const entities = await catalogService.getEntities({filter: {
-      kind: 'component',
-    }}, { credentials: auth });
-
+    const credentials = await httpAuth.credentials(req);
+    const entities = await catalogService.getEntities(
+      { filter: { kind: 'component' } },
+      { credentials },
+    );
     res.json(entities.items.map(entity => stringifyEntityRef(entity)));
   });
 
   router.get('/hypotheses/teams', async (req, res) => {
-    const auth = await httpAuth.credentials(req);
+    const credentials = await httpAuth.credentials(req);
     const [hypotheses, catalogResponse] = await Promise.all([
       hypothesisService.getAll(),
-      catalogService.getEntities({ filter: { kind: 'component' } }, { credentials: auth }),
+      catalogService.getEntities({ filter: { kind: 'component' } }, { credentials }),
     ]);
     const refsSet = new Set<string>();
     for (const h of hypotheses) {
@@ -73,10 +94,10 @@ export async function createRouter({
     }
 
     if (team) {
-      const auth = await httpAuth.credentials(req);
+      const credentials = await httpAuth.credentials(req);
       const entities = await catalogService.getEntities(
         { filter: { kind: 'component', 'spec.team': team } },
-        { credentials: auth },
+        { credentials },
       );
       const teamRefs = new Set(entities.items.map(e => stringifyEntityRef(e)));
       hypotheses = hypotheses.filter(
@@ -148,10 +169,10 @@ export async function createRouter({
     }
 
     if (team) {
-      const auth = await httpAuth.credentials(req);
+      const credentials = await httpAuth.credentials(req);
       const entities = await catalogService.getEntities(
         { filter: { kind: 'component', 'spec.team': team } },
-        { credentials: auth },
+        { credentials },
       );
       const teamRefs = new Set(entities.items.map(e => stringifyEntityRef(e)));
       hypotheses = hypotheses.filter(

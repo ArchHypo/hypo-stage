@@ -1,0 +1,29 @@
+# Example app-config.yaml for running HypoStage backend standalone
+# Copy this file to app-config.yaml and adjust the configuration as needed
+
+app:
+  baseUrl: http://localhost:3000
+
+backend:
+  baseUrl: http://localhost:7007
+  listen:
+    port: 7007
+  # CORS for standalone dev (must be at backend level, not under listen)
+  cors:
+    origin: http://localhost:3000
+    methods: [GET, HEAD, PATCH, POST, PUT, DELETE, OPTIONS]
+    allowedHeaders: [Content-Type, Authorization, X-Requested-With, Accept]
+    credentials: true
+  database:
+    # PostgreSQL configuration (recommended)
+    client: pg
+    connection:
+      host: localhost
+      port: 5432
+      user: postgres
+      password: postgres
+      database: backstage
+
+    # Alternative: SQLite configuration (simpler for local testing)
+    # client: better-sqlite3
+    # connection: ':memory:'
