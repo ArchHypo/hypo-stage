@@ -41,7 +41,8 @@ lint: ## Run lint (code style) on both plugins
 
 .PHONY: check
 check: ## Build, test, and lint in one go (non-interactive)
-	@tmpdir=$$(mktemp -d); build_log="$$tmpdir/build.log"; test_log="$$tmpdir/test.log"; lint_log="$$tmpdir/lint.log"; failed=0; \
+	@set +e; \
+	tmpdir=$$(mktemp -d); build_log="$$tmpdir/build.log"; test_log="$$tmpdir/test.log"; lint_log="$$tmpdir/lint.log"; failed=0; \
 	echo ""; echo "=== Build ==="; \
 	start=$$(date +%s); $(MAKE) build 2>&1 | tee "$$build_log"; build_ret=$$?; end=$$(date +%s); build_duration=$$((end-start)); \
 	if [ $$build_ret -eq 0 ]; then echo "Build: OK ($${build_duration}s)"; else echo "Build: FAILED"; failed=1; fi; \
