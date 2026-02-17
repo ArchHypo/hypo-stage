@@ -1,12 +1,12 @@
 # Deploy Standalone (Split Hosting)
 
-Deploy the HypoStage frontend to **GitHub Pages** and the backend to **Render** (or Railway). The frontend calls the real backend API instead of the mock.
+Deploy the HypoStage frontend to **Vercel** and the backend to **Render** (or Railway). The frontend calls the real backend API instead of the mock.
 
 ## Overview
 
 | Component | Host | URL example |
 |-----------|------|-------------|
-| Frontend | GitHub Pages | `https://<owner>.github.io/<repo>/` |
+| Frontend | Vercel | `https://hypo-stage.vercel.app` |
 | Backend  | Render or Railway | `https://<service>.onrender.com` or `https://<service>.railway.app` |
 
 ## 1. Deploy the backend (Render)
@@ -34,7 +34,7 @@ backend:
   listen:
     port: 7007
   cors:
-    origin: https://<owner>.github.io
+    origin: https://hypo-stage.vercel.app
     methods: [GET, HEAD, PATCH, POST, PUT, DELETE, OPTIONS]
     allowedHeaders: [Content-Type, Authorization, X-Requested-With, Accept]
   database:
@@ -63,7 +63,7 @@ You can deploy the backend on [Railway](https://railway.app) instead of Render:
 4. Start: `cd hypo-stage-backend && node dev/index.js`.
 5. Set `VITE_BACKEND_URL` to the Railway service URL (e.g. `https://<service>.railway.app`).
 
-Use the same `app-config.production.yaml` structure, and ensure CORS allows `https://<owner>.github.io`.
+Use the same `app-config.production.yaml` structure, and ensure CORS allows `https://hypo-stage.vercel.app`.
 
 ### Seed the backend
 
@@ -75,35 +75,28 @@ BACKSTAGE_CONFIG_PATH=app-config.production.yaml make seed-standalone
 
 (Ensure `app-config.production.yaml` has the correct database connection.)
 
-## 2. Configure GitHub Pages (frontend)
+## 2. Configure Vercel (frontend)
 
-### Add the backend URL as a secret
+### Connect the repo
 
-1. In your repo: **Settings** → **Secrets and variables** → **Actions**.
-2. Add a secret: `VITE_BACKEND_URL` = `https://<your-backend>.onrender.com` (no trailing slash).
+1. Go to [vercel.com](https://vercel.com) and import your GitHub repo.
+2. Vercel detects `vercel.json` at the repo root and uses it for build and output.
 
-### Enable GitHub Pages
+### Add the backend URL
 
-1. **Settings** → **Pages**.
-2. **Source**: **GitHub Actions**.
+1. In the Vercel project: **Settings** → **Environment Variables**.
+2. Add: `VITE_BACKEND_URL` = `https://<your-backend>.onrender.com` (no trailing slash).
 
 ### Deploy
 
-On push to `main`, the workflow `.github/workflows/deploy-pages.yml` runs. It:
-
-- Builds the frontend with `VITE_BACKEND_URL` (from the secret).
-- Deploys to GitHub Pages.
-
-The frontend will call the backend at `https://<your-backend>.onrender.com/api/hypo-stage`.
+On push to `main` (or your production branch), Vercel builds and deploys automatically. The frontend will call the backend at `https://<your-backend>.onrender.com/api/hypo-stage` when `VITE_BACKEND_URL` is set.
 
 ## 3. CORS on the backend
 
 The backend **must** allow the frontend origin in CORS. Set:
 
-- `backend.cors.origin: https://<owner>.github.io`
-
-(For project pages, the origin is `https://<owner>.github.io`, not the full path.)
+- `backend.cors.origin: https://hypo-stage.vercel.app` (or your custom Vercel domain, e.g. `https://<project>.vercel.app`)
 
 ## Without VITE_BACKEND_URL
 
-If the secret is not set, the frontend falls back to the **mock API** with embedded seed data (read-only). No backend is required.
+If the environment variable is not set, the frontend falls back to the **mock API** with embedded seed data (read-only). No backend is required.

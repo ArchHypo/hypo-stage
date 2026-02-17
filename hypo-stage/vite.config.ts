@@ -3,9 +3,9 @@ import react from '@vitejs/plugin-react';
 import path from 'path';
 
 /**
- * Standalone demo build (mock API + seed data) for deployment to GitHub Pages.
+ * Standalone demo build (mock API + seed data) for deployment to Vercel.
  * Run: yarn build:standalone
- * For GitHub project pages: set VITE_APP_BASE=/<repo-name>/ (e.g. /hypo-stage/) when building.
+ * For subpath deployment: set VITE_APP_BASE=/<path>/ (e.g. /hypo-stage/) when building.
  */
 export default defineConfig({
   plugins: [react()],

@@ -1,5 +1,5 @@
 /**
- * Standalone demo app for GitHub Pages.
+ * Standalone demo app for static deployment (e.g. Vercel).
  * - With VITE_BACKEND_URL: uses real backend API (split hosting)
  * - Without: uses mock API with seed data
  */

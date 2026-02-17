@@ -2,7 +2,7 @@
 
 HypoStage integrates architectural hypothesis management into your Backstage environment, enabling teams to document, track, and validate architectural decisions effectively. This plugin provides a comprehensive framework for managing architectural hypotheses with uncertainty assessment, quality attributes tracking, and technical planning capabilities.
 
-A **demo with seed data** is available on GitHub Pages for a quick overview: [https://archhypo.github.io/hypo-stage/](https://archhypo.github.io/hypo-stage/).
+A **demo with seed data** is available on Vercel for a quick overview: [https://hypo-stage.vercel.app](https://hypo-stage.vercel.app).
 
 ---
 
@@ -409,15 +409,15 @@ Open http://localhost:3000. Routes use `hypothesisId` (e.g. `/hypo-stage/hypothe
 
 ## Deploy standalone (split hosting)
 
-Deploy the **frontend** to GitHub Pages and the **backend** to Render (or Railway). The frontend calls the real backend; create/edit/delete works.
+Deploy the **frontend** to Vercel and the **backend** to Render (or Railway). The frontend calls the real backend; create/edit/delete works.
 
-1. **Backend** — Deploy `hypo-stage-backend` to Render with Postgres. Configure CORS to allow your GitHub Pages origin (`https://<owner>.github.io`).
-2. **Frontend** — Add `VITE_BACKEND_URL` as a [GitHub Actions secret](https://docs.github.com/en/actions/security-guides/encrypted-secrets) with the backend URL (e.g. `https://<service>.onrender.com`). On push to `main`, the deploy workflow builds the frontend with that URL and deploys to GitHub Pages.
+1. **Backend** — Deploy `hypo-stage-backend` to Render with Postgres. Configure CORS to allow your Vercel origin (e.g. `https://hypo-stage.vercel.app`).
+2. **Frontend** — Connect the repo to [Vercel](https://vercel.com); `vercel.json` defines the build. Add `VITE_BACKEND_URL` in Vercel project settings (Environment Variables) with the backend URL (e.g. `https://<service>.onrender.com`).
 3. **Seed** — Run `make seed-standalone` once (pointing at the production database) so the backend has demo data.
 
 Full steps: [docs/deploy-split-hosting.md](docs/deploy-split-hosting.md).
 
-**Without the secret** — The frontend falls back to the mock API (read-only, embedded seed data). No backend required.
+**Without VITE_BACKEND_URL** — The frontend falls back to the mock API (read-only, embedded seed data). No backend required.
 
 ---
 
