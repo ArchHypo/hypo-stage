@@ -50,6 +50,8 @@
   },
   "devDependencies": {
     "@backstage/cli": "^0.32.0",
+    "eslint": "^8.57.0",
+    "eslint-plugin-jest": "^28.9.0",
     "@backstage/core-app-api": "^1.16.1",
     "@backstage/dev-utils": "^1.1.9",
     "@backstage/test-utils": "^1.7.7",
