@@ -1,5 +1,6 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import { nodePolyfills } from 'vite-plugin-node-polyfills';
 import path from 'path';
 import fs from 'fs';
 
@@ -16,6 +17,14 @@ export default defineConfig({
   },
   plugins: [
     react(),
+    nodePolyfills({
+      include: ['buffer', 'process', 'stream', 'util', 'events'],
+      globals: {
+        Buffer: true,
+        global: true,
+        process: true,
+      },
+    }),
     {
       name: 'html-plugin',
       closeBundle() {
