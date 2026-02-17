@@ -6,7 +6,7 @@ Deploy the HypoStage frontend to **Vercel** and the backend to **Render** (or Ra
 
 | Component | Host | URL example |
 |-----------|------|-------------|
-| Frontend | Vercel | `https://hypo-stage.vercel.app` |
+| Frontend | Vercel | `https://hypo-stage-hypo-stage.vercel.app` |
 | Backend  | Render or Railway | `https://<service>.onrender.com` or `https://<service>.railway.app` |
 
 ## 1. Deploy the backend (Render)
@@ -34,7 +34,7 @@ backend:
   listen:
     port: 7007
   cors:
-    origin: https://hypo-stage.vercel.app
+    origin: https://hypo-stage-hypo-stage.vercel.app
     methods: [GET, HEAD, PATCH, POST, PUT, DELETE, OPTIONS]
     allowedHeaders: [Content-Type, Authorization, X-Requested-With, Accept]
   database:
@@ -63,7 +63,7 @@ You can deploy the backend on [Railway](https://railway.app) instead of Render:
 4. Start: `cd hypo-stage-backend && node dev/index.js`.
 5. Set `VITE_BACKEND_URL` to the Railway service URL (e.g. `https://<service>.railway.app`).
 
-Use the same `app-config.production.yaml` structure, and ensure CORS allows `https://hypo-stage.vercel.app`.
+Use the same `app-config.production.yaml` structure, and ensure CORS allows `https://hypo-stage-hypo-stage.vercel.app`.
 
 ### Seed the backend
 
@@ -95,7 +95,7 @@ On push to `main` (or your production branch), Vercel builds and deploys automat
 
 The backend **must** allow the frontend origin in CORS. Set:
 
-- `backend.cors.origin: https://hypo-stage.vercel.app` (or your custom Vercel domain, e.g. `https://<project>.vercel.app`)
+- `backend.cors.origin: https://hypo-stage-hypo-stage.vercel.app` (or your custom Vercel domain, e.g. `https://<project>.vercel.app`)
 
 ## Without VITE_BACKEND_URL
 

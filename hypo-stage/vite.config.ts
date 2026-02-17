@@ -1,5 +1,6 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import { nodePolyfills } from 'vite-plugin-node-polyfills';
 import path from 'path';
 import fs from 'fs';
 
@@ -11,8 +12,19 @@ import fs from 'fs';
 const base = process.env.VITE_APP_BASE ?? '/';
 
 export default defineConfig({
+  define: {
+    global: 'globalThis',
+  },
   plugins: [
     react(),
+    nodePolyfills({
+      include: ['buffer', 'process', 'stream', 'util', 'events'],
+      globals: {
+        Buffer: true,
+        global: true,
+        process: true,
+      },
+    }),
     {
       name: 'html-plugin',
       closeBundle() {
@@ -31,6 +43,7 @@ export default defineConfig({
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>HypoStage – Demo</title>
 ${cssLink}
+    <script>var global = globalThis || window;</script>
     <script type="module" crossorigin src="${scriptSrc}"></script>
   </head>
   <body>
