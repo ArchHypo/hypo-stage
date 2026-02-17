@@ -48,11 +48,27 @@ const PLUGIN_ID = 'hypo-stage';
 const DEFAULT_PLUGIN_DB = 'backstage_plugin_hypo_stage';
 const baseConnection = dbConfig.connection || dbConfig;
 const pluginConfig = dbConfig.plugin && dbConfig.plugin[PLUGIN_ID];
-const pluginConnection = pluginConfig
-  ? { ...(typeof baseConnection === 'object' && baseConnection ? baseConnection : {}), ...(pluginConfig.connection || pluginConfig) }
-  : { ...(typeof baseConnection === 'object' && baseConnection ? baseConnection : {}), database: DEFAULT_PLUGIN_DB };
 const effectiveClient = pluginConfig && (pluginConfig.client || (pluginConfig.connection && pluginConfig.connection.client)) ? (pluginConfig.client || pluginConfig.connection.client) : dbConfig.client;
-const connection = pluginConnection;
+const isSqlite = (effectiveClient || dbConfig.client) === 'better-sqlite3' || (effectiveClient || dbConfig.client) === 'sqlite3';
+
+let connection;
+if (pluginConfig) {
+  const baseObj = typeof baseConnection === 'object' && baseConnection ? baseConnection : {};
+  connection = { ...baseObj, ...(pluginConfig.connection || pluginConfig) };
+} else if (isSqlite) {
+  // SQLite uses filename, not database. Knex/better-sqlite3 expects string or { filename }
+  if (typeof baseConnection === 'string') {
+    connection = { filename: baseConnection };
+  } else if (typeof baseConnection === 'object' && baseConnection) {
+    connection = baseConnection;
+  } else {
+    connection = { filename: ':memory:' };
+  }
+} else {
+  // PostgreSQL: use object with database
+  const baseObj = typeof baseConnection === 'object' && baseConnection ? baseConnection : {};
+  connection = { ...baseObj, database: baseObj.database || DEFAULT_PLUGIN_DB };
+}
 
 const knex = require('knex')({
   client: effectiveClient || dbConfig.client,
