@@ -59,6 +59,7 @@ Then open **http://localhost:3000** and use the Hypo Stage UI (you’re signed i
 
 **Reference**
 - [Running plugins standalone](#running-plugins-standalone) (full details)
+- [Deploy standalone (split hosting)](#deploy-standalone-split-hosting)
 - [Running with Docker](#running-with-docker)
 - [Compatibility with generic Backstage](#compatibility-with-generic-backstage)
 - [Makefile reference](#makefile-reference)
@@ -403,6 +404,20 @@ Use the same sequence as [Run standalone](#run-standalone-no-backstage-app-requi
 Open http://localhost:3000. Routes use `hypothesisId` (e.g. `/hypo-stage/hypothesis/:hypothesisId`).
 
 **If you see "Failed to fetch" or CORS errors** (e.g. "No 'Access-Control-Allow-Origin' header") when the frontend calls the backend, the backend must load `app-config.yaml` so `backend.cors` is applied. The `yarn start` script in `hypo-stage-backend` runs `scripts/ensure-config-path.js`, which sets `BACKSTAGE_CONFIG_PATH` to `app-config.yaml` (repo root or current dir) before starting the backend so CORS is applied. Ensure `app-config.yaml` exists in the repo root (or in `hypo-stage-backend`) and contains the `backend.cors` block (see `app-config.example.yaml`). If problems persist, set it explicitly: `BACKSTAGE_CONFIG_PATH=/absolute/path/to/app-config.yaml cd hypo-stage-backend && yarn start`.
+
+---
+
+## Deploy standalone (split hosting)
+
+Deploy the **frontend** to GitHub Pages and the **backend** to Render (or Railway). The frontend calls the real backend; create/edit/delete works.
+
+1. **Backend** — Deploy `hypo-stage-backend` to Render with Postgres. Configure CORS to allow your GitHub Pages origin (`https://<owner>.github.io`).
+2. **Frontend** — Add `VITE_BACKEND_URL` as a [GitHub Actions secret](https://docs.github.com/en/actions/security-guides/encrypted-secrets) with the backend URL (e.g. `https://<service>.onrender.com`). On push to `main`, the deploy workflow builds the frontend with that URL and deploys to GitHub Pages.
+3. **Seed** — Run `make seed-standalone` once (pointing at the production database) so the backend has demo data.
+
+Full steps: [docs/deploy-split-hosting.md](docs/deploy-split-hosting.md).
+
+**Without the secret** — The frontend falls back to the mock API (read-only, embedded seed data). No backend required.
 
 ---
 

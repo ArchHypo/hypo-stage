@@ -1,12 +1,16 @@
 /**
- * Standalone demo app with mock API and seed data (no backend).
- * Used for static build deployed to GitHub Pages.
+ * Standalone demo app for GitHub Pages.
+ * - With VITE_BACKEND_URL: uses real backend API (split hosting)
+ * - Without: uses mock API with seed data
  */
 import { default as React } from 'react';
 import { createDevApp } from '@backstage/dev-utils';
 import {
   discoveryApiRef,
+  fetchApiRef,
   createApiRef,
+  DiscoveryApi,
+  FetchApi,
 } from '@backstage/core-plugin-api';
 import { catalogApiRef } from '@backstage/plugin-catalog-react';
 import type {
@@ -26,8 +30,14 @@ import {
   HypothesisPage,
   EditHypothesisPage,
   HypoStageApiRef,
+  HypoStageApiClient,
 } from '../src/index';
 import { HypoStageMockApi } from '../src/api/HypoStageMockApi';
+
+const backendUrl = typeof import.meta !== 'undefined' && import.meta.env?.VITE_BACKEND_URL
+  ? (import.meta.env.VITE_BACKEND_URL as string).replace(/\/$/, '')
+  : '';
+const useRealBackend = backendUrl.length > 0;
 
 const SIGN_IN_PROVIDER_KEY = '@backstage/core:SignInPage:provider';
 if (typeof window !== 'undefined') {
@@ -61,11 +71,17 @@ const standaloneGuestAuthApi = {
   },
 };
 
-// No-op discovery (mock API does not call any backend)
-const mockDiscoveryApi = {
-  async getBaseUrl(_pluginId: string): Promise<string> {
-    return '';
-  },
+// Discovery API: no-op for mock, or backend base URL for real API
+const discoveryApi: DiscoveryApi = useRealBackend
+  ? { async getBaseUrl(pluginId: string) { return `${backendUrl}/api/${pluginId}`; } }
+  : { async getBaseUrl(_pluginId: string) { return ''; } };
+
+// Fetch API for real backend (mock API does not use it)
+const fetchApi: FetchApi = {
+  fetch: async (url, options) => fetch(url, {
+    ...options,
+    headers: { 'Content-Type': 'application/json', ...(options?.headers as Record<string, string>) },
+  }),
 };
 
 const sampleEntities = [
@@ -150,14 +166,21 @@ const mockCatalogApi: CatalogApi = {
 
 createDevApp()
   .registerPlugin(hypoStagePlugin)
-  .registerApi({ api: discoveryApiRef, deps: {}, factory: () => mockDiscoveryApi })
+  .registerApi({ api: discoveryApiRef, deps: {}, factory: () => discoveryApi })
+  .registerApi({ api: fetchApiRef, deps: {}, factory: () => fetchApi })
   .registerApi({ api: catalogApiRef, deps: {}, factory: () => mockCatalogApi })
   .registerApi({ api: standaloneGuestAuthApiRef, deps: {}, factory: () => standaloneGuestAuthApi })
-  .registerApi({ api: HypoStageApiRef, deps: {}, factory: () => new HypoStageMockApi() })
+  .registerApi({
+    api: HypoStageApiRef,
+    deps: useRealBackend ? { discoveryApi: discoveryApiRef, fetchApi: fetchApiRef } : {},
+    factory: useRealBackend
+      ? ({ discoveryApi: d, fetchApi: f }) => new HypoStageApiClient({ discoveryApi: d, fetchApi: f })
+      : () => new HypoStageMockApi(),
+  })
   .addSignInProvider({
     id: 'standalone-guest',
     title: 'Standalone guest',
-    message: 'Sign in as guest (read-only demo).',
+    message: useRealBackend ? 'Sign in as guest.' : 'Sign in as guest (read-only demo).',
     apiRef: standaloneGuestAuthApiRef as any,
   })
   .addPage({ element: <Navigate to="/hypo-stage" replace />, title: 'Home', path: '/' })

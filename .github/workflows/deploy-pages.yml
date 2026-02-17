@@ -1,7 +1,10 @@
-# Deploy the standalone HypoStage demo (mock API + seed data) to GitHub Pages
+# Deploy the standalone HypoStage demo to GitHub Pages.
+#
+# - Without VITE_BACKEND_URL: uses mock API + seed data (read-only)
+# - With VITE_BACKEND_URL: uses real backend (add secret in repo Settings → Secrets)
 #
 # Enable GitHub Pages: Settings → Pages → Source: GitHub Actions
-# Then push to main; the site will be at https://<owner>.github.io/<repo>/
+# Site URL: https://<owner>.github.io/<repo>/
 
 name: Deploy to GitHub Pages
 
@@ -42,6 +45,7 @@ jobs:
         working-directory: hypo-stage
         env:
           VITE_APP_BASE: /${{ github.event.repository.name }}/
+          VITE_BACKEND_URL: ${{ secrets.VITE_BACKEND_URL }}
         run: yarn build:standalone
 
       - name: Setup Pages
