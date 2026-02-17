@@ -20,7 +20,7 @@
     "role": "backend-plugin"
   },
   "scripts": {
-    "start": "node scripts/ensure-config-path.js",
+    "start": "backstage-cli package start",
     "build": "backstage-cli package build",
     "seed": "node scripts/seed-standalone.js",
     "lint": "backstage-cli package lint",
