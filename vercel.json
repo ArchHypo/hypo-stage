@@ -1,5 +1,5 @@
 {
-  "buildCommand": "yarn install --ignore-engines && yarn build:types && cd hypo-stage && yarn install && yarn build:standalone",
+  "buildCommand": "yarn install --ignore-engines && cd hypo-stage && yarn install && yarn build:standalone",
   "outputDirectory": "hypo-stage/dist-standalone",
   "framework": null,
   "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
