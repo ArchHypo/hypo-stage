@@ -1,5 +1,5 @@
 /**
- * Mock HypoStage API for standalone static build (e.g. GitHub Pages).
+ * Mock HypoStage API for standalone static build (e.g. Vercel).
  * Returns seed data; mutations throw (read-only demo).
  */
 import type {

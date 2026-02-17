@@ -1,5 +1,5 @@
 /**
- * Demo seed data for standalone/mocked build (e.g. GitHub Pages).
+ * Demo seed data for standalone/mocked build (e.g. Vercel).
  * Matches the backend seed migration so the UI looks the same as with a real backend.
  */
 import type { Hypothesis, HypothesisEvent, TechnicalPlanning } from '@internal/plugin-hypo-stage-backend';
