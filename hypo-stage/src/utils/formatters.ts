@@ -63,15 +63,15 @@ export const getRatingLabel = (ratingValue: number): string => {
 };
 
 /**
- * Get Portuguese labels for chart values
+ * Get labels for chart values
  */
 export const getValueLabel = (value: number): string => {
   switch (value) {
-    case 1: return 'Muito Baixo';
-    case 2: return 'Baixo';
-    case 3: return 'Médio';
-    case 4: return 'Alto';
-    case 5: return 'Muito Alto';
+    case 1: return 'Very Low';
+    case 2: return 'Low';
+    case 3: return 'Medium';
+    case 4: return 'High';
+    case 5: return 'Very High';
     default: return value.toString();
   }
 };

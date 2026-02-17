@@ -252,9 +252,11 @@ export const useStyles = makeStyles((theme: Theme) =>
       fontSize: '12px',
       fontWeight: 'bold',
       textTransform: 'uppercase',
-      maxWidth: '100%',
+      whiteSpace: 'nowrap',
       overflow: 'hidden',
       textOverflow: 'ellipsis',
+      display: 'inline-block',
+      maxWidth: '100%',
       [theme.breakpoints.down('xs')]: {
         fontSize: '11px',
         padding: '2px 6px',

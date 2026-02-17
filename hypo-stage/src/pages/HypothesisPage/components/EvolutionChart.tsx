@@ -40,7 +40,11 @@ export const EvolutionChart: React.FC<EvolutionChartProps> = ({
       const hasUncertainty = event.changes.uncertainty;
       const hasImpact = event.changes.impact;
       chartData.push({
-        timestamp: new Date(event.timestamp).toLocaleDateString('pt-BR'),
+        timestamp: new Date(event.timestamp).toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric',
+        }),
         uncertainty: hasUncertainty ? getRatingNumber(event.changes.uncertainty) : undefined,
         impact: hasImpact ? getRatingNumber(event.changes.impact) : undefined,
       });
@@ -59,7 +63,7 @@ export const EvolutionChart: React.FC<EvolutionChartProps> = ({
           gap: 8
         }}>
           <Assessment />
-          Evolução da Incerteza e Impacto
+          Evolution of Uncertainty and Impact
         </Typography>
 
         {events.length > 0 ? (
@@ -79,7 +83,7 @@ export const EvolutionChart: React.FC<EvolutionChartProps> = ({
                   tickFormatter={getValueLabel}
                 />
                 <Legend
-                  formatter={(value) => value === 'uncertainty' ? 'Incerteza' : 'Impacto'}
+                  formatter={(value) => value === 'uncertainty' ? 'Uncertainty' : 'Impact'}
                 />
                 <Line
                   type="monotone"
@@ -104,7 +108,7 @@ export const EvolutionChart: React.FC<EvolutionChartProps> = ({
           </div>
         ) : (
           <Typography variant="body2" color="textSecondary">
-            Nenhum evento encontrado para mostrar a evolução
+            No events found to show the evolution
           </Typography>
         )}
       </CardContent>

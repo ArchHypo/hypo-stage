@@ -65,7 +65,7 @@ describe('HypothesisForm', () => {
           mode="create"
           formData={formData}
           onFieldChange={jest.fn()}
-          isFormValid={true}
+          isFormValid
           loading={false}
         />,
       );
@@ -82,7 +82,7 @@ describe('HypothesisForm', () => {
           mode="create"
           formData={formData}
           onFieldChange={jest.fn()}
-          isFormValid={true}
+          isFormValid
           loading={false}
           onSubmit={onSubmit}
         />,
@@ -134,7 +134,7 @@ describe('HypothesisForm', () => {
           hypothesis={mockHypothesis}
           formData={formData}
           onFieldChange={jest.fn()}
-          isFormValid={true}
+          isFormValid
           loading={false}
         />,
       );

@@ -1,4 +1,4 @@
-import React from 'react';
+import { default as React } from 'react';
 import { render } from '@testing-library/react';
 import { ThemeProvider } from '@material-ui/core/styles';
 import { createTheme } from '@material-ui/core/styles';
