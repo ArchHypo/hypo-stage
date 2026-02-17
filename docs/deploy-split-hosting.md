@@ -60,6 +60,7 @@ BACKSTAGE_CONFIG_PATH=app-config.production.yaml make seed-standalone
 
 1. Go to [vercel.com](https://vercel.com) and import your GitHub repo.
 2. Vercel detects `vercel.json` at the repo root and uses it for build and output.
+3. **Leave "Root Directory" empty** so the build runs from the repo root (required for `build:types` and the frontend build).
 
 ### Add the backend URL (required)
 

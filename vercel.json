@@ -1,6 +1,6 @@
 {
-  "buildCommand": "yarn install --ignore-engines && (test -n \"$VITE_BACKEND_URL\" || (echo 'ERROR: Set VITE_BACKEND_URL in Vercel (Settings → Environment Variables) so the app loads hypotheses from your Render backend instead of static demo data.' && exit 1)) && yarn build:standalone",
-  "outputDirectory": "dist-standalone",
+  "buildCommand": "yarn install --ignore-engines && (test -n \"$VITE_BACKEND_URL\" || (echo 'ERROR: Set VITE_BACKEND_URL in Vercel (Settings → Environment Variables) so the app loads hypotheses from your Render backend instead of static demo data.' && exit 1)) && yarn build:types && cd hypo-stage && yarn build:standalone",
+  "outputDirectory": "hypo-stage/dist-standalone",
   "framework": null,
   "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
 }
