@@ -2,7 +2,7 @@
 
 HypoStage integrates architectural hypothesis management into your Backstage environment, enabling teams to document, track, and validate architectural decisions effectively. This plugin provides a comprehensive framework for managing architectural hypotheses with uncertainty assessment, quality attributes tracking, and technical planning capabilities.
 
-A **demo with seed data** is available on Vercel for a quick overview: [https://hypo-stage.vercel.app](https://hypo-stage.vercel.app).
+A **demo with seed data** is available on Vercel for a quick overview: [https://hypo-stage-hypo-stage.vercel.app](https://hypo-stage-hypo-stage.vercel.app/).
 
 ---
 
@@ -411,7 +411,7 @@ Open http://localhost:3000. Routes use `hypothesisId` (e.g. `/hypo-stage/hypothe
 
 Deploy the **frontend** to Vercel and the **backend** to Render (or Railway). The frontend calls the real backend; create/edit/delete works.
 
-1. **Backend** — Deploy `hypo-stage-backend` to Render with Postgres. Configure CORS to allow your Vercel origin (e.g. `https://hypo-stage.vercel.app`).
+1. **Backend** — Deploy `hypo-stage-backend` to Render with Postgres. Configure CORS to allow your Vercel origin (e.g. `https://hypo-stage-hypo-stage.vercel.app`).
 2. **Frontend** — Connect the repo to [Vercel](https://vercel.com); `vercel.json` defines the build. Add `VITE_BACKEND_URL` in Vercel project settings (Environment Variables) with the backend URL (e.g. `https://<service>.onrender.com`).
 3. **Seed** — Run `make seed-standalone` once (pointing at the production database) so the backend has demo data.
 
