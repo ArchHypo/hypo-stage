@@ -11,6 +11,7 @@ backend:
   listen:
     port: 7007
   cors:
+    # Production URL; preview deployments (e.g. *-arch-hypo-projects.vercel.app) are allowed in the plugin router
     origin: https://hypo-stage-hypo-stage.vercel.app
     methods: [GET, HEAD, PATCH, POST, PUT, DELETE, OPTIONS]
     allowedHeaders: [Content-Type, Authorization, X-Requested-With, Accept]

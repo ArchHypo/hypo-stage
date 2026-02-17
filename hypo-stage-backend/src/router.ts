@@ -18,15 +18,19 @@ export async function createRouter({
 }): Promise<express.Router> {
   const router = Router();
 
-  // CORS for standalone dev: allow only trusted origins when credentials are used.
-  // Reflecting any request Origin with credentials: true would allow arbitrary sites to make credentialed requests.
-  const allowedOrigins = new Set([
+  // CORS: allow localhost (standalone dev) and Vercel (production + preview deployments).
+  const allowedOriginSet = new Set([
     'http://localhost:3000',
     'http://127.0.0.1:3000',
   ]);
+  // Production: hypo-stage-hypo-stage.vercel.app; preview: hypo-stage-hypo-stage-<id>-<team>.vercel.app
+  const vercelOriginRegex = /^https:\/\/hypo-stage[a-zA-Z0-9.-]*\.vercel\.app$/;
+  const isAllowedOrigin = (origin: string) =>
+    allowedOriginSet.has(origin) || vercelOriginRegex.test(origin);
+
   router.use((req, res, next) => {
     const origin = req.headers.origin as string | undefined;
-    if (origin && allowedOrigins.has(origin)) {
+    if (origin && isAllowedOrigin(origin)) {
       res.header('Access-Control-Allow-Origin', origin);
       res.header('Access-Control-Allow-Credentials', 'true');
     }
