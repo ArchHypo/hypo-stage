@@ -100,4 +100,20 @@ The E2E suite is split into one file per scenario or domain. Each file has a sho
 | `e2e/delete-hypothesis.spec.js` | Delete hypothesis | Delete from detail (action bar) and from list (row icon); both require typing the hypothesis statement to confirm. |
 | `e2e/technical-planning.spec.js` | Technical planning | Add, edit, and delete technical planning items on a hypothesis (Owner, Action type, Target date, Description, Expected outcome, Documentation URLs). Walkthrough § 5. |
 
-**Configuration:** `playwright.config.ts` at the repo root. E2E spec files are JavaScript (`.spec.js`) so root lint does not require TypeScript tooling and avoids conflicts with the workspace Backstage ESLint setup. (base URL `http://localhost:3000`, Chromium, video on, report and videos under `e2e/`).
+**Configuration:** `playwright.config.ts` at the repo root. E2E spec files are JavaScript (`.spec.js`) so root lint does not require TypeScript tooling and avoids conflicts with the workspace Backstage ESLint setup. Base URL defaults to `http://localhost:3000`; override with the `BASE_URL` environment variable (e.g. for the deployed app). Chromium, video on, report and videos under `e2e/`.
+
+---
+
+## Scheduled E2E (GitHub Actions)
+
+The workflow **E2E (scheduled)** (`.github/workflows/e2e-scheduled.yml`) runs the full E2E suite **once a week** (Sunday 00:00 UTC) against the deployed demo app:
+
+- **Target:** [https://hypo-stage-hypo-stage.vercel.app](https://hypo-stage-hypo-stage.vercel.app) (Vercel).
+- **Trigger:** `schedule` (cron `0 0 * * 0`) and **manual** (`workflow_dispatch` from the Actions tab).
+- **Artifacts:** On failure, the HTML report and videos are uploaded for 7 days.
+
+To run the same tests locally against the deployed app:
+
+```bash
+BASE_URL=https://hypo-stage-hypo-stage.vercel.app yarn test:e2e
+```

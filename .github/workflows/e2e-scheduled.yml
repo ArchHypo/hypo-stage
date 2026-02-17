@@ -1,0 +1,61 @@
+# Weekly E2E tests against the deployed HypoStage app (Vercel).
+# Runs every Sunday 00:00 UTC; can also be triggered manually.
+# See: docs/e2e/e2e-tests.md
+
+name: E2E (scheduled)
+
+on:
+  schedule:
+    # Every Sunday at 00:00 UTC
+    - cron: '0 0 * * 0'
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: 'Base URL to test (default: Vercel demo)'
+        required: false
+        default: 'https://hypo-stage-hypo-stage.vercel.app'
+
+env:
+  BASE_URL: ${{ github.event.inputs.base_url || 'https://hypo-stage-hypo-stage.vercel.app' }}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  e2e:
+    name: E2E against deployed app
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'yarn'
+
+      - name: Install dependencies
+        run: yarn install --ignore-engines --frozen-lockfile
+
+      - name: Install Playwright browsers
+        run: npx playwright install chromium --with-deps
+
+      - name: Run E2E tests
+        run: yarn test:e2e
+        env:
+          BASE_URL: ${{ env.BASE_URL }}
+          CI: true
+
+      - name: Upload E2E report and videos (on failure)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-report-and-videos
+          path: |
+            e2e/e2e-report
+            e2e/e2e-videos
+          retention-days: 7
