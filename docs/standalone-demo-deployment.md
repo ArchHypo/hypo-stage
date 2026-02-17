@@ -4,6 +4,8 @@ This document explains **how we deployed the standalone version** of HypoStage t
 
 > **Not for production.** This deployment is **not meant for production use**. It is an alternative way to see the plugin at work—a live demo with seed data, hosted for convenience. For production, integrate HypoStage into your Backstage app and deploy with your own infrastructure.
 
+To gain access to the Render and Vercel projects (e.g. for debugging or contributing to the demo), contact the maintainer: [@zeevolution](https://github.com/zeevolution).
+
 ---
 
 ## What’s Deployed

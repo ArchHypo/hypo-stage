@@ -1,5 +1,5 @@
 import { default as React } from 'react';
-import { screen, waitFor } from '@testing-library/react';
+import { screen, waitFor, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 import { TestApiProvider, renderInTestApp } from '@backstage/test-utils';
@@ -284,7 +284,7 @@ describe('HypothesisList', () => {
 
       expect(confirmDeleteButton).toBeDisabled();
 
-      await user.type(confirmInput, secondHypothesisStatement);
+      fireEvent.change(confirmInput, { target: { value: secondHypothesisStatement } });
 
       await waitFor(() => {
         expect(confirmDeleteButton).not.toBeDisabled();
@@ -299,7 +299,7 @@ describe('HypothesisList', () => {
       await openDeleteDialogForSecondHypothesis(user);
 
       const confirmInput = screen.getByPlaceholderText(/Type the hypothesis name here/i);
-      await user.type(confirmInput, secondHypothesisStatement);
+      fireEvent.change(confirmInput, { target: { value: secondHypothesisStatement } });
 
       const confirmDeleteButton = screen.getByRole('button', { name: /^Delete$/i });
       await waitFor(() => {
@@ -322,7 +322,7 @@ describe('HypothesisList', () => {
       await openDeleteDialogForSecondHypothesis(user);
 
       const confirmInput = screen.getByPlaceholderText(/Type the hypothesis name here/i);
-      await user.type(confirmInput, secondHypothesisStatement);
+      fireEvent.change(confirmInput, { target: { value: secondHypothesisStatement } });
 
       const confirmDeleteButton = screen.getByRole('button', { name: /^Delete$/i });
       await waitFor(() => {
