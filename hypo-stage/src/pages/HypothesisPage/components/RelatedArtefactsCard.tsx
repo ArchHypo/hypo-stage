@@ -27,11 +27,17 @@ export const RelatedArtefactsCard: React.FC<RelatedArtefactsCardProps> = ({
         {hypothesis.relatedArtefacts.length > 0 ? (
           <List dense>
             {hypothesis.relatedArtefacts.map((artefact: string, index: number) => (
-              <ListItem key={index}>
-                <ListItemIcon>
-                  <Link fontSize="small" />
-                </ListItemIcon>
-                <ListItemText primary={artefact} />
+            <ListItem key={index} style={{ wordBreak: 'break-all', overflowWrap: 'break-word' }}>
+              <ListItemIcon>
+                <Link fontSize="small" />
+              </ListItemIcon>
+              <ListItemText
+                primary={
+                  <a href={artefact} target="_blank" rel="noopener noreferrer" style={{ wordBreak: 'break-all' }}>
+                    {artefact}
+                  </a>
+                }
+              />
               </ListItem>
             ))}
           </List>

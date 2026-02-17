@@ -142,12 +142,20 @@ export const DenseTable = ({ hypotheses, onDeleteClick }: DenseTableProps) => {
   });
 
   return (
-    <Table
-      title="Hypotheses"
-      options={{ search: false, paging: false, sorting: true }}
-      columns={columns}
-      data={data}
-    />
+    <Box className={classes.tableWrapper}>
+      <Table
+        title="Hypotheses"
+        options={{
+          search: false,
+          paging: false,
+          sorting: true,
+          padding: 'dense',
+          toolbar: true,
+        }}
+        columns={columns}
+        data={data}
+      />
+    </Box>
   );
 };
 
@@ -167,6 +175,7 @@ function entityRefToLabel(ref: string): string {
 }
 
 export const HypothesisList = ({ refreshKey = 0, entityRef }: HypothesisListProps) => {
+  const classes = useStyles();
   const hypoStageApi = useApi(HypoStageApiRef);
   const { showSuccess, showError } = useNotifications();
   const [refreshTrigger, setRefreshTrigger] = useState(0);
@@ -262,7 +271,7 @@ export const HypothesisList = ({ refreshKey = 0, entityRef }: HypothesisListProp
         refreshKey={refreshKey + refreshTrigger}
         sinceDays={90}
       />
-      <Box mb={2} display="flex" flexWrap="wrap" alignItems="center" style={{ gap: 16 }}>
+      <Box className={classes.filterBar}>
         {!entityRef && (
           <>
             <Autocomplete
@@ -272,9 +281,9 @@ export const HypothesisList = ({ refreshKey = 0, entityRef }: HypothesisListProp
               onChange={(_e, v) => setSelectedTeam(v)}
               getOptionLabel={(option) => option}
               loading={teamsLoading}
-              style={{ minWidth: 220 }}
+              style={{ minWidth: 160, maxWidth: 280 }}
               renderInput={(params) => (
-                <TextField {...params} label="Team" variant="outlined" placeholder="All teams" />
+                <TextField {...params} label="Team" variant="outlined" placeholder="All teams" fullWidth />
               )}
             />
             <Autocomplete
@@ -284,13 +293,14 @@ export const HypothesisList = ({ refreshKey = 0, entityRef }: HypothesisListProp
               onChange={(_e, v) => setSelectedComponentRef(v)}
               getOptionLabel={(option) => entityRefToLabel(option)}
               loading={refsLoading}
-              style={{ minWidth: 260 }}
+              style={{ minWidth: 160, maxWidth: 300 }}
               renderInput={(params) => (
                 <TextField
                   {...params}
                   label="Component"
                   variant="outlined"
                   placeholder="All components"
+                  fullWidth
                 />
               )}
             />
@@ -302,13 +312,14 @@ export const HypothesisList = ({ refreshKey = 0, entityRef }: HypothesisListProp
           value={focusFilterOptions.find(o => o.value === focusFilter) ?? focusFilterOptions[0]}
           onChange={(_e, v) => setFocusFilter((v?.value ?? 'all') as FocusFilterValue)}
           getOptionLabel={(option) => option.label}
-          style={{ minWidth: 200 }}
+          style={{ minWidth: 140, maxWidth: 220 }}
           renderInput={(params) => (
             <TextField
               {...params}
               label="Focus"
               variant="outlined"
               placeholder="All"
+              fullWidth
               inputProps={{ ...params.inputProps, 'aria-label': 'Filter by focus type' }}
             />
           )}

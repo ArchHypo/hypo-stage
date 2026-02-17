@@ -57,37 +57,37 @@ export const UrlListField: React.FC<UrlListFieldProps> = ({
         {label}
       </Typography>
 
-      <TextField
-        variant="outlined"
-        fullWidth
-        placeholder={placeholder}
-        value={newUrl}
-        onChange={(e) => setNewUrl(e.target.value)}
-        onKeyDown={handleKeyPress}
-        className={classes.inputField}
-        InputProps={{
-          endAdornment: (
-            <Button
-              variant="outlined"
-              onClick={handleAddUrl}
-              disabled={!isArtefactValid(newUrl)}
-              size="small"
-              className={classes.iconButton}
-            >
-              <Add />
-              Add
-            </Button>
-          )
-        }}
-      />
+      <Box display="flex" flexWrap="wrap" alignItems="flex-start" style={{ gap: 8 }}>
+        <TextField
+          variant="outlined"
+          fullWidth
+          placeholder={placeholder}
+          value={newUrl}
+          onChange={(e) => setNewUrl(e.target.value)}
+          onKeyDown={handleKeyPress}
+          className={classes.inputField}
+          style={{ flex: '1 1 200px', minWidth: 0 }}
+        />
+        <Button
+          variant="outlined"
+          onClick={handleAddUrl}
+          disabled={!isArtefactValid(newUrl)}
+          size="small"
+          className={classes.iconButton}
+          style={{ flexShrink: 0 }}
+        >
+          <Add />
+          Add
+        </Button>
+      </Box>
 
       {urls.length > 0 && (
         <List dense className={classes.denseList}>
           {urls.map((url, index) => (
-            <ListItem key={index}>
+            <ListItem key={index} style={{ wordBreak: 'break-all', overflowWrap: 'break-word' }}>
               <ListItemText
                 primary={
-                  <a href={url} target="_blank" rel="noopener noreferrer">
+                  <a href={url} target="_blank" rel="noopener noreferrer" style={{ wordBreak: 'break-all' }}>
                     {url}
                   </a>
                 }

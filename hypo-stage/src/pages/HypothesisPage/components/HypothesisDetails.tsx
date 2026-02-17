@@ -70,7 +70,7 @@ export const HypothesisDetails: React.FC<HypothesisDetailsProps> = ({
           <Assessment />
           Assessment
         </Typography>
-        <Box className={`${classes.flexWrap} ${classes.marginBottom}`}>
+        <Box className={`${classes.flexWrap} ${classes.marginBottom}`} style={{ gap: 8 }}>
           <Chip
             label={hypothesis.status}
             className={`${classes.statusChip} ${getStatusClass(hypothesis.status, classes)}`}

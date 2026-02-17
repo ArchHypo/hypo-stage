@@ -27,18 +27,19 @@ export const HomePage = () => {
 
         <Content>
           <Grid container spacing={3} direction="column">
-            <Grid item>
+            <Grid item xs={12}>
               <Button
                 variant="contained"
                 color="primary"
                 onClick={handleCreateHypothesis}
                 size="large"
+                fullWidth
               >
                 Create New Hypothesis
               </Button>
             </Grid>
 
-            <Grid item>
+            <Grid item xs={12} style={{ minWidth: 0, width: '100%' }}>
               <HypothesisList />
             </Grid>
           </Grid>

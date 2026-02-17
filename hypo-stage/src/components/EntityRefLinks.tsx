@@ -53,7 +53,7 @@ export function EntityRefLinks({
   }
 
   const linkContent = (
-    <Box className={classes.flexWrap} style={{ gap: 6, alignItems: 'center' }}>
+    <Box className={classes.flexWrap} style={{ gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
       {links.map(({ href, displayName }) => (
         <Chip
           key={href}

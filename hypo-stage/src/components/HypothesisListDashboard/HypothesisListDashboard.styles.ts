@@ -19,6 +19,7 @@ export const useStyles = makeStyles(theme => ({
     width: '100%',
     padding: theme.spacing(2),
     borderRadius: 12,
+    boxSizing: 'border-box',
     background:
       theme.palette.type === 'dark'
         ? 'rgba(180, 60, 60, 0.18)'
@@ -57,8 +58,11 @@ export const useStyles = makeStyles(theme => ({
     gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
     gap: theme.spacing(1.5),
     width: '100%',
-    [theme.breakpoints.down('sm')]: {
+    [theme.breakpoints.down('md')]: {
       gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+    },
+    [theme.breakpoints.down('xs')]: {
+      gridTemplateColumns: '1fr',
     },
   },
   insightsGrid: {
@@ -162,6 +166,7 @@ export const useStyles = makeStyles(theme => ({
     width: '100%',
     [theme.breakpoints.down('sm')]: {
       gridTemplateColumns: '1fr',
+      gap: theme.spacing(1.5),
     },
   },
   metricPanel: {

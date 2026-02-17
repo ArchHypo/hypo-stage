@@ -9,20 +9,44 @@ export const useStyles = makeStyles((theme: Theme) =>
     // Layout & Container Styles
     formContainer: {
       borderRadius: '16px',
-      padding: '32px',
+      padding: theme.spacing(3),
       color: theme.palette.text.primary,
       backgroundColor: theme.palette.background.paper,
-      marginBottom: '24px',
+      marginBottom: theme.spacing(3),
       boxShadow: theme.palette.type === 'dark'
         ? '0 8px 32px rgba(0, 0, 0, 0.3)'
         : '0 8px 32px rgba(0, 0, 0, 0.1)',
+      width: '100%',
+      maxWidth: '100%',
+      boxSizing: 'border-box',
+      [theme.breakpoints.down('sm')]: {
+        padding: theme.spacing(2),
+        marginBottom: theme.spacing(2),
+      },
+      [theme.breakpoints.down('xs')]: {
+        padding: theme.spacing(1.5),
+      },
     },
     cardContainer: {
-      marginBottom: '16px',
+      marginBottom: theme.spacing(2),
+      width: '100%',
+      maxWidth: '100%',
+      minWidth: 0,
     },
     paperContainer: {
-      padding: '16px',
-      marginTop: '16px',
+      padding: theme.spacing(2),
+      marginTop: theme.spacing(2),
+      width: '100%',
+      maxWidth: '100%',
+      boxSizing: 'border-box',
+      [theme.breakpoints.down('sm')]: {
+        padding: theme.spacing(1.5),
+        marginTop: theme.spacing(1.5),
+      },
+      [theme.breakpoints.down('xs')]: {
+        padding: theme.spacing(1),
+        marginTop: theme.spacing(1),
+      },
     },
     sectionContainer: {
       width: '100%',
@@ -30,17 +54,30 @@ export const useStyles = makeStyles((theme: Theme) =>
 
     // Typography Styles
     formTitle: {
-      fontSize: '28px',
+      fontSize: '1.75rem',
       fontWeight: 700,
-      marginBottom: '8px',
+      marginBottom: theme.spacing(1),
       display: 'flex',
       alignItems: 'center',
-      gap: '12px',
+      gap: theme.spacing(1.5),
+      flexWrap: 'wrap',
+      wordBreak: 'break-word',
+      [theme.breakpoints.down('sm')]: {
+        fontSize: '1.35rem',
+      },
+      [theme.breakpoints.down('xs')]: {
+        fontSize: '1.2rem',
+      },
     },
     formSubtitle: {
-      fontSize: '16px',
+      fontSize: '1rem',
       opacity: 0.9,
-      marginBottom: '32px',
+      marginBottom: theme.spacing(3),
+      wordBreak: 'break-word',
+      [theme.breakpoints.down('sm')]: {
+        fontSize: '0.9rem',
+        marginBottom: theme.spacing(2),
+      },
     },
     sectionTitle: {
       fontSize: '18px',
@@ -76,6 +113,8 @@ export const useStyles = makeStyles((theme: Theme) =>
       textDecoration: 'none',
       fontWeight: 'bold',
       fontSize: '14px',
+      wordBreak: 'break-word',
+      overflowWrap: 'break-word',
     },
 
     // Form & Input Styles
@@ -172,8 +211,9 @@ export const useStyles = makeStyles((theme: Theme) =>
     starContainer: {
       display: 'flex',
       alignItems: 'center',
-      gap: '8px',
-      marginBottom: '16px',
+      flexWrap: 'wrap',
+      gap: theme.spacing(1),
+      marginBottom: theme.spacing(2),
     },
     starButton: {
       color: theme.palette.text.secondary,
@@ -212,6 +252,13 @@ export const useStyles = makeStyles((theme: Theme) =>
       fontSize: '12px',
       fontWeight: 'bold',
       textTransform: 'uppercase',
+      maxWidth: '100%',
+      overflow: 'hidden',
+      textOverflow: 'ellipsis',
+      [theme.breakpoints.down('xs')]: {
+        fontSize: '11px',
+        padding: '2px 6px',
+      },
     },
 
     // Status Colors (consolidated from statusStyles.ts)
@@ -318,6 +365,13 @@ export const useStyles = makeStyles((theme: Theme) =>
       flexShrink: 0,
       backgroundColor: theme.palette.warning?.main ?? '#ed6c02',
       color: theme.palette.warning?.contrastText ?? '#fff',
+      maxWidth: '100%',
+      overflow: 'hidden',
+      textOverflow: 'ellipsis',
+      [theme.breakpoints.down('xs')]: {
+        padding: '2px 6px',
+        fontSize: 10,
+      },
     },
     focusChipCanPostpone: {
       padding: '2px 8px',
@@ -330,6 +384,13 @@ export const useStyles = makeStyles((theme: Theme) =>
       flexShrink: 0,
       backgroundColor: theme.palette.success?.main ?? '#2e7d32',
       color: theme.palette.success?.contrastText ?? '#fff',
+      maxWidth: '100%',
+      overflow: 'hidden',
+      textOverflow: 'ellipsis',
+      [theme.breakpoints.down('xs')]: {
+        padding: '2px 6px',
+        fontSize: 10,
+      },
     },
 
     // Validation & Error Styles
@@ -347,9 +408,47 @@ export const useStyles = makeStyles((theme: Theme) =>
       color: '#51cf66',
     },
 
+    // Table responsive wrapper (horizontal scroll on small screens)
+    tableWrapper: {
+      width: '100%',
+      maxWidth: '100%',
+      overflowX: 'auto',
+      overflowY: 'visible',
+      marginBottom: theme.spacing(2),
+      WebkitOverflowScrolling: 'touch',
+    },
+
+    // Action bar responsive (buttons wrap on small screens)
+    actionBar: {
+      display: 'flex',
+      flexWrap: 'wrap',
+      alignItems: 'center',
+      gap: theme.spacing(2),
+      marginBottom: theme.spacing(2),
+      '& > *': {
+        flexShrink: 0,
+      },
+    },
+
+    // Filter bar responsive
+    filterBar: {
+      display: 'flex',
+      flexWrap: 'wrap',
+      alignItems: 'center',
+      gap: theme.spacing(2),
+      marginBottom: theme.spacing(2),
+      '& > *': {
+        minWidth: 0,
+        flex: '1 1 auto',
+        [theme.breakpoints.up('sm')]: {
+          flex: '0 1 auto',
+        },
+      },
+    },
+
     // Spacing & Layout Utilities
     marginTop: {
-      marginTop: '16px',
+      marginTop: theme.spacing(2),
     },
     marginTopLarge: {
       marginTop: '24px',
@@ -361,7 +460,7 @@ export const useStyles = makeStyles((theme: Theme) =>
       marginBottom: '24px',
     },
     marginRight: {
-      marginRight: '16px',
+      marginRight: theme.spacing(2),
     },
     marginLeft: {
       marginLeft: '8px',
@@ -390,11 +489,31 @@ export const useStyles = makeStyles((theme: Theme) =>
       justifyContent: 'space-between',
       alignItems: 'center',
     },
+    technicalPlanningHeader: {
+      flexWrap: 'wrap',
+      gap: theme.spacing(2),
+      [theme.breakpoints.down('xs')]: {
+        flexDirection: 'column',
+        alignItems: 'stretch',
+      },
+    },
 
     // Chart Container
     chartContainer: {
-      height: '400px',
-      marginTop: '16px',
+      height: 400,
+      minHeight: 280,
+      marginTop: theme.spacing(2),
+      width: '100%',
+      maxWidth: '100%',
+      overflow: 'hidden',
+      [theme.breakpoints.down('sm')]: {
+        height: 320,
+        minHeight: 240,
+      },
+      [theme.breakpoints.down('xs')]: {
+        height: 280,
+        minHeight: 200,
+      },
     },
 
     // Loading States

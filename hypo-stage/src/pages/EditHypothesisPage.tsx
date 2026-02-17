@@ -26,8 +26,8 @@ function FocusInfo({
 }) {
   const classes = useStyles();
   return (
-    <Paper className={className} elevation={0} style={{ marginBottom: 16 }}>
-      <Box py={1.5} px={2} display="flex" alignItems="center" flexWrap="wrap" style={{ gap: 8 }}>
+    <Paper className={className} elevation={0} style={{ marginBottom: 16, width: '100%', maxWidth: '100%', boxSizing: 'border-box' }}>
+      <Box py={1.5} px={2} display="flex" alignItems="center" flexWrap="wrap" style={{ gap: 8 }} boxSizing="border-box">
         <Box component="span" style={{ fontWeight: 600, marginRight: 8 }}>
           Focus:
         </Box>
