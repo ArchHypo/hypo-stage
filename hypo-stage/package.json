@@ -23,6 +23,7 @@
   "scripts": {
     "start": "backstage-cli package start",
     "build": "backstage-cli package build",
+    "build:standalone": "vite build",
     "lint": "backstage-cli package lint",
     "test": "backstage-cli package test",
     "clean": "backstage-cli package clean",
@@ -55,6 +56,8 @@
     "@testing-library/react": "^14.0.0",
     "@testing-library/user-event": "^14.0.0",
     "msw": "^1.0.0",
+    "@vitejs/plugin-react": "^4.2.1",
+    "vite": "^5.0.0",
     "react": "^16.13.1 || ^17.0.0 || ^18.0.0",
     "react-dom": "^17.0.0 || ^18.0.0",
     "react-router-dom": "^6.0.0"

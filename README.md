@@ -57,6 +57,7 @@ Then open **http://localhost:3000** and use the Hypo Stage UI (you’re signed i
 
 **Reference**
 - [Running plugins standalone](#running-plugins-standalone) (full details)
+- [GitHub Pages (standalone demo)](#github-pages-standalone-demo)
 - [Running with Docker](#running-with-docker)
 - [Compatibility with generic Backstage](#compatibility-with-generic-backstage)
 - [Makefile reference](#makefile-reference)
@@ -401,6 +402,39 @@ Use the same sequence as [Run standalone](#run-standalone-no-backstage-app-requi
 Open http://localhost:3000. Routes use `hypothesisId` (e.g. `/hypo-stage/hypothesis/:hypothesisId`).
 
 **If you see "Failed to fetch" or CORS errors** (e.g. "No 'Access-Control-Allow-Origin' header") when the frontend calls the backend, the backend must load `app-config.yaml` so `backend.cors` is applied. The `yarn start` script in `hypo-stage-backend` runs `scripts/ensure-config-path.js`, which sets `BACKSTAGE_CONFIG_PATH` to `app-config.yaml` (repo root or current dir) before starting the backend so CORS is applied. Ensure `app-config.yaml` exists in the repo root (or in `hypo-stage-backend`) and contains the `backend.cors` block (see `app-config.example.yaml`). If problems persist, set it explicitly: `BACKSTAGE_CONFIG_PATH=/absolute/path/to/app-config.yaml cd hypo-stage-backend && yarn start`.
+
+---
+
+## GitHub Pages (standalone demo)
+
+You can deploy a **mocked version** of HypoStage with seed data to GitHub Pages—no backend required. The standalone build uses an in-memory mock API and the same demo seed data as the local standalone setup.
+
+### 1. Enable GitHub Pages
+
+1. In your repo: **Settings** → **Pages**
+2. Under **Build and deployment** → **Source**, select **GitHub Actions**
+
+### 2. Deploy
+
+On every push to `main` (or `master`), the workflow `.github/workflows/deploy-pages.yml` builds the standalone demo and deploys it. The site will be at:
+
+`https://<owner>.github.io/<repo>/`
+
+(Replace `<owner>` and `<repo>` with your GitHub org/user and repository name.)
+
+### 3. Manual build (optional)
+
+To build the standalone demo locally:
+
+```bash
+yarn install --ignore-engines
+yarn build:types
+cd hypo-stage && VITE_APP_BASE=/your-repo-name/ yarn build:standalone
+```
+
+Output is in `hypo-stage/dist-standalone/`. Serve it locally with any static server, e.g. `npx serve hypo-stage/dist-standalone`.
+
+**Note:** The demo is read-only (view seed hypotheses, charts, technical planning). Create/edit/delete operations are disabled.
 
 ---
 
