@@ -2,7 +2,7 @@ import path from 'path';
 import fs from 'fs';
 
 // When running standalone, ensure app-config is loaded so backend.cors (and backend.database) are applied.
-// Fixes CORS "No 'Access-Control-Allow-Origin'" when the frontend at localhost:3000 calls the API.
+// Backstage's config loader reads --config from process.argv (not BACKSTAGE_CONFIG_PATH). We inject it here.
 // On Render: set BACKSTAGE_CONFIG_PATH=../app-config.production.yaml (repo root; start runs from hypo-stage-backend).
 const candidates = [
   path.resolve(process.cwd(), 'app-config.yaml'),
@@ -11,9 +11,23 @@ const candidates = [
   path.resolve(__dirname, '..', '..', 'app-config.yaml'), // repo root when run from hypo-stage-backend/dev
   path.resolve(__dirname, '..', '..', 'app-config.production.yaml'),
 ];
-const configPath = candidates.find((p) => fs.existsSync(p));
-if (configPath && !process.env.BACKSTAGE_CONFIG_PATH) {
-  process.env.BACKSTAGE_CONFIG_PATH = configPath;
+let configPath: string | undefined;
+if (process.env.BACKSTAGE_CONFIG_PATH) {
+  configPath = path.isAbsolute(process.env.BACKSTAGE_CONFIG_PATH)
+    ? process.env.BACKSTAGE_CONFIG_PATH
+    : path.resolve(process.cwd(), process.env.BACKSTAGE_CONFIG_PATH);
+} else {
+  configPath = candidates.find((p) => fs.existsSync(p));
+}
+if (configPath && fs.existsSync(configPath)) {
+  // Inject --config so @backstage/config-loader ConfigSources.default() uses this file
+  process.argv = [
+    process.argv[0],
+    process.argv[1],
+    '--config',
+    configPath,
+    ...process.argv.slice(2),
+  ];
 }
 
 import { createBackend } from '@backstage/backend-defaults';
