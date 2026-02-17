@@ -16,5 +16,11 @@ module.exports = {
         'no-restricted-imports': 'off',
       },
     },
+    {
+      files: ['demo/main.tsx'],
+      rules: {
+        'no-restricted-imports': 'off',
+      },
+    },
   ],
 };
