@@ -10,24 +10,27 @@ Choose how you want to run HypoStage:
 
 | Goal | Path | Section |
 |------|------|---------|
-| **Try it without a Backstage app** | Run frontend + backend standalone (3 terminals) | [Run standalone](#option-a-run-standalone-no-backstage-app) |
+| **Try it without a Backstage app** | Run frontend + backend standalone (3 terminals) | [Run standalone](#run-standalone-no-backstage-app-required) |
 | **Add to an existing Backstage app** | Install packages and configure frontend & backend | [Installation](#installation) |
 
 **Run standalone (fastest way to see the UI):**
+
+From the **repo root**, in order:
 
 ```bash
 # Terminal 1 – start PostgreSQL
 make start-dependencies
 
-# Terminal 2 – backend (from repo root: copy app-config first)
+# Terminal 2 – config, then seed, then backend (all from repo root)
 cp app-config.example.yaml app-config.yaml   # edit if needed
+make seed-standalone                           # plugin DB + migrations + seed (optional but recommended)
 cd hypo-stage-backend && yarn install && yarn start
 
-# Terminal 3 – frontend
+# Terminal 3 – frontend (from repo root)
 cd hypo-stage && yarn install && yarn start
 ```
 
-Then open **http://localhost:3000** and use the Hypo Stage UI (you’re signed in as a guest automatically). See [Running plugins standalone](#running-plugins-standalone) for details and alternatives (e.g. SQLite, frontend-only).
+Then open **http://localhost:3000** and use the Hypo Stage UI (you’re signed in as a guest automatically). Full steps and alternatives (SQLite, CORS, seed): [Run standalone](#run-standalone-no-backstage-app-required) and [Running plugins standalone](#running-plugins-standalone).
 
 ---
 
@@ -37,8 +40,8 @@ Then open **http://localhost:3000** and use the Hypo Stage UI (you’re signed i
 - [What is HypoStage?](#what-is-hypostage)
 - [Repository structure](#repository-structure)
 - [Prerequisites](#prerequisites)
-- [Option A: Run standalone](#option-a-run-standalone-no-backstage-app)
-- [Option B: Add to a Backstage app](#option-b-add-to-a-backstage-app)
+- [Run standalone](#run-standalone-no-backstage-app-required)
+- [Add to a Backstage app](#add-to-your-existing-backstage-app)
 
 **Install & use**
 - [Installation](#installation) (step-by-step for Backstage)
@@ -91,7 +94,7 @@ From the repo root: `yarn build`, `yarn test`, `yarn lint` run for both packages
 - **Node.js** v20 or later ([nvm](https://github.com/nvm-sh/nvm): `nvm install 20 && nvm use 20`)
 - **Yarn**
 - **PostgreSQL** (or SQLite) for the backend. For local dev you can use the repo’s [Docker Compose](#running-with-docker) Postgres.
-- **Docker & Docker Compose** (optional, for Postgres and/or a full Backstage app)
+- **Docker & Docker Compose** (optional, for Postgres)
 
 ### Troubleshooting install (node-gyp / better-sqlite3)
 
@@ -111,20 +114,22 @@ The **cpu-features** failure is optional; **better-sqlite3** is required only if
 
 ---
 
-## Option A: Run standalone (no Backstage app)
+## Run standalone (no Backstage app required)
 
-Run the frontend and backend without a full Backstage app (good for development and trying the plugin).
+Run the frontend and backend without a full Backstage app (good for development and trying the plugin). **Run every command from the repo root** unless stated otherwise. Follow the steps in this order:
 
-1. **Start PostgreSQL**: `make start-dependencies`
-2. **Config**: Copy `app-config.example.yaml` to `app-config.yaml` in the repo root; adjust database connection if needed.
-3. **Backend**: `cd hypo-stage-backend && yarn install && yarn start` (listens on http://localhost:7007)
-4. **Frontend**: `cd hypo-stage && yarn install && yarn start` (http://localhost:3000)
+1. **Start PostgreSQL**: `make start-dependencies` (or use your own Postgres; see [Running with Docker](#running-with-docker)).
+2. **Config**: Copy `app-config.example.yaml` to `app-config.yaml`. The example includes `backend.cors` (so the frontend can call the API) and `backend.database.plugin.hypo-stage` (the plugin’s own database). Adjust the database connection if needed.
+3. **Plugin database and seed (recommended)**: Run **`make seed-standalone`**. This creates the plugin database if needed (Postgres), runs migrations, and seeds example hypotheses, technical planning, and evolution data. If you skip this, the backend will run migrations and seed on first start when the hypothesis table is empty.
+4. **Backend**: In a terminal, `cd hypo-stage-backend && yarn install && yarn start` (listens on http://localhost:7007). The dev server loads `app-config.yaml` from the repo root so CORS and the database are applied.
+5. **Frontend**: In a **new** terminal, `cd hypo-stage && yarn install && yarn start` (http://localhost:3000).
+6. **Open the app**: In your browser, go to **http://localhost:3000**. You’re signed in as a guest automatically.
 
-You’re signed in as a guest automatically. Full details (SQLite, frontend-only, backend-only): [Running plugins standalone](#running-plugins-standalone).
+On first backend start, migrations run and the database is seeded if empty ([demo seed data](#demo-seed-data-standalone)). For SQLite, frontend-only, or backend-only options, see [Running plugins standalone](#running-plugins-standalone).
 
 ---
 
-## Option B: Add to a Backstage app
+## Add to your existing Backstage app
 
 1. Clone this repo and copy `hypo-stage` and `hypo-stage-backend` into your app’s `plugins/` directory.
 2. Add the packages: `yarn --cwd packages/app add @internal/plugin-hypo-stage` and `yarn --cwd packages/backend add @internal/plugin-hypo-stage-backend`.
@@ -299,9 +304,9 @@ Or: `make lint`. Warnings about frontend importing from the backend package are 
 To confirm everything works:
 
 1. **Build, test, and lint**: From the repo root (Node 20+ recommended), run `make deps` then **`make check`** (runs build, test, and lint in one go, non-interactively). Or run `make build && make test && make lint`. From each package you can run `yarn build`, `yarn test`, `yarn lint`.
-2. **Standalone**: [Run standalone](#option-a-run-standalone-no-backstage-app), then open http://localhost:3000.
+2. **Standalone**: Follow [Run standalone](#run-standalone-no-backstage-app-required) (including **`make seed-standalone`** for full demo data), then open http://localhost:3000.
 3. **In an app**: [Install](#installation) into a Backstage app and open `/hypo-stage`.
-4. **Docker**: [Running with Docker](#running-with-docker) for Postgres and optional full app.
+4. **Docker**: [Running with Docker](#running-with-docker) for Postgres.
 
 ---
 
@@ -330,7 +335,7 @@ yarn start
 ### Running the backend plugin standalone
 
 1. **PostgreSQL**: `make start-dependencies` or your own instance.
-2. **Config**: Create `app-config.yaml` in the repo root (e.g. `cp app-config.example.yaml app-config.yaml`). Minimal:
+2. **Config**: Create `app-config.yaml` in the repo root (e.g. `cp app-config.example.yaml app-config.yaml`). The HypoStage plugin uses **its own database** (see `backend.database.plugin.hypo-stage`); migrations and seed run against that database. Minimal:
 
    ```yaml
    backend:
@@ -345,31 +350,70 @@ yarn start
          user: postgres
          password: postgres
          database: backstage
+       plugin:
+         hypo-stage:
+           connection:
+             database: backstage_plugin_hypo_stage
    ```
 
    For SQLite: `client: better-sqlite3`, `connection: ':memory:'`.
 3. **Start**: `cd hypo-stage-backend && yarn install && yarn start` (http://localhost:7007).
+4. **Demo seeds**: On first start, migrations seed the database with example hypotheses (see [Demo seed data](#demo-seed-data-standalone) below).
+
+### Demo seed data (standalone)
+
+The HypoStage plugin has **its own database** (e.g. `backstage_plugin_hypo_stage` via `backend.database.plugin.hypo-stage`). Migrations create the plugin’s tables there, and the **seed creates hypothesis data in that plugin database** so you can try the UI without creating data yourself.
+
+**Seed runs transparently**: When you start the backend, migrations run automatically and the seed migration fills the plugin database if it’s empty (idempotent). You don’t need to run `yarn seed` unless you want to reseed or populate the DB without starting the backend.
+
+**Command to populate the plugin database with seed**
+
+From the repo root, with `app-config.yaml` in place and Postgres running if using pg:
+
+- **Recommended (one command)**: **`make seed-standalone`** — creates the plugin database if needed (when using Docker Postgres), then runs migrations and the demo seed. Use this to get example hypotheses, technical planning, and evolution data for the “Evolução da Incerteza e Impacto” chart.
+- **Alternative**: `cd hypo-stage-backend && yarn seed` — same effect; use if you prefer not to use the Makefile.
+
+When you run the backend standalone, the plugin database is filled with **example hypotheses**:
+
+- **When it runs**: A migration runs on every backend start; it inserts seed hypotheses only when the `hypothesis` table is empty (idempotent). If the table already has rows, the seed backfills evolution events and technical planning for the payment and inventory hypotheses so the “Evolução da Incerteza e Impacto” chart and technical planning list have example data.
+- **What you get**: Several hypotheses (e.g. payment service extraction, user API consolidation, API gateway) with varied uncertainty/impact; the payment and inventory hypotheses include technical planning items and multiple evolution points for the chart.
+
+**How to run migrations with seed data**
+
+1. **Automatic**: Migrations (including the seed) run when the backend starts. Start the backend (and frontend) as in [Run standalone](#run-standalone-no-backstage-app-required). No extra step needed.
+2. **Manual**: From the repo root, with `app-config.yaml` present and the database reachable (e.g. Postgres via `make start-dependencies`, or SQLite), run **`make seed-standalone`** or `cd hypo-stage-backend && yarn seed`. This runs all pending migrations, then the demo seed migration (idempotent). To use a different config file: `BACKSTAGE_CONFIG_PATH=/path/to/app-config.yaml cd hypo-stage-backend && yarn seed`.
+
+**Requirements for manual seed**: `app-config.yaml` at repo root (or path in `BACKSTAGE_CONFIG_PATH`) with `backend.database` (and optionally `backend.database.plugin.hypo-stage`) set. For Postgres, start it first with `make start-dependencies`.
+
+If the seed fails with **`database "backstage_plugin_hypo_stage" does not exist`** (or the name in your plugin config), the plugin database was never created. The seed script will try to create it on the server in `app-config.yaml`; if it still fails, you may have **two different Postgres** (e.g. Docker + local on port 5432).
+
+- **Only Docker Postgres**: run **`make seed-standalone`** (creates the plugin DB and runs the seed) or `make create-db` then `cd hypo-stage-backend && yarn seed`.
+- **Local Postgres** (or seed still fails): create the plugin database on the server your app uses: `psql -h localhost -p 5432 -U postgres -c 'CREATE DATABASE backstage_plugin_hypo_stage;'` then run **`make seed-standalone`** or `cd hypo-stage-backend && yarn seed` again. To see what is on 5432: `lsof -i :5432` (macOS/Linux).
 
 ### Running both together
 
-1. Terminal 1: `make start-dependencies`
-2. Terminal 2: `cd hypo-stage-backend` (ensure `app-config.yaml` in repo root), then `yarn start`
-3. Terminal 3: `cd hypo-stage && yarn start`
+Use the same sequence as [Run standalone](#run-standalone-no-backstage-app-required):
+
+1. **Terminal 1** (from repo root): `make start-dependencies`
+2. **Terminal 2** (from repo root): ensure `app-config.yaml` exists (e.g. `cp app-config.example.yaml app-config.yaml`), then run **`make seed-standalone`** (recommended), then `cd hypo-stage-backend && yarn start`
+3. **Terminal 3** (from repo root): `cd hypo-stage && yarn start`
 
 Open http://localhost:3000. Routes use `hypothesisId` (e.g. `/hypo-stage/hypothesis/:hypothesisId`).
+
+**If you see "Failed to fetch" or CORS errors** (e.g. "No 'Access-Control-Allow-Origin' header") when the frontend calls the backend, the backend must load `app-config.yaml` so `backend.cors` is applied. The `yarn start` script in `hypo-stage-backend` runs `scripts/ensure-config-path.js`, which sets `BACKSTAGE_CONFIG_PATH` to `app-config.yaml` (repo root or current dir) before starting the backend so CORS is applied. Ensure `app-config.yaml` exists in the repo root (or in `hypo-stage-backend`) and contains the `backend.cors` block (see `app-config.example.yaml`). If problems persist, set it explicitly: `BACKSTAGE_CONFIG_PATH=/absolute/path/to/app-config.yaml cd hypo-stage-backend && yarn start`.
 
 ---
 
 ## Running with Docker
 
-**Start PostgreSQL** (for HypoStage backend or a Backstage app):
+**Postgres only** (for [Run standalone](#run-standalone-no-backstage-app-required) or your own Backstage app):
 
 ```bash
 make start-dependencies
 # or: docker-compose up -d
 ```
 
-Use the plugin in a Backstage app: copy `hypo-stage` and `hypo-stage-backend` into your app’s `plugins/`, then [Installation](#installation). Point the app’s `app-config.yaml` at this Postgres (e.g. `host: localhost`, `port: 5432`, `user: postgres`, `password: postgres`, `database: backstage`).
+Use the plugin in a Backstage app: copy `hypo-stage` and `hypo-stage-backend` into your app’s `plugins/`, then [Installation](#installation). Point the app’s `app-config.yaml` at this Postgres and configure the plugin’s database (e.g. `backend.database.connection` and `backend.database.plugin.hypo-stage.connection.database: backstage_plugin_hypo_stage`). If you run the frontend separately (e.g. for standalone dev), ensure `backend.cors` in `app-config.yaml` allows the frontend origin (see `app-config.example.yaml`).
 
 **Stop**:
 
@@ -377,6 +421,7 @@ Use the plugin in a Backstage app: copy `hypo-stage` and `hypo-stage-backend` in
 make stop-dependencies
 # or: docker-compose down --volumes
 ```
+
 
 ---
 
@@ -401,6 +446,8 @@ No organization-specific code is required.
 | `make lint` | Run lint |
 | `make check` | Build, test, and lint in one go |
 | `make start-dependencies` | Start PostgreSQL (Docker) |
+| `make create-db` | Create HypoStage plugin database `backstage_plugin_hypo_stage` (if missing) |
+| `make seed-standalone` | Create plugin DB (if needed) and run migrations + seed (one command) |
 | `make stop-dependencies` | Stop PostgreSQL and remove volumes |
 
 ---

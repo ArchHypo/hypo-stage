@@ -73,6 +73,19 @@ check: ## Build, test, and lint in one go (non-interactive)
 start-dependencies: ## Start Docker dependencies (PostgreSQL for HypoStage backend)
 	docker-compose up -d
 
+.PHONY: create-db
+create-db: ## Create the HypoStage plugin database in hypo-stage-postgres (backstage_plugin_hypo_stage)
+	@docker exec hypo-stage-postgres psql -U postgres -d backstage_plugin_hypo_stage -c 'SELECT 1' >/dev/null 2>&1 && \
+	(echo "Plugin database 'backstage_plugin_hypo_stage' already exists in container." && exit 0) || \
+	(docker exec hypo-stage-postgres psql -U postgres -c 'CREATE DATABASE backstage_plugin_hypo_stage;' && echo "Plugin database 'backstage_plugin_hypo_stage' created.") || \
+	(echo "Run 'make start-dependencies' first if Postgres is not running." && exit 1)
+
+.PHONY: seed-standalone
+seed-standalone: ## Create plugin DB (if using Docker) and run migrations + seed (one command, from repo root)
+	@$(MAKE) create-db 2>/dev/null || true
+	@cd hypo-stage-backend && yarn seed
+
 .PHONY: stop-dependencies
 stop-dependencies: ## Stop and remove Docker dependencies and volumes
 	docker-compose down --volumes
+

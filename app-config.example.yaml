@@ -23,6 +23,11 @@ backend:
       user: postgres
       password: postgres
       database: backstage
+    # HypoStage plugin uses its own database; migrations and seed write here
+    plugin:
+      hypo-stage:
+        connection:
+          database: backstage_plugin_hypo_stage
 
     # Alternative: SQLite configuration (simpler for local testing)
     # client: better-sqlite3

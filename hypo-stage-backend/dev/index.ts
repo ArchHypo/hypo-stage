@@ -1,3 +1,18 @@
+import path from 'path';
+import fs from 'fs';
+
+// When running standalone, ensure app-config is loaded so backend.cors (and backend.database) are applied.
+// Fixes CORS "No 'Access-Control-Allow-Origin'" when the frontend at localhost:3000 calls the API.
+const candidates = [
+  path.resolve(process.cwd(), 'app-config.yaml'),
+  path.resolve(process.cwd(), '..', 'app-config.yaml'),
+  path.resolve(__dirname, '..', '..', 'app-config.yaml'), // repo root when run from hypo-stage-backend/dev
+];
+const configPath = candidates.find((p) => fs.existsSync(p));
+if (configPath && !process.env.BACKSTAGE_CONFIG_PATH) {
+  process.env.BACKSTAGE_CONFIG_PATH = configPath;
+}
+
 import { createBackend } from '@backstage/backend-defaults';
 import { hypoStagePlugin } from '../src/plugin';
 import { catalogServiceRef } from '@backstage/plugin-catalog-node';

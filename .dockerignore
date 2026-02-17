@@ -1,0 +1,6 @@
+# Reduce Docker build context
+.git
+*.log
+node_modules
+hypo-stage/node_modules
+hypo-stage-backend/node_modules
