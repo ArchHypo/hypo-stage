@@ -21,37 +21,16 @@ Deploy the HypoStage frontend to **Vercel** and the backend to **Render** (or Ra
    - **Start command**: `cd hypo-stage-backend && node dev/index.js` (or `yarn start` if configured)
 4. Add **PostgreSQL** from Render's dashboard (or use an external database).
 5. Set **Environment variables**:
-   - `BACKSTAGE_CONFIG_PATH`: path to your config (see below)
-   - Or use individual vars for database and CORS (Backstage supports `${ENV_VAR}` in config).
+   - **`BACKSTAGE_CONFIG_PATH`** = `../app-config.production.yaml` (required — points to the committed config at repo root; start command runs from `hypo-stage-backend`)
+   - Render sets `PGHOST`, `PGPORT`, `PGUSER`, `PGPASSWORD`, `PGDATABASE` when you add Postgres; it also sets `RENDER_EXTERNAL_URL` for your service URL.
+
+The repo includes **`app-config.production.yaml`** at the root (see below). Do not rely on `app-config.yaml` — it is gitignored and will not exist on Render.
 
 ### Backend config for production
 
-Create an `app-config.production.yaml` (or use env vars) with:
+The file **`app-config.production.yaml`** at the repo root is committed and uses env var substitution:
 
-```yaml
-backend:
-  baseUrl: https://<your-backend>.onrender.com
-  listen:
-    port: 7007
-  cors:
-    origin: https://hypo-stage-hypo-stage.vercel.app
-    methods: [GET, HEAD, PATCH, POST, PUT, DELETE, OPTIONS]
-    allowedHeaders: [Content-Type, Authorization, X-Requested-With, Accept]
-  database:
-    client: pg
-    connection:
-      host: ${PGHOST}
-      port: ${PGPORT}
-      user: ${PGUSER}
-      password: ${PGPASSWORD}
-      database: ${PGDATABASE}
-    plugin:
-      hypo-stage:
-        connection:
-          database: backstage_plugin_hypo_stage
-```
-
-Render provides `PGHOST`, `PGPORT`, etc. when you add a Postgres instance. Point the HypoStage plugin at the same Postgres and use a dedicated database for the plugin.
+See **`app-config.production.yaml`** in the repo. It uses `${RENDER_EXTERNAL_URL}` for `backend.baseUrl` (set automatically by Render) and `${PGHOST}`, `${PGPORT}`, etc. for the database (set when you attach Postgres). No need to create a new file — set `BACKSTAGE_CONFIG_PATH=../app-config.production.yaml` so the backend loads it.
 
 ### Alternative: Railway
 

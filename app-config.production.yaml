@@ -1,0 +1,28 @@
+# Production config for HypoStage backend (Render/Railway).
+# Uses env vars for secrets; safe to commit. Set BACKSTAGE_CONFIG_PATH to this file on Render.
+# Render: set BACKSTAGE_CONFIG_PATH=../app-config.production.yaml (start runs from hypo-stage-backend).
+# Render sets RENDER_EXTERNAL_URL automatically; on Railway set it to your service URL.
+
+app:
+  baseUrl: ${RENDER_EXTERNAL_URL}
+
+backend:
+  baseUrl: ${RENDER_EXTERNAL_URL}
+  listen:
+    port: 7007
+  cors:
+    origin: https://hypo-stage-hypo-stage.vercel.app
+    methods: [GET, HEAD, PATCH, POST, PUT, DELETE, OPTIONS]
+    allowedHeaders: [Content-Type, Authorization, X-Requested-With, Accept]
+  database:
+    client: pg
+    connection:
+      host: ${PGHOST}
+      port: ${PGPORT}
+      user: ${PGUSER}
+      password: ${PGPASSWORD}
+      database: ${PGDATABASE}
+    plugin:
+      hypo-stage:
+        connection:
+          database: backstage_plugin_hypo_stage
