@@ -265,7 +265,7 @@ Or: `make test` (runs once, no watch prompt). Frontend: Jest for components, hoo
 
 ### End-to-end tests (Playwright)
 
-E2E tests run in a real browser against the running app and cover the [Real usage walkthrough](#real-usage-walkthrough) and all main capabilities (home and dashboard, create, view, edit, delete hypotheses, technical planning). For **how to run them** (full suite, single test, single test with visible browser, or by file), prerequisites, test artifacts, and the list of scenario-based test files, see **[E2E tests](docs/e2e/e2e-tests.md)**.
+E2E tests run in a real browser against the running app and cover the [Real usage walkthrough](#real-usage-walkthrough) and all main capabilities (home and dashboard, create, view, edit, delete hypotheses, technical planning). For **how to run them** (full suite, single test, single test with visible browser, or by file), prerequisites, test artifacts, and the list of scenario-based test files, see **[E2E tests](docs/e2e/e2e-tests.md)**. A **weekly GitHub Actions workflow** runs the full E2E suite against the [deployed demo](https://hypo-stage-hypo-stage.vercel.app/hypo-stage) (see [Scheduled E2E](docs/e2e/e2e-tests.md#scheduled-e2e-github-actions)).
 
 ---
 
