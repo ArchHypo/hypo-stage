@@ -2,6 +2,8 @@
 
 HypoStage integrates architectural hypothesis management into your Backstage environment, enabling teams to document, track, and validate architectural decisions effectively. This plugin provides a comprehensive framework for managing architectural hypotheses with uncertainty assessment, quality attributes tracking, and technical planning capabilities.
 
+A **demo with seed data** is available on GitHub Pages for a quick overview: [https://archhypo.github.io/hypo-stage/](https://archhypo.github.io/hypo-stage/).
+
 ---
 
 ## Quick start
