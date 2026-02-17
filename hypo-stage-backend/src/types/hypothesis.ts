@@ -72,6 +72,7 @@ export type HypothesisEvent = CreateHypothesisEvent | UpdateHypothesisEvent;
 export interface HypothesisService {
   create(input: CreateHypothesisInput): Promise<Hypothesis>;
   getAll(): Promise<Hypothesis[]>;
+  getById(id: string): Promise<Hypothesis>;
   update(id: string, input: UpdateHypothesisInput): Promise<Hypothesis>;
   getEvents(id: string): Promise<HypothesisEvent[]>;
   deleteHypothesis(id: string): Promise<void>;
