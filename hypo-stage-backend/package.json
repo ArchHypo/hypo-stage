@@ -43,7 +43,7 @@
   "devDependencies": {
     "@backstage/backend-test-utils": "^1.4.0",
     "@backstage/cli": "^0.32.0",
-    "js-yaml": "^4.1.0",
+    "@backstage/config-loader": "^1.10.0",
     "@backstage/plugin-auth-backend": "^0.25.0",
     "@backstage/plugin-auth-backend-module-guest-provider": "^0.2.0",
     "@types/express": "^4.17.6",
