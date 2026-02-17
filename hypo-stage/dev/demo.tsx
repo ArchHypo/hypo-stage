@@ -3,6 +3,7 @@
  * - With VITE_BACKEND_URL: uses real backend API (split hosting)
  * - Without: uses mock API with seed data
  */
+/// <reference types="vite/client" />
 import { default as React } from 'react';
 import { createDevApp } from '@backstage/dev-utils';
 import {
@@ -164,19 +165,22 @@ const mockCatalogApi: CatalogApi = {
   streamEntities: async function* streamEntities() {},
 };
 
-createDevApp()
+const app = createDevApp()
   .registerPlugin(hypoStagePlugin)
   .registerApi({ api: discoveryApiRef, deps: {}, factory: () => discoveryApi })
   .registerApi({ api: fetchApiRef, deps: {}, factory: () => fetchApi })
   .registerApi({ api: catalogApiRef, deps: {}, factory: () => mockCatalogApi })
-  .registerApi({ api: standaloneGuestAuthApiRef, deps: {}, factory: () => standaloneGuestAuthApi })
-  .registerApi({
-    api: HypoStageApiRef,
-    deps: useRealBackend ? { discoveryApi: discoveryApiRef, fetchApi: fetchApiRef } : {},
-    factory: useRealBackend
-      ? ({ discoveryApi: d, fetchApi: f }) => new HypoStageApiClient({ discoveryApi: d, fetchApi: f })
-      : () => new HypoStageMockApi(),
-  })
+  .registerApi({ api: standaloneGuestAuthApiRef, deps: {}, factory: () => standaloneGuestAuthApi });
+
+(useRealBackend
+  ? app.registerApi({
+      api: HypoStageApiRef,
+      deps: { discoveryApi: discoveryApiRef, fetchApi: fetchApiRef },
+      factory: ({ discoveryApi: d, fetchApi: f }) =>
+        new HypoStageApiClient({ discoveryApi: d, fetchApi: f }),
+    })
+  : app.registerApi({ api: HypoStageApiRef, deps: {}, factory: () => new HypoStageMockApi() })
+)
   .addSignInProvider({
     id: 'standalone-guest',
     title: 'Standalone guest',
