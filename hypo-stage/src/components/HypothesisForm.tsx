@@ -63,7 +63,7 @@ export const HypothesisForm: React.FC<CreateHypothesisFormProps | EditHypothesis
       </Typography>
 
       <div className={classes.formGrid}>
-        <Grid container spacing={3}>
+        <Grid container spacing={3} style={{ width: '100%', margin: 0 }}>
           {/* Entity references */}
           <Grid item xs={12}>
             <EntityReferencesAutocomplete

@@ -89,12 +89,11 @@ const HypothesisPageContent = ({
         </Header>
 
         <Content>
-          <div className={classes.marginBottom}>
+          <Box className={classes.actionBar} data-testid="hypothesis-action-bar">
             <Button
               variant="outlined"
               startIcon={<ArrowBack />}
               onClick={() => navigate('/hypo-stage')}
-              className={classes.marginRight}
             >
               Back to List
             </Button>
@@ -103,7 +102,6 @@ const HypothesisPageContent = ({
               color="primary"
               startIcon={<Edit />}
               onClick={() => navigate(`/hypo-stage/hypothesis/${hypothesis.id}/edit`)}
-              className={classes.marginRight}
             >
               Edit Hypothesis
             </Button>
@@ -115,16 +113,16 @@ const HypothesisPageContent = ({
             >
               Delete
             </Button>
-          </div>
+          </Box>
 
-          <Grid container spacing={3}>
+          <Grid container spacing={3} style={{ width: '100%', margin: 0 }}>
             {/* Main Hypothesis Information */}
-            <Grid item xs={12} md={8}>
+            <Grid item xs={12} md={8} style={{ minWidth: 0 }}>
               <HypothesisDetails hypothesis={hypothesis} />
             </Grid>
 
             {/* Sidebar Information - Full Width */}
-            <Grid item xs={12} md={4}>
+            <Grid item xs={12} md={4} style={{ minWidth: 0 }}>
               <QualityAttributesCard hypothesis={hypothesis} />
             </Grid>
 

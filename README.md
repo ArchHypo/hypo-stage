@@ -2,7 +2,7 @@
 
 HypoStage integrates architectural hypothesis management into your Backstage environment, enabling teams to document, track, and validate architectural decisions effectively. This plugin provides a comprehensive framework for managing architectural hypotheses with uncertainty assessment, quality attributes tracking, and technical planning capabilities.
 
-A **demo with seed data** is available on Vercel for a quick overview: [https://hypo-stage-hypo-stage.vercel.app](https://hypo-stage-hypo-stage.vercel.app/).
+A **demo with seed data** is available for a quick overview: [https://hypo-stage-hypo-stage.vercel.app](https://hypo-stage-hypo-stage.vercel.app/). It is not for production—just an alternative way to see the plugin in action. See [Standalone demo deployment](docs/standalone-demo-deployment.md) for how we set it up.
 
 ---
 
@@ -59,7 +59,7 @@ Then open **http://localhost:3000** and use the Hypo Stage UI (you’re signed i
 
 **Reference**
 - [Running plugins standalone](#running-plugins-standalone) (full details)
-- [Deploy standalone (split hosting)](#deploy-standalone-split-hosting)
+- [Standalone demo deployment](#standalone-demo-deployment)
 - [Running with Docker](#running-with-docker)
 - [Compatibility with generic Backstage](#compatibility-with-generic-backstage)
 - [Makefile reference](#makefile-reference)
@@ -407,15 +407,11 @@ Open http://localhost:3000. Routes use `hypothesisId` (e.g. `/hypo-stage/hypothe
 
 ---
 
-## Deploy standalone (split hosting)
+## Standalone demo deployment
 
-Deploy the **frontend** to Vercel and the **backend** to Render (or Railway). The frontend calls the real backend; create/edit/delete works.
+The live demo at [https://hypo-stage-hypo-stage.vercel.app](https://hypo-stage-hypo-stage.vercel.app) is a **standalone deployment** (frontend on Vercel, backend on Render) for developers who want to see the plugin in action. **It is not for production use**—just an alternative way to explore the UI and API.
 
-1. **Backend** — Deploy `hypo-stage-backend` to Render with Postgres. Configure CORS to allow your Vercel origin (e.g. `https://hypo-stage-hypo-stage.vercel.app`).
-2. **Frontend** — Connect the repo to [Vercel](https://vercel.com); `vercel.json` defines the build. **Set `VITE_BACKEND_URL`** in Vercel → Settings → Environment Variables to your backend URL (e.g. `https://<service>.onrender.com`, no trailing slash). The Vercel build **requires** this variable; if it is missing, the build fails so the app never uses static demo data and always loads hypotheses from your Render backend.
-3. **Seed** — Run `make seed-standalone` once (pointing at the production database) so the backend has demo data.
-
-Full steps: [docs/deploy-split-hosting.md](docs/deploy-split-hosting.md).
+For how we set it up and the rationale, see [docs/standalone-demo-deployment.md](docs/standalone-demo-deployment.md).
 
 ---
 

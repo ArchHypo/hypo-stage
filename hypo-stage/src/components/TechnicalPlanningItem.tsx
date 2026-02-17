@@ -79,11 +79,11 @@ export const TechnicalPlanningItem: React.FC<TechnicalPlanningItemProps> = ({
   return (
     <>
       <Paper variant="outlined" className={classes.paperContainer}>
-        <Box className={`${classes.flexBetween} ${classes.marginBottom}`}>
-          <Typography variant="h6">
+        <Box className={`${classes.flexBetween} ${classes.marginBottom} ${classes.technicalPlanningHeader}`}>
+          <Typography variant="h6" style={{ flexShrink: 0 }}>
             Technical Planning #{index + 1}
           </Typography>
-          <Box display="flex">
+          <Box display="flex" flexWrap="wrap" style={{ gap: 8 }}>
             <Button
               variant="outlined"
               size="small"

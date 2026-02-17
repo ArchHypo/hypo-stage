@@ -57,7 +57,7 @@ export const TechnicalPlanningForm: React.FC<CreateTechnicalPlanningFormProps | 
       </Typography>
 
       <div className={classes.formGrid}>
-        <Grid container spacing={3}>
+        <Grid container spacing={3} style={{ width: '100%', margin: 0 }}>
           {/* Entity reference */}
           <Grid item xs={12}>
             <CustomSelectField

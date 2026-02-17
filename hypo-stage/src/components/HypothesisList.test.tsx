@@ -1,5 +1,5 @@
 import { default as React } from 'react';
-import { screen, waitFor } from '@testing-library/react';
+import { screen, waitFor, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 import { TestApiProvider, renderInTestApp } from '@backstage/test-utils';
@@ -118,6 +118,24 @@ describe('HypothesisList', () => {
     expect(screen.getByText('Hypotheses')).toBeInTheDocument();
     expect(screen.getByText('First test hypothesis statement')).toBeInTheDocument();
     expect(screen.getByText('Second test hypothesis statement that is longer')).toBeInTheDocument();
+  });
+
+  it('should wrap table in scrollable container for responsive overflow', async () => {
+    await renderWithProviders(<HypothesisList />);
+
+    const tableWrapper = screen.getByTestId('hypothesis-table-wrapper');
+    expect(tableWrapper).toBeInTheDocument();
+    expect(tableWrapper).toContainElement(screen.getByText('Hypotheses'));
+  });
+
+  it('should render filter bar with Team, Component, and Focus filters', async () => {
+    await renderWithProviders(<HypothesisList />);
+
+    const filterBar = screen.getByTestId('hypothesis-filter-bar');
+    expect(filterBar).toBeInTheDocument();
+    expect(screen.getByLabelText(/Team/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Component/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Filter by focus type/i)).toBeInTheDocument();
   });
 
   it('should show loading state', async () => {
@@ -266,7 +284,7 @@ describe('HypothesisList', () => {
 
       expect(confirmDeleteButton).toBeDisabled();
 
-      await user.type(confirmInput, secondHypothesisStatement);
+      fireEvent.change(confirmInput, { target: { value: secondHypothesisStatement } });
 
       await waitFor(() => {
         expect(confirmDeleteButton).not.toBeDisabled();
@@ -281,7 +299,7 @@ describe('HypothesisList', () => {
       await openDeleteDialogForSecondHypothesis(user);
 
       const confirmInput = screen.getByPlaceholderText(/Type the hypothesis name here/i);
-      await user.type(confirmInput, secondHypothesisStatement);
+      fireEvent.change(confirmInput, { target: { value: secondHypothesisStatement } });
 
       const confirmDeleteButton = screen.getByRole('button', { name: /^Delete$/i });
       await waitFor(() => {
@@ -304,7 +322,7 @@ describe('HypothesisList', () => {
       await openDeleteDialogForSecondHypothesis(user);
 
       const confirmInput = screen.getByPlaceholderText(/Type the hypothesis name here/i);
-      await user.type(confirmInput, secondHypothesisStatement);
+      fireEvent.change(confirmInput, { target: { value: secondHypothesisStatement } });
 
       const confirmDeleteButton = screen.getByRole('button', { name: /^Delete$/i });
       await waitFor(() => {

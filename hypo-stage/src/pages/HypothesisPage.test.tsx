@@ -107,6 +107,16 @@ describe('HypothesisPage', () => {
     expect(screen.getByText(/This is a test hypothesis statement that must be typed exactly/)).toBeInTheDocument();
   });
 
+  it('should render action bar with Back, Edit, and Delete buttons for responsive layout', async () => {
+    await renderWithProviders(<HypothesisPage />);
+
+    const actionBar = screen.getByTestId('hypothesis-action-bar');
+    expect(actionBar).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Back to List/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Edit Hypothesis/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Delete/i })).toBeInTheDocument();
+  });
+
   it('should show loading state', async () => {
     mockUseHypothesisData.mockReturnValue({
       hypothesis: null,

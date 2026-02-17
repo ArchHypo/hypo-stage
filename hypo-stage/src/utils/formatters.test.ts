@@ -64,12 +64,12 @@ describe('formatters', () => {
   });
 
   describe('getValueLabel', () => {
-    it('should return Portuguese labels for chart values', () => {
-      expect(getValueLabel(1)).toBe('Muito Baixo');
-      expect(getValueLabel(2)).toBe('Baixo');
-      expect(getValueLabel(3)).toBe('Médio');
-      expect(getValueLabel(4)).toBe('Alto');
-      expect(getValueLabel(5)).toBe('Muito Alto');
+    it('should return labels for chart values', () => {
+      expect(getValueLabel(1)).toBe('Very Low');
+      expect(getValueLabel(2)).toBe('Low');
+      expect(getValueLabel(3)).toBe('Medium');
+      expect(getValueLabel(4)).toBe('High');
+      expect(getValueLabel(5)).toBe('Very High');
       expect(getValueLabel(0)).toBe('0');
     });
   });
