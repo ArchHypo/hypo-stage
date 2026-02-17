@@ -120,6 +120,24 @@ describe('HypothesisList', () => {
     expect(screen.getByText('Second test hypothesis statement that is longer')).toBeInTheDocument();
   });
 
+  it('should wrap table in scrollable container for responsive overflow', async () => {
+    await renderWithProviders(<HypothesisList />);
+
+    const tableWrapper = screen.getByTestId('hypothesis-table-wrapper');
+    expect(tableWrapper).toBeInTheDocument();
+    expect(tableWrapper).toContainElement(screen.getByText('Hypotheses'));
+  });
+
+  it('should render filter bar with Team, Component, and Focus filters', async () => {
+    await renderWithProviders(<HypothesisList />);
+
+    const filterBar = screen.getByTestId('hypothesis-filter-bar');
+    expect(filterBar).toBeInTheDocument();
+    expect(screen.getByLabelText(/Team/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Component/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Filter by focus type/i)).toBeInTheDocument();
+  });
+
   it('should show loading state', async () => {
     mockUseAsync.mockReturnValue({
       value: undefined,

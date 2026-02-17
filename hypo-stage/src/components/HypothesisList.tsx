@@ -142,7 +142,7 @@ export const DenseTable = ({ hypotheses, onDeleteClick }: DenseTableProps) => {
   });
 
   return (
-    <Box className={classes.tableWrapper}>
+    <Box className={classes.tableWrapper} data-testid="hypothesis-table-wrapper">
       <Table
         title="Hypotheses"
         options={{
@@ -271,7 +271,7 @@ export const HypothesisList = ({ refreshKey = 0, entityRef }: HypothesisListProp
         refreshKey={refreshKey + refreshTrigger}
         sinceDays={90}
       />
-      <Box className={classes.filterBar}>
+      <Box className={classes.filterBar} data-testid="hypothesis-filter-bar">
         {!entityRef && (
           <>
             <Autocomplete

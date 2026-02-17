@@ -67,6 +67,21 @@ describe('HypothesisListDashboard', () => {
     expect(screen.getByText('Impact')).toBeInTheDocument();
   });
 
+  it('should render stat cards and insight cards for responsive grid layout', async () => {
+    await renderInTestApp(
+      <TestApiProvider apis={[[HypoStageApiRef, mockApi]]}>
+        <HypothesisListDashboard />
+      </TestApiProvider>,
+    );
+
+    expect(screen.getByText('Total')).toBeInTheDocument();
+    expect(screen.getAllByText('Validated').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Open').length).toBeGreaterThan(0);
+    expect(screen.getByText('Created (30d)')).toBeInTheDocument();
+    expect(screen.getByText(/Need attention/)).toBeInTheDocument();
+    expect(screen.getByText(/Can postpone/)).toBeInTheDocument();
+  });
+
   it('should call getHypothesesStats with sinceDays when provided', async () => {
     await renderInTestApp(
       <TestApiProvider apis={[[HypoStageApiRef, mockApi]]}>

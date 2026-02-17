@@ -89,7 +89,7 @@ const HypothesisPageContent = ({
         </Header>
 
         <Content>
-          <Box className={classes.actionBar}>
+          <Box className={classes.actionBar} data-testid="hypothesis-action-bar">
             <Button
               variant="outlined"
               startIcon={<ArrowBack />}
