@@ -10,10 +10,22 @@
     "hypo-stage-backend"
   ],
   "scripts": {
-    "lint": "yarn workspaces run lint",
+    "lint": "NODE_PATH=\"$(pwd)/node_modules/@backstage/cli/node_modules\" yarn workspaces run lint && yarn lint:root",
+    "lint:root": "eslint e2e scripts",
     "test": "yarn workspaces run test",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:headed": "playwright test --headed",
+    "test:e2e:walkthrough": "playwright test && node scripts/copy-walkthrough-videos.js",
     "build": "yarn build:types && yarn workspaces run build",
     "build:types": "tsc -p hypo-stage/tsconfig.build.json && tsc -p hypo-stage-backend/tsconfig.build.json",
     "vercel-build": "node scripts/vercel-build.js"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.49.0",
+    "eslint-plugin-jest": "^28.9.0",
+    "eslint": "^9.0.0",
+    "eslint-plugin-playwright": "^2.0.0",
+    "typescript": "^5.0.0"
   }
 }
