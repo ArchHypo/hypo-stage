@@ -24,7 +24,7 @@ Deploy the HypoStage frontend to **Vercel** and the backend to **Render** (or Ra
    - **`BACKSTAGE_CONFIG_PATH`** = `../app-config.production.yaml` (required — points to the committed config at repo root; start command runs from `hypo-stage-backend`)
    - Render sets `PGHOST`, `PGPORT`, `PGUSER`, `PGPASSWORD`, `PGDATABASE` when you add Postgres; it also sets `RENDER_EXTERNAL_URL` for your service URL.
 
-The repo includes **`app-config.production.yaml`** at the root (see below). Do not rely on `app-config.yaml` — it is gitignored and will not exist on Render.
+The repo includes **`app-config.production.yaml`** at the root. The backend injects `--config` from `BACKSTAGE_CONFIG_PATH` into the process so Backstage’s config loader uses this file instead of the default `app-config.yaml` (which is gitignored and not present on Render).
 
 ### Backend config for production
 
