@@ -1,5 +1,6 @@
 import request from 'supertest';
 import express from 'express';
+import { NotFoundError } from '@backstage/errors';
 import { createRouter } from './router';
 import { HypothesisService } from './types/hypothesis';
 import { CatalogService } from '@backstage/plugin-catalog-node';
@@ -15,6 +16,7 @@ describe('HypoStage Router', () => {
     mockHypothesisService = {
       create: jest.fn(),
       getAll: jest.fn(),
+      getById: jest.fn(),
       update: jest.fn(),
       getEvents: jest.fn(),
       deleteHypothesis: jest.fn(),
@@ -83,6 +85,57 @@ describe('HypoStage Router', () => {
       expect(mockHypothesisService.deleteHypothesis).toHaveBeenCalledWith(
         hypothesisId,
       );
+    });
+  });
+
+  describe('GET /hypotheses/:id', () => {
+    it('should return a hypothesis by id', async () => {
+      const hypothesisId = '9f5332a1-8e9c-4234-a4c0-56cb25813322';
+      const mockHypothesis = {
+        id: hypothesisId,
+        statement: 'Test hypothesis',
+        status: 'Open',
+        entityRefs: ['component:default/foo'],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        technicalPlannings: [],
+      };
+      mockHypothesisService.getById.mockResolvedValue(mockHypothesis);
+
+      const router = await createRouter({
+        httpAuth: mockHttpAuth,
+        hypothesisService: mockHypothesisService,
+        catalogService: mockCatalogService,
+      });
+      app.use('/api/hypo-stage', router);
+
+      const response = await request(app)
+        .get(`/api/hypo-stage/hypotheses/${hypothesisId}`)
+        .expect(200);
+
+      expect(mockHypothesisService.getById).toHaveBeenCalledWith(hypothesisId);
+      expect(response.body.id).toBe(hypothesisId);
+      expect(response.body.statement).toBe('Test hypothesis');
+    });
+
+    it('should return 404 when hypothesis not found', async () => {
+      const hypothesisId = 'non-existent-id';
+      mockHypothesisService.getById.mockRejectedValue(
+        new NotFoundError(`Hypothesis not found: ${hypothesisId}`),
+      );
+
+      const router = await createRouter({
+        httpAuth: mockHttpAuth,
+        hypothesisService: mockHypothesisService,
+        catalogService: mockCatalogService,
+      });
+      app.use('/api/hypo-stage', router);
+
+      const response = await request(app).get(
+        `/api/hypo-stage/hypotheses/${hypothesisId}`,
+      );
+      expect(response.status).toBe(404);
+      expect(response.body.error).toContain('Hypothesis not found');
     });
   });
 

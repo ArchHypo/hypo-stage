@@ -412,12 +412,10 @@ Open http://localhost:3000. Routes use `hypothesisId` (e.g. `/hypo-stage/hypothe
 Deploy the **frontend** to Vercel and the **backend** to Render (or Railway). The frontend calls the real backend; create/edit/delete works.
 
 1. **Backend** — Deploy `hypo-stage-backend` to Render with Postgres. Configure CORS to allow your Vercel origin (e.g. `https://hypo-stage-hypo-stage.vercel.app`).
-2. **Frontend** — Connect the repo to [Vercel](https://vercel.com); `vercel.json` defines the build. Add `VITE_BACKEND_URL` in Vercel project settings (Environment Variables) with the backend URL (e.g. `https://<service>.onrender.com`).
+2. **Frontend** — Connect the repo to [Vercel](https://vercel.com); `vercel.json` defines the build. **Set `VITE_BACKEND_URL`** in Vercel → Settings → Environment Variables to your backend URL (e.g. `https://<service>.onrender.com`, no trailing slash). The Vercel build **requires** this variable; if it is missing, the build fails so the app never uses static demo data and always loads hypotheses from your Render backend.
 3. **Seed** — Run `make seed-standalone` once (pointing at the production database) so the backend has demo data.
 
 Full steps: [docs/deploy-split-hosting.md](docs/deploy-split-hosting.md).
-
-**Without VITE_BACKEND_URL** — The frontend falls back to the mock API (read-only, embedded seed data). No backend required.
 
 ---
 

@@ -60,15 +60,19 @@ BACKSTAGE_CONFIG_PATH=app-config.production.yaml make seed-standalone
 
 1. Go to [vercel.com](https://vercel.com) and import your GitHub repo.
 2. Vercel detects `vercel.json` at the repo root and uses it for build and output.
+3. **Leave "Root Directory" empty** so the build runs from the repo root (required for `build:types` and the frontend build).
 
-### Add the backend URL
+### Add the backend URL (required)
+
+**You must set `VITE_BACKEND_URL` before the first deploy.** Otherwise the build will fail. The frontend is designed to load hypotheses from your Render backend, not from static demo data.
 
 1. In the Vercel project: **Settings** → **Environment Variables**.
-2. Add: `VITE_BACKEND_URL` = `https://<your-backend>.onrender.com` (no trailing slash).
+2. Add: **`VITE_BACKEND_URL`** = `https://<your-backend>.onrender.com` (no trailing slash).
+3. Apply to **Production** (and **Preview** if you want preview deployments to use the backend too).
 
 ### Deploy
 
-On push to `main` (or your production branch), Vercel builds and deploys automatically. The frontend will call the backend at `https://<your-backend>.onrender.com/api/hypo-stage` when `VITE_BACKEND_URL` is set.
+On push to `main` (or your production branch), Vercel builds and deploys automatically. The frontend will load all hypotheses from the backend at `https://<your-backend>.onrender.com/api/hypo-stage`; it does not use embedded static data when `VITE_BACKEND_URL` is set.
 
 ## 3. CORS on the backend
 
@@ -76,6 +80,6 @@ The backend **must** allow the frontend origin in CORS. Set:
 
 - `backend.cors.origin: https://hypo-stage-hypo-stage.vercel.app` (or your custom Vercel domain, e.g. `https://<project>.vercel.app`)
 
-## Without VITE_BACKEND_URL
+## Build requirement
 
-If the environment variable is not set, the frontend falls back to the **mock API** with embedded seed data (read-only). No backend is required.
+The Vercel build **requires** `VITE_BACKEND_URL` to be set. If it is missing, the build fails with a clear error so that the deployed app never shows static demo data by mistake. For a local demo without a backend, run `yarn start` in the `hypo-stage` directory instead of deploying to Vercel.

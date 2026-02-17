@@ -1,6 +1,6 @@
 {
-  "buildCommand": "yarn install --ignore-engines && yarn build:standalone",
-  "outputDirectory": "dist-standalone",
+  "buildCommand": "yarn install --ignore-engines && yarn vercel-build",
+  "outputDirectory": "hypo-stage/dist-standalone",
   "framework": null,
   "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
 }

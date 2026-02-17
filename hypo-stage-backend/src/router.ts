@@ -1,4 +1,4 @@
-import { InputError } from '@backstage/errors';
+import { InputError, NotFoundError } from '@backstage/errors';
 import express from 'express';
 import Router from 'express-promise-router';
 import { HypothesisService } from './types/hypothesis';
@@ -181,6 +181,19 @@ export async function createRouter({
     }
 
     res.json(hypotheses);
+  });
+
+  router.get('/hypotheses/:id', async (req, res) => {
+    try {
+      const hypothesis = await hypothesisService.getById(req.params.id);
+      res.json(hypothesis);
+    } catch (err) {
+      if (err instanceof NotFoundError) {
+        res.status(404).json({ error: err.message });
+        return;
+      }
+      throw err;
+    }
   });
 
   router.put('/hypotheses/:id', async (req, res) => {

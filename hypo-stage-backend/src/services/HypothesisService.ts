@@ -1,4 +1,5 @@
 import { DatabaseService, LoggerService } from "@backstage/backend-plugin-api";
+import { NotFoundError } from "@backstage/errors";
 import { CreateHypothesisInput, Hypothesis, HypothesisService, UpdateHypothesisInput, HypothesisEvent, TechnicalPlanning, CreateTechnicalPlanningInput, UpdateTechnicalPlanningInput } from "../types/hypothesis";
 
 export async function createHypothesisService({
@@ -85,6 +86,32 @@ export async function createHypothesisService({
       );
 
       return hypothesesWithTechPlans;
+    },
+
+    async getById(id: string): Promise<Hypothesis> {
+      logger.info('Getting hypothesis by id', { id });
+
+      const rows = await db('hypothesis').where('id', id).select('*');
+
+      if (!rows || rows.length === 0) {
+        throw new NotFoundError(`Hypothesis not found: ${id}`);
+      }
+
+      const hypothesis = rows[0];
+      const technicalPlannings = await db('technicalPlanning')
+        .where('hypothesisId', id)
+        .select('*');
+
+      return {
+        ...hypothesis,
+        entityRefs: JSON.parse(hypothesis.entityRefs),
+        relatedArtefacts: JSON.parse(hypothesis.relatedArtefacts),
+        qualityAttributes: JSON.parse(hypothesis.qualityAttributes),
+        technicalPlannings: technicalPlannings.map(tp => ({
+          ...tp,
+          documentations: JSON.parse(tp.documentations),
+        })),
+      };
     },
 
     async update(id: string, input: UpdateHypothesisInput): Promise<Hypothesis> {
