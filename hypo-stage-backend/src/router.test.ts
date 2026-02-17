@@ -1,5 +1,6 @@
 import request from 'supertest';
 import express from 'express';
+import { NotFoundError } from '@backstage/errors';
 import { createRouter } from './router';
 import { HypothesisService } from './types/hypothesis';
 import { CatalogService } from '@backstage/plugin-catalog-node';
@@ -118,7 +119,6 @@ describe('HypoStage Router', () => {
     });
 
     it('should return 404 when hypothesis not found', async () => {
-      const { NotFoundError } = await import('@backstage/errors');
       const hypothesisId = 'non-existent-id';
       mockHypothesisService.getById.mockRejectedValue(
         new NotFoundError(`Hypothesis not found: ${hypothesisId}`),
@@ -131,9 +131,11 @@ describe('HypoStage Router', () => {
       });
       app.use('/api/hypo-stage', router);
 
-      await request(app)
-        .get(`/api/hypo-stage/hypotheses/${hypothesisId}`)
-        .expect(404);
+      const response = await request(app).get(
+        `/api/hypo-stage/hypotheses/${hypothesisId}`,
+      );
+      expect(response.status).toBe(404);
+      expect(response.body.error).toContain('Hypothesis not found');
     });
   });
 
