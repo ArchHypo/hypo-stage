@@ -55,7 +55,7 @@ npx playwright test e2e/technical-planning.spec.js
 | Location | Content |
 |----------|--------|
 | `e2e/e2e-videos/` | Video recording of each test run (one folder per test; each contains `video.webm`). **Gitignored.** |
-| `docs/e2e/walkthrough-videos/` | Stable walkthrough clips (`walkthrough-1-home.webm` … `walkthrough-6-delete.webm`) for [Real usage walkthrough](../real-usage-walkthrough.md). **Committed.** |
+| `docs/e2e/walkthrough-videos/` | Stable walkthrough clips (WebM + GIF) for [Real usage walkthrough](../real-usage-walkthrough.md). **Committed.** |
 | `e2e/e2e-report/` | HTML report; open `index.html` in a browser after a run. Gitignored. |
 
 Videos are written into **hashed folders** under `e2e/e2e-videos/`. After running tests, copy the latest recordings into `docs/e2e/walkthrough-videos/` so the walkthrough doc links work:
@@ -69,6 +69,14 @@ Or run tests and copy in one go:
 ```bash
 yarn test:e2e:walkthrough
 ```
+
+**Generate GIFs for GitHub:** The walkthrough page uses animated GIFs so clips play inline on GitHub (WebM does not). After copying WebM clips, generate GIFs with:
+
+```bash
+yarn walkthrough:gif
+```
+
+This runs `scripts/webm-to-gif.js` and requires [ffmpeg](https://ffmpeg.org/) on your PATH. Output: `walkthrough-1-home.gif` … `walkthrough-6-delete.gif` in `docs/e2e/walkthrough-videos/`.
 
 ---
 

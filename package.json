@@ -17,6 +17,7 @@
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:headed": "playwright test --headed",
     "test:e2e:walkthrough": "playwright test && node scripts/copy-walkthrough-videos.js",
+    "walkthrough:gif": "node scripts/webm-to-gif.js",
     "build": "yarn build:types && yarn workspaces run build",
     "build:types": "tsc -p hypo-stage/tsconfig.build.json && tsc -p hypo-stage-backend/tsconfig.build.json",
     "vercel-build": "node scripts/vercel-build.js"
