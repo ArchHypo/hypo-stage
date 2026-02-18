@@ -1,27 +1,27 @@
-# HypoStage Backend Plugin
+# ⚙️ HypoStage Backend Plugin
 
 Backend plugin for [HypoStage](https://github.com/ArchHypo/hypo-stage): persistence and API for architectural hypotheses and technical planning. Uses the Backstage database and catalog services.
 
 **Package:** `@internal/plugin-hypo-stage-backend`
 
-## Table of contents
+## 📑 Table of contents
 
-- [Requirements](#requirements)
-- [Build, test and lint](#build-test-and-lint)
-- [What this package provides](#what-this-package-provides)
-- [Database migrations](#database-migrations)
-- [Installation into a Backstage app](#installation-into-a-backstage-app)
+- [✅ Requirements](#requirements)
+- [🔨 Build, test and lint](#build-test-and-lint)
+- [📦 What this package provides](#what-this-package-provides)
+- [🗄️ Database migrations](#database-migrations)
+- [📥 Installation into a Backstage app](#installation-into-a-backstage-app)
 
 ---
 
-## Requirements
+## ✅ Requirements
 
 - **Backstage backend** with `coreServices.database` configured (PostgreSQL or SQLite in `app-config.yaml`).
 - **PostgreSQL** (recommended for production) or SQLite (e.g. for local dev). For a local Postgres instance without modifying your app, use the repo’s Docker Compose: from the [repository root](https://github.com/ArchHypo/hypo-stage), run `make start-dependencies` (see [Running with Docker](https://github.com/ArchHypo/hypo-stage#running-with-docker) in the main README).
 
 ---
 
-## Build, test and lint
+## 🔨 Build, test and lint
 
 From the **repository root** (parent of this directory), run:
 
@@ -45,7 +45,7 @@ For full validation (deps, build, test, lint for both frontend and backend), see
 
 ---
 
-## What this package provides
+## 📦 What this package provides
 
 - **HypothesisService** – Create, read, update, delete hypotheses and technical planning items; event history.
 - **REST API** – Mounted under the Backstage backend:
@@ -59,7 +59,7 @@ For full validation (deps, build, test, lint for both frontend and backend), see
 
 ---
 
-## Database migrations
+## 🗄️ Database migrations
 
 Migrations run **automatically** when the Backstage backend starts: the plugin calls `database.getClient()` and runs `migrate.latest()` from the `migrations/` directory (unless the Backstage config sets `database.migrations.skip`). No manual migration step is required.
 
@@ -71,7 +71,7 @@ Migrations run **automatically** when the Backstage backend starts: the plugin c
 
 ---
 
-## Installation into a Backstage app
+## 📥 Installation into a Backstage app
 
 1. Copy this `hypo-stage-backend` directory into your app’s `plugins/` folder.
 2. From the app root:

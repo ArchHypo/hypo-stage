@@ -1,4 +1,4 @@
-# HypoStage: visual demonstration of capabilities
+# 🎬 HypoStage: visual demonstration of capabilities
 
 This page shows what HypoStage can do, with a short video for each capability. After [installing](../README.md#installation), open **Hypo Stage** in your Backstage app (sidebar or `/hypo-stage`) to try it yourself.
 
@@ -6,7 +6,7 @@ Clips are shown as **animated GIFs** so they play inline on GitHub; **WebM links
 
 ---
 
-## 1. Home and dashboard
+## 1. 🏠 Home and dashboard
 
 See the landing page: welcome message, **Create New Hypothesis** button, dashboard (totals by status, "Where to focus", uncertainty & impact), filters (Team, Component, Focus), and the hypotheses list.
 
@@ -16,7 +16,7 @@ See the landing page: welcome message, **Create New Hypothesis** button, dashboa
 
 ---
 
-## 2. Create a hypothesis
+## 2. 📝 Create a hypothesis
 
 Create a new hypothesis: pick entity references, write the statement, set source type, uncertainty, impact, quality attributes, related artefacts and notes, then submit. You are redirected to the list and can open the new hypothesis.
 
@@ -26,7 +26,7 @@ Create a new hypothesis: pick entity references, write the statement, set source
 
 ---
 
-## 3. View hypothesis detail
+## 3. 👁️ View hypothesis detail
 
 Open a hypothesis from the list to see its statement, status, assessment (uncertainty/impact), linked components, quality attributes, related artefacts, evolution chart, and technical planning. From here you can edit, add or manage technical planning, or delete (with confirmation).
 
@@ -36,7 +36,7 @@ Open a hypothesis from the list to see its statement, status, assessment (uncert
 
 ---
 
-## 4. Edit a hypothesis
+## 4. ✏️ Edit a hypothesis
 
 From the detail page, open **Edit** to change status, source type, uncertainty, impact, quality attributes, related artefacts, and notes (statement and entity refs stay read-only). Submit with **Update Hypothesis** to return to the detail view and see the evolution chart update.
 
@@ -46,7 +46,7 @@ From the detail page, open **Edit** to change status, source type, uncertainty, 
 
 ---
 
-## 5. Technical planning
+## 5. 📅 Technical planning
 
 On a hypothesis detail page, use **Add Technical Planning** to add items: owner, action type, target date, description, expected outcome, and documentation links. You can edit or delete each item; delete requires confirmation.
 
@@ -56,7 +56,7 @@ On a hypothesis detail page, use **Add Technical Planning** to add items: owner,
 
 ---
 
-## 6. Delete a hypothesis
+## 6. 🗑️ Delete a hypothesis
 
 Remove a hypothesis from the **list** (row delete icon) or from the **detail** page (**Delete** in the action bar). In both cases you must type the full hypothesis statement to confirm; then the list refreshes or you are redirected to the list.
 
@@ -66,7 +66,7 @@ Remove a hypothesis from the **list** (row delete icon) or from the **detail** p
 
 ---
 
-## Capabilities ↔ E2E specs
+## 📋 Capabilities ↔ E2E specs
 
 | # | Capability              | E2E spec                          |
 |---|--------------------------|------------------------------------|
