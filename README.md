@@ -1,4 +1,18 @@
-# HypoStage
+<h1 align="center">HypoStage</h1>
+
+<p align="center">
+  <img src="docs/e2e/walkthrough-videos/walkthrough-1-home.gif" alt="Home and dashboard" />
+</p>
+
+<p align="center">
+  <em>Document assumptions · Track uncertainty · Validate decisions</em>
+</p>
+
+<p align="center">
+  <sub>Architectural hypothesis management that fits right into your Backstage.</sub>
+</p>
+
+---
 
 HypoStage integrates architectural hypothesis management into your Backstage environment, enabling teams to document, track, and validate architectural decisions effectively. This plugin provides a comprehensive framework for managing architectural hypotheses with uncertainty assessment, quality attributes tracking, and technical planning capabilities.
 
