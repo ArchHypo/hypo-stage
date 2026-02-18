@@ -1,23 +1,23 @@
-# HypoStage (Frontend Plugin)
+# 💡 HypoStage (Frontend Plugin)
 
 Frontend plugin for [HypoStage](https://github.com/ArchHypo/hypo-stage): architectural hypothesis management in Backstage. Provides the Hypo Stage UI, pages, and catalog entity integration.
 
 **Package:** `@internal/plugin-hypo-stage`
 
-## Table of contents
+## 📑 Table of contents
 
-- [Requirements](#requirements)
-- [Build, test and lint](#build-test-and-lint)
-- [What this package provides](#what-this-package-provides)
-  - [Pages (routed)](#pages-routed)
-  - [Catalog integration](#catalog-integration)
-  - [API](#api)
-  - [Reusable components (for custom UIs)](#reusable-components-for-custom-uis)
-- [Installation into a Backstage app](#installation-into-a-backstage-app)
+- [✅ Requirements](#requirements)
+- [🔨 Build, test and lint](#build-test-and-lint)
+- [📦 What this package provides](#what-this-package-provides)
+  - [📄 Pages (routed)](#pages-routed)
+  - [🔗 Catalog integration](#catalog-integration)
+  - [🔌 API](#api)
+  - [🧩 Reusable components (for custom UIs)](#reusable-components-for-custom-uis)
+- [📥 Installation into a Backstage app](#installation-into-a-backstage-app)
 
 ---
 
-## Requirements
+## ✅ Requirements
 
 - **Backend plugin** — The HypoStage backend (`@internal/plugin-hypo-stage-backend`) must be installed in the same Backstage app and registered in `packages/backend/src/index.ts`. The backend provides the REST API and database used by this frontend.
 - **API registration** — The app must register `HypoStageApiRef` in `packages/app/src/apis.ts` (or equivalent) with `HypoStageApiClient` so that the UI can call the backend. See the [main README – Step 3.2](https://github.com/ArchHypo/hypo-stage#32-register-the-frontend-api--in-packagesappsrcapits).
@@ -25,7 +25,7 @@ Frontend plugin for [HypoStage](https://github.com/ArchHypo/hypo-stage): archite
 
 ---
 
-## Build, test and lint
+## 🔨 Build, test and lint
 
 From the **repository root** (parent of this directory), run:
 
@@ -51,27 +51,27 @@ For full validation (deps, build, test, lint for both frontend and backend), see
 
 ---
 
-## What this package provides
+## 📦 What this package provides
 
-### Pages (routed)
+### 📄 Pages (routed)
 
 - **HypoStagePage** – Main list and dashboard (`/hypo-stage`)
 - **CreateHypothesisPage** – Create hypothesis form
 - **HypothesisPage** – Hypothesis detail and technical planning
 - **EditHypothesisPage** – Edit hypothesis form
 
-### Catalog integration
+### 🔗 Catalog integration
 
 - **EntityHypothesesTab** – Tab on catalog entity pages showing hypotheses that reference the entity
 - **useHypoStageTabEnabled()** – Whether the Hypo Stage tab is enabled (e.g. via feature flag)
 - **HYPO_STAGE_FEATURE_FLAG** – Feature flag name: `'hypo-stage'`
 
-### API
+### 🔌 API
 
 - **HypoStageApiRef**, **HypoStageApiClient** – Frontend API to call the HypoStage backend
 - **GetHypothesesOptions** – Type for list filters (entityRef, team)
 
-### Reusable components (for custom UIs)
+### 🧩 Reusable components (for custom UIs)
 
 - **HypothesisForm**, **HypothesisList** – Forms and list
 - **EntityRefLinks** – Render entity refs as catalog links
@@ -79,7 +79,7 @@ For full validation (deps, build, test, lint for both frontend and backend), see
 
 ---
 
-## Installation into a Backstage app
+## 📥 Installation into a Backstage app
 
 1. Copy this `hypo-stage` directory into your app’s `plugins/` folder.
 2. From the app root:

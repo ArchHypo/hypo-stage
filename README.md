@@ -1,4 +1,18 @@
-# HypoStage
+<h1 align="center">💡 HypoStage</h1>
+
+<p align="center">
+  <img src="docs/e2e/walkthrough-videos/walkthrough-1-home.gif" alt="Home and dashboard" />
+</p>
+
+<p align="center">
+  <em>Document assumptions · Track uncertainty · Validate decisions</em>
+</p>
+
+<p align="center">
+  <sub>Architectural hypothesis management that fits right into your Backstage.</sub>
+</p>
+
+---
 
 HypoStage integrates architectural hypothesis management into your Backstage environment, enabling teams to document, track, and validate architectural decisions effectively. This plugin provides a comprehensive framework for managing architectural hypotheses with uncertainty assessment, quality attributes tracking, and technical planning capabilities.
 
@@ -6,7 +20,7 @@ A **demo with seed data** is available for a quick overview: [https://hypo-stage
 
 ---
 
-## Quick start
+## 🚀 Quick start
 
 Choose how you want to run HypoStage:
 
@@ -36,53 +50,53 @@ Then open **http://localhost:3000** and use the Hypo Stage UI (you’re signed i
 
 ---
 
-## Table of contents
+## 📑 Table of contents
 
 **Get started**
-- [What is HypoStage?](#what-is-hypostage)
-- [Repository structure](#repository-structure)
-- [Prerequisites](#prerequisites)
-- [Run standalone](#run-standalone-no-backstage-app-required)
-- [Add to a Backstage app](#add-to-your-existing-backstage-app)
+- [📖 What is HypoStage?](#-what-is-hypostage)
+- [📁 Repository structure](#-repository-structure)
+- [✅ Prerequisites](#-prerequisites)
+- [🖥️ Run standalone](#-run-standalone-no-backstage-app-required)
+- [🔌 Add to a Backstage app](#-add-to-your-existing-backstage-app)
 
 **Install & use**
-- [Installation](#installation) (step-by-step for Backstage)
-- [Usage](#usage)
-- [Real usage walkthrough](#real-usage-walkthrough)
+- [📦 Installation](#-installation) (step-by-step for Backstage)
+- [🎯 Usage](#-usage)
+- [🎬 Real usage walkthrough](#-real-usage-walkthrough)
 
 **Develop & validate**
-- [Building the project](#building-the-project)
-- [Running tests](#running-tests)
+- [🔨 Building the project](#-building-the-project)
+- [🧪 Running tests](#-running-tests)
 - [End-to-end tests (Playwright)](#end-to-end-tests-playwright)
-- [Code style (lint)](#code-style-lint)
-- [Validating usage](#validating-usage)
-- [CI (GitHub Actions)](#ci-github-actions)
+- [✨ Code style (lint)](#-code-style-lint)
+- [✔️ Validating usage](#-validating-usage)
+- [🔄 CI (GitHub Actions)](#-ci-github-actions)
 
 **Reference**
-- [Running plugins standalone](#running-plugins-standalone) (full details)
-- [Real usage walkthrough](docs/real-usage-walkthrough.md) (step-by-step guide and demo video)
+- [🖥️ Running plugins standalone](#-running-plugins-standalone) (full details)
+- [🎬 Real usage walkthrough](docs/real-usage-walkthrough.md) (step-by-step guide and demo video)
 - [E2E tests](docs/e2e/e2e-tests.md) (Playwright: how to run, artifacts, coverage)
-- [Standalone demo deployment](#standalone-demo-deployment)
-- [Running with Docker](#running-with-docker)
-- [Compatibility with generic Backstage](#compatibility-with-generic-backstage)
-- [Makefile reference](#makefile-reference)
-- [API reference](#api-reference)
-- [License](#license)
+- [🌐 Standalone demo deployment](#-standalone-demo-deployment)
+- [🐳 Running with Docker](#-running-with-docker)
+- [🔌 Compatibility with generic Backstage](#-compatibility-with-generic-backstage)
+- [📋 Makefile reference](#-makefile-reference)
+- [📚 API reference](#-api-reference)
+- [📄 License](#-license)
 
 ---
 
-## What is HypoStage?
+## 📖 What is HypoStage?
 
-- **Hypothesis management** — Create, edit, and track architectural hypotheses with detailed metadata
-- **Uncertainty assessment** — Evaluate uncertainty using Likert-scale ratings
-- **Quality attributes** — Associate hypotheses with performance, security, maintainability, etc.
-- **Technical planning** — Link technical planning items (experiments, spikes) to hypotheses
-- **Visualization** — Evolution and validation status via interactive charts
-- **Catalog integration** — Link hypotheses to Backstage entities; optional Hypotheses tab on component pages
+- **📝 Hypothesis management** — Create, edit, and track architectural hypotheses with detailed metadata
+- **📊 Uncertainty assessment** — Evaluate uncertainty using Likert-scale ratings
+- **🏷️ Quality attributes** — Associate hypotheses with performance, security, maintainability, etc.
+- **📅 Technical planning** — Link technical planning items (experiments, spikes) to hypotheses
+- **📈 Visualization** — Evolution and validation status via interactive charts
+- **🔗 Catalog integration** — Link hypotheses to Backstage entities; optional Hypotheses tab on component pages
 
 ---
 
-## Repository structure
+## 📁 Repository structure
 
 Monorepo (Yarn workspaces):
 
@@ -99,7 +113,7 @@ From the repo root: `yarn build`, `yarn test`, `yarn lint` run for both packages
 
 ---
 
-## Prerequisites
+## ✅ Prerequisites
 
 - **Node.js** v20 or later ([nvm](https://github.com/nvm-sh/nvm): `nvm install 20 && nvm use 20`)
 - **Yarn**
@@ -124,7 +138,7 @@ The **cpu-features** failure is optional; **better-sqlite3** is required only if
 
 ---
 
-## Run standalone (no Backstage app required)
+## 🖥️ Run standalone (no Backstage app required)
 
 Run the frontend and backend without a full Backstage app (good for development and trying the plugin). **Run every command from the repo root** unless stated otherwise. Follow the steps in this order:
 
@@ -139,7 +153,7 @@ On first backend start, migrations run and the database is seeded if empty ([dem
 
 ---
 
-## Add to your existing Backstage app
+## 🔌 Add to your existing Backstage app
 
 1. Clone this repo and copy `hypo-stage` and `hypo-stage-backend` into your app’s `plugins/` directory.
 2. Add the packages: `yarn --cwd packages/app add @internal/plugin-hypo-stage` and `yarn --cwd packages/backend add @internal/plugin-hypo-stage-backend`.
@@ -149,7 +163,7 @@ Full step-by-step: [Installation](#installation).
 
 ---
 
-## Installation
+## 📦 Installation
 
 Use these steps to add HypoStage to an existing Backstage application (v1.16.0+).
 
@@ -227,7 +241,7 @@ createApiFactory({
 
 ---
 
-## Usage
+## 🎯 Usage
 
 - **Open the plugin**: Sidebar → “Hypo Stage” or go to `/hypo-stage`.
 - **Create a hypothesis**: “Create New Hypothesis” → statement, context, uncertainty/impact, quality attributes, evidence URLs → save.
@@ -236,7 +250,7 @@ createApiFactory({
 
 ---
 
-## Real usage walkthrough
+## 🎬 Real usage walkthrough
 
 A **visual demonstration** of HypoStage’s capabilities (home and dashboard, create, view detail, edit, technical planning, delete, catalog tab) is in **[Real usage walkthrough](docs/real-usage-walkthrough.md)**. That page has one short video per capability, recorded by the E2E suite, and links each to the corresponding E2E spec.
 
@@ -244,7 +258,7 @@ A **visual demonstration** of HypoStage’s capabilities (home and dashboard, cr
 
 ---
 
-## Building the project
+## 🔨 Building the project
 
 ```bash
 yarn install --ignore-engines
@@ -257,7 +271,7 @@ The build emits `dist/` (and `dist-types/`) in each package. No separate Backsta
 
 ---
 
-## Running tests
+## 🧪 Running tests
 
 ```bash
 yarn test
@@ -271,7 +285,7 @@ E2E tests run in a real browser against the running app and cover the [Real usag
 
 ---
 
-## Code style (lint)
+## ✨ Code style (lint)
 
 ```bash
 yarn lint
@@ -281,7 +295,7 @@ Or: `make lint`. This runs lint for both workspace packages (frontend and backen
 
 ---
 
-## Validating usage
+## ✔️ Validating usage
 
 To confirm everything works:
 
@@ -292,13 +306,13 @@ To confirm everything works:
 
 ---
 
-## CI (GitHub Actions)
+## 🔄 CI (GitHub Actions)
 
 On pull requests and pushes to `main`/`master`, the workflow runs the same validation as [Validating usage](#validating-usage): **install** (frozen lockfile), **build** (type-check + Backstage CLI build for both packages), **lint**, and **test**. A PostgreSQL 16 service container is available for backend tests. Configuration: [.github/workflows/ci.yml](.github/workflows/ci.yml).
 
 ---
 
-## Running plugins standalone
+## 🖥️ Running plugins standalone
 
 Detailed options for running the plugins without a full Backstage app.
 
@@ -386,7 +400,7 @@ Open http://localhost:3000. Routes use `hypothesisId` (e.g. `/hypo-stage/hypothe
 
 ---
 
-## Standalone demo deployment
+## 🌐 Standalone demo deployment
 
 The live demo at [https://hypo-stage-hypo-stage.vercel.app](https://hypo-stage-hypo-stage.vercel.app) is a **standalone deployment** (frontend on Vercel, backend on Render) for developers who want to see the plugin in action. **It is not for production use**—just an alternative way to explore the UI and API.
 
@@ -394,7 +408,7 @@ For how we set it up and the rationale, see [docs/standalone-demo-deployment.md]
 
 ---
 
-## Running with Docker
+## 🐳 Running with Docker
 
 **Postgres only** (for [Run standalone](#run-standalone-no-backstage-app-required) or your own Backstage app):
 
@@ -415,7 +429,7 @@ make stop-dependencies
 
 ---
 
-## Compatibility with generic Backstage
+## 🔌 Compatibility with generic Backstage
 
 - **Feature flags**: If the Feature Flags API is not registered, the Hypotheses tab is visible by default. To control it, register `HYPO_STAGE_FEATURE_FLAG` (`'hypo-stage'`).
 - **Catalog `spec.team`**: Team filter uses `spec.team` on components; if unused, the filter is empty; rest of the plugin works.
@@ -425,7 +439,7 @@ No organization-specific code is required.
 
 ---
 
-## Makefile reference
+## 📋 Makefile reference
 
 | Target | Description |
 |--------|-------------|
@@ -442,7 +456,7 @@ No organization-specific code is required.
 
 ---
 
-## API reference
+## 📚 API reference
 
 **Frontend:** `HypoStagePage`, `CreateHypothesisPage`, `HypothesisPage`, `EditHypothesisPage`; `HypothesisForm`, `HypothesisList`; `EntityHypothesesTab`, `useHypoStageTabEnabled`, `HYPO_STAGE_FEATURE_FLAG`; `HypoStageApiRef`, `HypoStageApiClient`.
 
@@ -450,6 +464,6 @@ No organization-specific code is required.
 
 ---
 
-## License
+## 📄 License
 
 LGPL-3.0. See [LICENSE](https://github.com/ArchHypo/hypo-stage/blob/main/LICENSE).

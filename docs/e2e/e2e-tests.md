@@ -1,4 +1,4 @@
-# End-to-end tests (Playwright)
+# 🧪 End-to-end tests (Playwright)
 
 This document describes the Playwright E2E test suite for HypoStage. For a quick start, see the [End-to-end tests (Playwright)](../../README.md#end-to-end-tests-playwright) section in the root README.
 
@@ -6,7 +6,7 @@ This document describes the Playwright E2E test suite for HypoStage. For a quick
 
 ---
 
-## Prerequisites
+## ✅ Prerequisites
 
 - **App running**: Backend on port 7007, frontend on port 3000 (e.g. [Run standalone](../../README.md#run-standalone-no-backstage-app-required)).
 - **Seed data** (recommended): Run `make seed-standalone` from the repo root so the list and detail tests have hypotheses to work with.
@@ -14,7 +14,7 @@ This document describes the Playwright E2E test suite for HypoStage. For a quick
 
 ---
 
-## Running tests
+## ▶️ Running tests
 
 From the **repo root**. First-time setup: ensure dependencies are installed (`yarn install`) and browsers are installed (`npx playwright install`). Start the app (e.g. [Run standalone](../../README.md#run-standalone-no-backstage-app-required)) before running E2E.
 
@@ -50,7 +50,7 @@ npx playwright test e2e/technical-planning.spec.js
 
 ---
 
-## Test artifacts
+## 📦 Test artifacts
 
 | Location | Content |
 |----------|--------|
@@ -80,21 +80,21 @@ This runs `scripts/webm-to-gif.js` and requires [ffmpeg](https://ffmpeg.org/) on
 
 ---
 
-## What's covered
+## ✔️ What's covered
 
 The suite validates the [Real usage walkthrough](../../README.md#real-usage-walkthrough) and all main plugin capabilities:
 
-- **Home page & dashboard**: Welcome, Create button, Overview stats, Where to focus, Uncertainty & impact, filters (Team, Component, Focus), hypothesis list.
-- **Filtering**: Applying the Team filter (and visibility of Component/Focus).
-- **Create hypothesis**: All required fields, submit, redirect to list.
-- **View hypothesis detail**: Statement, assessment, technical planning, Edit/Delete actions.
-- **Edit hypothesis**: Open edit page, change status (e.g. to Validated), submit, return to detail.
-- **Delete hypothesis**: From detail page (type statement to confirm, redirect to list) and from list (row delete icon, type statement to confirm).
-- **Technical planning**: Add item (Owner, Action type, Target date, Description, Expected outcome, Documentation URL); edit item; delete item (with confirmation).
+- **🏠 Home page & dashboard**: Welcome, Create button, Overview stats, Where to focus, Uncertainty & impact, filters (Team, Component, Focus), hypothesis list.
+- **🔍 Filtering**: Applying the Team filter (and visibility of Component/Focus).
+- **📝 Create hypothesis**: All required fields, submit, redirect to list.
+- **👁️ View hypothesis detail**: Statement, assessment, technical planning, Edit/Delete actions.
+- **✏️ Edit hypothesis**: Open edit page, change status (e.g. to Validated), submit, return to detail.
+- **🗑️ Delete hypothesis**: From detail page (type statement to confirm, redirect to list) and from list (row delete icon, type statement to confirm).
+- **📅 Technical planning**: Add item (Owner, Action type, Target date, Description, Expected outcome, Documentation URL); edit item; delete item (with confirmation).
 
 ---
 
-## Test files (by scenario / domain)
+## 📁 Test files (by scenario / domain)
 
 The E2E suite is split into one file per scenario or domain. Each file has a short header comment describing what it covers and which part of the [Real usage walkthrough](../../README.md#real-usage-walkthrough) it corresponds to.
 
@@ -112,7 +112,7 @@ The E2E suite is split into one file per scenario or domain. Each file has a sho
 
 ---
 
-## Scheduled E2E (GitHub Actions)
+## 🔄 Scheduled E2E (GitHub Actions)
 
 The workflow **E2E (scheduled)** (`.github/workflows/e2e-scheduled.yml`) runs the full E2E suite **once a week** (Sunday 00:00 UTC) against the deployed demo app:
 
