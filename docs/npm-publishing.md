@@ -2,6 +2,8 @@
 
 This guide covers publishing `@archhypo/plugin-hypo-stage` and `@archhypo/plugin-hypo-stage-backend` to the NPM registry.
 
+---
+
 ## Automated publishing (GitHub Actions)
 
 Pushing a version tag triggers automatic publishing via [`.github/workflows/publish-npm.yml`](../.github/workflows/publish-npm.yml).
@@ -19,33 +21,62 @@ Pushing a version tag triggers automatic publishing via [`.github/workflows/publ
    - Repo → **Settings** → **Secrets and variables** → **Actions**
    - **New repository secret** → name: `NPM_TOKEN`, value: your token
 
-### Release steps
+---
 
-1. **Update version** in both `package.json` files:
-   ```bash
-   # In hypo-stage/package.json and hypo-stage-backend/package.json
-   "version": "0.1.1"
-   ```
+### Release steps (publishing a new version)
 
-2. **Commit and push**
-   ```bash
-   git add hypo-stage/package.json hypo-stage-backend/package.json
-   git commit -m "chore: release v0.1.1"
-   git push origin main
-   ```
+Follow these steps exactly. The tag **must** match the version in both `package.json` files (e.g. tag `v0.1.1` requires `"version": "0.1.1"` in both packages).
 
-3. **Create and push tag**
-   ```bash
-   git tag v0.1.1
-   git push origin v0.1.1
-   ```
+**1. Update version** in both `package.json` files to the new semver (e.g. `0.1.1`):
 
-4. The workflow will:
-   - Verify package versions match the tag
-   - Build the project
-   - Publish backend, then frontend to NPM
+- `hypo-stage/package.json` → `"version": "0.1.1"`
+- `hypo-stage-backend/package.json` → `"version": "0.1.1"`
 
-Check **Actions** in the repo to monitor the run.
+Both must have the **exact same** version string. The workflow will fail if they differ or don't match the tag.
+
+**2. Commit, push, and create tag:**
+
+```bash
+NEW_VERSION="0.1.1"
+
+git add hypo-stage/package.json hypo-stage-backend/package.json
+git commit -m "chore: release v$NEW_VERSION"
+git push origin main
+
+git tag "v$NEW_VERSION"
+git push origin "v$NEW_VERSION"
+```
+
+**3. Monitor the workflow**
+
+- Go to **Actions** in the repo
+- The "Publish to NPM" workflow runs automatically
+- It validates versions, builds, then publishes backend then frontend
+
+**Tag format:** Use `v` + semver (e.g. `v0.1.1`, `v1.0.0`). The workflow strips the `v` and checks it matches both `package.json` versions.
+
+#### Quick copy-paste (replace `0.1.1` with your version)
+
+```bash
+V=0.1.1
+# 1. Edit hypo-stage/package.json and hypo-stage-backend/package.json → "version": "0.1.1"
+# 2. Then:
+git add hypo-stage/package.json hypo-stage-backend/package.json
+git commit -m "chore: release v$V"
+git push origin main
+git tag "v$V"
+git push origin "v$V"
+```
+
+---
+
+### Troubleshooting
+
+| Problem | Cause | Fix |
+|---------|-------|-----|
+| Workflow fails: "Version mismatch" | Tag doesn't match `package.json` | Ensure tag `vX.Y.Z` equals `"version": "X.Y.Z"` in both package.json files |
+| Workflow fails: "ENEEDAUTH" | Missing or invalid NPM_TOKEN | Add NPM_TOKEN secret; use Automation or Granular token with publish rights |
+| Workflow fails: "403 Forbidden" | Token lacks publish scope | Create token with **Read and write** for `@archhypo` packages |
 
 ---
 

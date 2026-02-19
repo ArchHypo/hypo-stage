@@ -93,7 +93,7 @@ HypoStage can be added to the [official Backstage Plugin Directory](https://back
 
 ## 📦 NPM publishing
 
-To publish new versions: push a version tag (e.g. `v0.1.1`) after updating `package.json`; the [publish workflow](.github/workflows/publish-npm.yml) builds and publishes to NPM. See [docs/npm-publishing.md](docs/npm-publishing.md) for setup (NPM token) and release steps.
+To publish a new version: (1) set `"version": "X.Y.Z"` in both `hypo-stage/package.json` and `hypo-stage-backend/package.json`, (2) commit and push, (3) create and push tag `vX.Y.Z`. The [publish workflow](.github/workflows/publish-npm.yml) runs automatically and publishes both packages to NPM. See [docs/npm-publishing.md](docs/npm-publishing.md) for setup (NPM token) and step-by-step release instructions.
 
 ---
 
