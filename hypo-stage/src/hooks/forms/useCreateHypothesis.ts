@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 import { useApi } from '@backstage/core-plugin-api';
 import { HypoStageApiRef } from '../../api/HypoStageApi';
-import { CreateHypothesisInput, SourceType, QualityAttribute, LikertScale } from '@internal/plugin-hypo-stage-backend';
+import { CreateHypothesisInput, SourceType, QualityAttribute, LikertScale } from '@archhypo/plugin-hypo-stage-backend';
 import { useFormState } from '../useFormState';
 import { useApiCall } from '../useApiCall';
 import { useNotifications } from '../../providers/NotificationProvider';

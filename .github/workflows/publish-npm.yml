@@ -1,0 +1,65 @@
+# Publish HypoStage packages to NPM when a version tag is pushed.
+#
+# How to release:
+#   1. Update version in hypo-stage/package.json and hypo-stage-backend/package.json to e.g. 0.1.1
+#   2. Merge version bump via PR (main is protected)
+#   3. Create a GitHub Release with tag v0.1.1 from main (Releases → Create a new release)
+#
+# Required: Add NPM_TOKEN (automation or granular token with publish rights) to repo secrets.
+
+name: Publish to NPM
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: read
+  id-token: write  # for npm provenance
+
+jobs:
+  publish:
+    name: Publish packages to NPM
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate version matches tag
+        run: |
+          TAG_VERSION="${GITHUB_REF#refs/tags/v}"
+          echo "Tag version: $TAG_VERSION"
+          PKG_FRONTEND=$(node -p "require('./hypo-stage/package.json').version")
+          PKG_BACKEND=$(node -p "require('./hypo-stage-backend/package.json').version")
+          if [ "$PKG_FRONTEND" != "$TAG_VERSION" ] || [ "$PKG_BACKEND" != "$TAG_VERSION" ]; then
+            echo "Version mismatch: tag=$TAG_VERSION, frontend=$PKG_FRONTEND, backend=$PKG_BACKEND"
+            echo "Update both package.json version fields to match the tag before pushing."
+            exit 1
+          fi
+          echo "Version $TAG_VERSION verified."
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'yarn'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Install dependencies
+        run: yarn install --ignore-engines --frozen-lockfile
+
+      - name: Build
+        run: yarn build
+
+      - name: Publish backend
+        working-directory: hypo-stage-backend
+        run: npm publish --access public --provenance
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Publish frontend
+        working-directory: hypo-stage
+        run: npm publish --access public --provenance
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

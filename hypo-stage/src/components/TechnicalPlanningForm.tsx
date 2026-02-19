@@ -6,7 +6,7 @@ import { useStyles } from '../hooks/useStyles';
 import { UrlListField } from './forms/UrlListField';
 import { CreateTechnicalPlanningFormData } from '../hooks/forms/useCreateTechnicalPlanning';
 import { EditTechnicalPlanningFormData } from '../hooks/forms/useEditTechnicalPlanning';
-import { TechnicalPlanning } from '@internal/plugin-hypo-stage-backend';
+import { TechnicalPlanning } from '@archhypo/plugin-hypo-stage-backend';
 import { ACTION_TYPE_OPTIONS } from '../utils/constants';
 import { CustomSelectField, CustomTextField } from './forms/FormField';
 

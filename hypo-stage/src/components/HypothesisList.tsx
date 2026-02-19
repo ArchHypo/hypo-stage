@@ -23,7 +23,7 @@ import { parseEntityRef } from '@backstage/catalog-model';
 import DeleteIcon from '@material-ui/icons/Delete';
 import { useApi } from '@backstage/core-plugin-api';
 import { HypoStageApiRef } from '../api/HypoStageApi';
-import { Hypothesis } from '@internal/plugin-hypo-stage-backend';
+import { Hypothesis } from '@archhypo/plugin-hypo-stage-backend';
 import { useStyles, getStatusClass, getUncertaintyClass, getImpactClass } from '../hooks/useStyles';
 import { getHypothesisFocusTag } from '../utils/hypothesisFocus';
 import { useNotifications } from '../providers/NotificationProvider';

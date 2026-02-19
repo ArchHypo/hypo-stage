@@ -4,7 +4,7 @@ import { HypoStageApiRef } from '../../api/HypoStageApi';
 import { useFormState } from '../useFormState';
 import { useApiCall } from '../useApiCall';
 import { useNotifications } from '../../providers/NotificationProvider';
-import { UpdateTechnicalPlanningInput, TechnicalPlanning } from '@internal/plugin-hypo-stage-backend';
+import { UpdateTechnicalPlanningInput, TechnicalPlanning } from '@archhypo/plugin-hypo-stage-backend';
 
 export interface EditTechnicalPlanningFormData {
   expectedOutcome: string;

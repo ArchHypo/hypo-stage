@@ -16,7 +16,7 @@ import type {
   CreateTechnicalPlanningInput,
   TechnicalPlanning,
   UpdateTechnicalPlanningInput,
-} from '@internal/plugin-hypo-stage-backend';
+} from '@archhypo/plugin-hypo-stage-backend';
 import { seedHypotheses, getSeedEvents } from '../seedData';
 
 const DEMO_READ_ONLY = 'This is a read-only demo. Use a local backend to create or edit data.';

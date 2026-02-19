@@ -2,7 +2,7 @@
  * Demo seed data for standalone/mocked build (e.g. Vercel).
  * Matches the backend seed migration so the UI looks the same as with a real backend.
  */
-import type { Hypothesis, HypothesisEvent, TechnicalPlanning } from '@internal/plugin-hypo-stage-backend';
+import type { Hypothesis, HypothesisEvent, TechnicalPlanning } from '@archhypo/plugin-hypo-stage-backend';
 
 const now = new Date();
 const dayMs = 24 * 60 * 60 * 1000;

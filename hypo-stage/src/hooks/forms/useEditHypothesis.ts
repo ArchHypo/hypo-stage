@@ -4,7 +4,7 @@ import { HypoStageApiRef } from '../../api/HypoStageApi';
 import { useFormState } from '../useFormState';
 import { useApiCall } from '../useApiCall';
 import { useNotifications } from '../../providers/NotificationProvider';
-import { UpdateHypothesisInput, Status, SourceType, QualityAttribute, LikertScale, Hypothesis } from '@internal/plugin-hypo-stage-backend';
+import { UpdateHypothesisInput, Status, SourceType, QualityAttribute, LikertScale, Hypothesis } from '@archhypo/plugin-hypo-stage-backend';
 
 /** Form data shape for the Edit Hypothesis form */
 export interface EditHypothesisFormData {

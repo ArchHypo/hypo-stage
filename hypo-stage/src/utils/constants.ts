@@ -1,4 +1,4 @@
-import { SourceType, QualityAttribute, ActionType, Status } from '@internal/plugin-hypo-stage-backend';
+import { SourceType, QualityAttribute, ActionType, Status } from '@archhypo/plugin-hypo-stage-backend';
 
 /**
  * Source type options

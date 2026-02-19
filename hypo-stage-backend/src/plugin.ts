@@ -27,7 +27,7 @@ export const hypoStagePlugin = createBackendPlugin({
         // https://backstage.io/docs/backend-system/core-services/database
         const client = await database.getClient();
         const migrationsDir = resolvePackagePath(
-          '@internal/plugin-hypo-stage-backend',
+          '@archhypo/plugin-hypo-stage-backend',
           'migrations',
         );
         if (!database.migrations?.skip) {

@@ -2,7 +2,7 @@
 
 Backend plugin for [HypoStage](https://github.com/ArchHypo/hypo-stage): persistence and API for architectural hypotheses and technical planning. Uses the Backstage database and catalog services.
 
-**Package:** `@internal/plugin-hypo-stage-backend`
+**Package:** `@archhypo/plugin-hypo-stage-backend`
 
 ## 📑 Table of contents
 
@@ -77,7 +77,7 @@ Migrations run **automatically** when the Backstage backend starts: the plugin c
 2. From the app root:
 
    ```bash
-   yarn --cwd packages/backend add @internal/plugin-hypo-stage-backend
+   yarn --cwd packages/backend add @archhypo/plugin-hypo-stage-backend
    ```
 
 3. In `packages/backend/src/index.ts`:
@@ -87,7 +87,7 @@ Migrations run **automatically** when the Backstage backend starts: the plugin c
 
    const backend = createBackend();
    // ... other plugins ...
-   backend.add(import('@internal/plugin-hypo-stage-backend'));
+   backend.add(import('@archhypo/plugin-hypo-stage-backend'));
    backend.start();
    ```
 

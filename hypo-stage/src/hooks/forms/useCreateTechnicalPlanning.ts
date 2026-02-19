@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 import { useApi } from '@backstage/core-plugin-api';
 import { HypoStageApiRef } from '../../api/HypoStageApi';
-import { CreateTechnicalPlanningInput, ActionType } from '@internal/plugin-hypo-stage-backend';
+import { CreateTechnicalPlanningInput, ActionType } from '@archhypo/plugin-hypo-stage-backend';
 import { useFormState } from '../useFormState';
 import { useApiCall } from '../useApiCall';
 import { useNotifications } from '../../providers/NotificationProvider';
