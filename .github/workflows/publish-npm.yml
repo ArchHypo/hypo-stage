@@ -22,6 +22,29 @@ jobs:
   publish:
     name: Publish packages to NPM
     runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: backstage
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      POSTGRES_HOST: localhost
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: backstage
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -51,6 +74,12 @@ jobs:
 
       - name: Build
         run: yarn build
+
+      - name: Test
+        run: CI=true yarn test
+
+      - name: Lint
+        run: yarn lint
 
       - name: Publish backend
         working-directory: hypo-stage-backend
