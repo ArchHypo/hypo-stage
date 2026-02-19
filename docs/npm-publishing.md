@@ -4,6 +4,31 @@ This guide covers publishing `@archhypo/plugin-hypo-stage` and `@archhypo/plugin
 
 ---
 
+## Version management (SemVer)
+
+HypoStage follows **Semantic Versioning** (`X.Y.Z`), an industry standard for version numbers. See:
+
+- [Semantic Versioning 2.0.0](https://semver.org/) — official specification
+- [npm: About semantic versioning](https://docs.npmjs.com/about-semantic-versioning) — how npm interprets versions
+
+### Format: MAJOR.MINOR.PATCH
+
+| Component | When to increment | Example |
+|-----------|-------------------|---------|
+| **MAJOR (X)** | Breaking, incompatible API changes | `1.0.0` → `2.0.0` |
+| **MINOR (Y)** | New features, backward compatible | `1.0.0` → `1.1.0` |
+| **PATCH (Z)** | Bug fixes, backward compatible | `1.0.0` → `1.0.1` |
+
+### During initial development (0.y.z)
+
+Before `1.0.0`, treat the API as unstable. Increment MINOR for new features and PATCH for fixes. Release `1.0.0` when the API is stable and production-ready.
+
+### Pre-release (optional)
+
+For alpha/beta releases: `1.0.0-alpha.1`, `1.0.0-beta.2`. The publish workflow supports tags like `v1.0.0-alpha.1`; ensure both `package.json` files use the same version string.
+
+---
+
 ## Automated publishing (GitHub Actions)
 
 Pushing a version tag triggers automatic publishing via [`.github/workflows/publish-npm.yml`](../.github/workflows/publish-npm.yml).
