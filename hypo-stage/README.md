@@ -1,94 +1,157 @@
-# 💡 HypoStage (Frontend Plugin)
+# HypoStage (Frontend Plugin)
 
-Frontend plugin for [HypoStage](https://github.com/ArchHypo/hypo-stage): architectural hypothesis management in Backstage. Provides the Hypo Stage UI, pages, and catalog entity integration.
+Architectural hypothesis management for [Backstage](https://backstage.io). Create, track, and validate architectural assumptions with uncertainty assessment, quality attributes, and technical planning.
 
 **Package:** `@archhypo/plugin-hypo-stage`
 
-## 📑 Table of contents
-
-- [✅ Requirements](#requirements)
-- [🔨 Build, test and lint](#build-test-and-lint)
-- [📦 What this package provides](#what-this-package-provides)
-  - [📄 Pages (routed)](#pages-routed)
-  - [🔗 Catalog integration](#catalog-integration)
-  - [🔌 API](#api)
-  - [🧩 Reusable components (for custom UIs)](#reusable-components-for-custom-uis)
-- [📥 Installation into a Backstage app](#installation-into-a-backstage-app)
+> **Important:** This package requires the backend plugin `@archhypo/plugin-hypo-stage-backend` to be installed and configured in the same Backstage app.
 
 ---
 
-## ✅ Requirements
+## Features
 
-- **Backend plugin** — The HypoStage backend (`@archhypo/plugin-hypo-stage-backend`) must be installed in the same Backstage app and registered in `packages/backend/src/index.ts`. The backend provides the REST API and database used by this frontend.
-- **API registration** — The app must register `HypoStageApiRef` in `packages/app/src/apis.ts` (or equivalent) with `HypoStageApiClient` so that the UI can call the backend. See the [main README – Step 3.2](https://github.com/ArchHypo/hypo-stage#32-register-the-frontend-api--in-packagesappsrcapits).
-- **Backend running** — The Backstage backend must be running with a configured database (PostgreSQL or SQLite). Migrations run automatically on backend startup.
+- **Hypothesis management** — Create, edit, view, and delete architectural hypotheses
+- **Uncertainty & impact** — Likert-scale assessment with evolution tracking
+- **Quality attributes** — Associate hypotheses with performance, security, maintainability, etc.
+- **Technical planning** — Link experiments, spikes, and tasks to hypotheses
+- **Catalog integration** — Optional Hypotheses tab on entity pages; filter by entity and team
 
 ---
 
-## 🔨 Build, test and lint
+## Compatibility
 
-From the **repository root** (parent of this directory), run:
+- **Backstage:** v1.16.0+
+- **Node.js:** 20+
+- **React:** 16.13, 17, or 18
+
+---
+
+## Installation
+
+### 1. Install packages
+
+From your Backstage app root:
 
 ```bash
-# All plugins (recommended)
-make build    # or: yarn build
-make test     # or: yarn test
-make lint     # or: yarn lint
+yarn --cwd packages/app add @archhypo/plugin-hypo-stage
+yarn --cwd packages/backend add @archhypo/plugin-hypo-stage-backend
 ```
 
-From **this directory** only:
+### 2. Configure routes
 
-```bash
-yarn install          # if not already installed from root
-yarn build            # requires type declarations: run `yarn build` (or `yarn build:types`) from repo root first
-yarn test
-yarn lint
+In `packages/app/src/App.tsx`:
+
+```tsx
+import {
+  HypoStagePage,
+  CreateHypothesisPage,
+  HypothesisPage,
+  EditHypothesisPage,
+} from '@archhypo/plugin-hypo-stage';
+
+// Inside <FlatRoutes>:
+<Route path="/hypo-stage" element={<HypoStagePage />} />
+<Route path="/hypo-stage/create-hypothesis" element={<CreateHypothesisPage />} />
+<Route path="/hypo-stage/hypothesis/:hypothesisId" element={<HypothesisPage />} />
+<Route path="/hypo-stage/hypothesis/:hypothesisId/edit" element={<EditHypothesisPage />} />
 ```
 
-Building from this directory alone will fail until the root has been built at least once, because the Backstage CLI build expects TypeScript declaration output from the root `yarn build:types` step.
+### 3. Add sidebar entry
 
-For full validation (deps, build, test, lint for both frontend and backend), see [Validating usage](https://github.com/ArchHypo/hypo-stage/blob/main/README.md#validating-usage) in the main README.
+In `packages/app/src/components/Root/Root.tsx` (or equivalent):
+
+```tsx
+import LaptopMacIcon from '@material-ui/icons/LaptopMac';
+
+<SidebarItem icon={LaptopMacIcon} to="hypo-stage" text="Hypo Stage" />
+```
+
+### 4. Register the frontend API
+
+In `packages/app/src/apis.ts`:
+
+```tsx
+import { discoveryApiRef, fetchApiRef } from '@backstage/core-plugin-api';
+import { HypoStageApiClient, HypoStageApiRef } from '@archhypo/plugin-hypo-stage';
+
+createApiFactory({
+  api: HypoStageApiRef,
+  deps: { discoveryApi: discoveryApiRef, fetchApi: fetchApiRef },
+  factory: ({ discoveryApi, fetchApi }) =>
+    new HypoStageApiClient({ discoveryApi, fetchApi }),
+}),
+```
+
+### 5. Register the backend plugin
+
+In `packages/backend/src/index.ts`:
+
+```ts
+import { createBackend } from '@backstage/backend-defaults';
+
+const backend = createBackend();
+// ... other plugins ...
+backend.add(import('@archhypo/plugin-hypo-stage-backend'));
+backend.start();
+```
+
+### 6. Database configuration
+
+The backend needs a database. Ensure `app-config.yaml` has a database configured. For a dedicated plugin database (recommended), add:
+
+```yaml
+backend:
+  database:
+    client: pg
+    connection:
+      host: ${POSTGRES_HOST}
+      port: ${POSTGRES_PORT}
+      user: ${POSTGRES_USER}
+      password: ${POSTGRES_PASSWORD}
+      database: backstage
+    plugin:
+      hypo-stage:
+        connection:
+          database: backstage_plugin_hypo_stage
+```
+
+For SQLite: `client: better-sqlite3`, `connection: ':memory:'` or a file path. Migrations run automatically on backend startup.
 
 ---
 
-## 📦 What this package provides
+## Optional: Catalog entity tab
 
-### 📄 Pages (routed)
+To show a "Hypotheses" tab on catalog entity pages:
 
-- **HypoStagePage** – Main list and dashboard (`/hypo-stage`)
-- **CreateHypothesisPage** – Create hypothesis form
-- **HypothesisPage** – Hypothesis detail and technical planning
-- **EditHypothesisPage** – Edit hypothesis form
+1. Import `EntityHypothesesTab` and add it to your `EntityPage` (e.g. in `packages/app/src/components/catalog/EntityPage.tsx`):
 
-### 🔗 Catalog integration
+```tsx
+import { EntityHypothesesTab } from '@archhypo/plugin-hypo-stage';
 
-- **EntityHypothesesTab** – Tab on catalog entity pages showing hypotheses that reference the entity
-- **useHypoStageTabEnabled()** – Whether the Hypo Stage tab is enabled (e.g. via feature flag)
-- **HYPO_STAGE_FEATURE_FLAG** – Feature flag name: `'hypo-stage'`
+// In the entity page layout:
+<EntityLayout.Route path="/hypotheses" title="Hypotheses">
+  <EntityHypothesesTab />
+</EntityLayout.Route>
+```
 
-### 🔌 API
-
-- **HypoStageApiRef**, **HypoStageApiClient** – Frontend API to call the HypoStage backend
-- **GetHypothesesOptions** – Type for list filters (entityRef, team)
-
-### 🧩 Reusable components (for custom UIs)
-
-- **HypothesisForm**, **HypothesisList** – Forms and list
-- **EntityRefLinks** – Render entity refs as catalog links
-- **EntityReferencesAutocomplete** – Catalog entity search for forms
+2. Control visibility with the `hypo-stage` feature flag (optional). If the Feature Flags API is not registered, the tab is visible by default.
 
 ---
 
-## 📥 Installation into a Backstage app
+## Exports and API
 
-1. Copy this `hypo-stage` directory into your app’s `plugins/` folder.
-2. From the app root:
+| Export | Description |
+|--------|-------------|
+| `HypoStagePage` | Main list and dashboard |
+| `CreateHypothesisPage` | Create hypothesis form |
+| `HypothesisPage` | Hypothesis detail and technical planning |
+| `EditHypothesisPage` | Edit hypothesis form |
+| `HypoStageApiRef`, `HypoStageApiClient` | API to call the backend |
+| `EntityHypothesesTab` | Catalog entity tab component |
+| `HypothesisForm`, `HypothesisList` | Reusable form and list components |
 
-   ```bash
-   yarn --cwd packages/app add @archhypo/plugin-hypo-stage
-   ```
+---
 
-3. Add routes and sidebar entry (see [main README – Configure the frontend](https://github.com/ArchHypo/hypo-stage#step-2-configure-the-frontend)).
-4. Register **HypoStageApiRef** in `packages/app/src/apis.ts` (see [main README – Configure APIs](https://github.com/ArchHypo/hypo-stage#32-register-the-frontend-api--in-packagesappsrcapits)).
+## Documentation
 
-Full installation and Docker usage are documented in the [repository README](https://github.com/ArchHypo/hypo-stage/blob/main/README.md).
+Full documentation, run standalone, Docker, and E2E tests: [github.com/ArchHypo/hypo-stage](https://github.com/ArchHypo/hypo-stage)
