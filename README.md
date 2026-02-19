@@ -82,6 +82,13 @@ Then open **http://localhost:3000** and use the Hypo Stage UI (you’re signed i
 - [📋 Makefile reference](#-makefile-reference)
 - [📚 API reference](#-api-reference)
 - [📄 License](#-license)
+- [📜 Backstage Plugin Directory](#-backstage-plugin-directory)
+
+---
+
+## 📜 Backstage Plugin Directory
+
+HypoStage can be added to the [official Backstage Plugin Directory](https://backstage.io/plugins/). See [docs/backstage-directory/SUBMISSION.md](docs/backstage-directory/SUBMISSION.md) for the full submission checklist, including NPM publishing, the directory YAML file, and PR instructions. The plugin requires both the **frontend** and **backend** packages to be installed.
 
 ---
 
