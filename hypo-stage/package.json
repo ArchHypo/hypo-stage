@@ -1,8 +1,7 @@
 {
-  "name": "@internal/plugin-hypo-stage",
+  "name": "@archhypo/plugin-hypo-stage",
   "version": "0.1.0",
   "license": "Apache-2.0",
-  "private": true,
   "author": "ArchHypo (https://github.com/ArchHypo)",
   "repository": {
     "type": "git",
@@ -17,7 +16,12 @@
     "types": "dist/index.d.ts"
   },
   "backstage": {
-    "role": "frontend-plugin"
+    "role": "frontend-plugin",
+    "pluginId": "hypo-stage",
+    "pluginPackages": [
+      "@archhypo/plugin-hypo-stage",
+      "@archhypo/plugin-hypo-stage-backend"
+    ]
   },
   "sideEffects": false,
   "scripts": {
@@ -36,7 +40,7 @@
     "@backstage/core-plugin-api": "^1.10.6",
     "@backstage/plugin-catalog-react": "^1.15.2",
     "@backstage/theme": "^0.6.5",
-    "@internal/plugin-hypo-stage-backend": "*",
+    "@archhypo/plugin-hypo-stage-backend": "^0.1.0",
     "@material-ui/core": "^4.9.13",
     "@material-ui/icons": "^4.9.1",
     "@material-ui/lab": "^4.0.0-alpha.61",

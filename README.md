@@ -83,12 +83,17 @@ Then open **http://localhost:3000** and use the Hypo Stage UI (you’re signed i
 - [📚 API reference](#-api-reference)
 - [📄 License](#-license)
 - [📜 Backstage Plugin Directory](#-backstage-plugin-directory)
+- [📦 NPM publishing](#-npm-publishing)
 
 ---
 
 ## 📜 Backstage Plugin Directory
 
 HypoStage can be added to the [official Backstage Plugin Directory](https://backstage.io/plugins/). See [docs/backstage-directory/SUBMISSION.md](docs/backstage-directory/SUBMISSION.md) for the full submission checklist, including NPM publishing, the directory YAML file, and PR instructions. The plugin requires both the **frontend** and **backend** packages to be installed.
+
+## 📦 NPM publishing
+
+To publish new versions: push a version tag (e.g. `v0.1.1`) after updating `package.json`; the [publish workflow](.github/workflows/publish-npm.yml) builds and publishes to NPM. See [docs/npm-publishing.md](docs/npm-publishing.md) for setup (NPM token) and release steps.
 
 ---
 
@@ -109,8 +114,9 @@ Monorepo (Yarn workspaces):
 
 | Path | Package / purpose | Description |
 |------|-------------------|-------------|
-| `hypo-stage/` | `@internal/plugin-hypo-stage` | Frontend: UI, pages, catalog tab, API client |
-| `hypo-stage-backend/` | `@internal/plugin-hypo-stage-backend` | Backend: REST API, database, HypothesisService |
+| `hypo-stage/` | `@archhypo/plugin-hypo-stage` | Frontend: UI, pages, catalog tab, API client |
+| `hypo-stage-backend/` | `@archhypo/plugin-hypo-stage-backend` | Backend: REST API, database, HypothesisService |
+| `tsconfig.json` | — | Root TypeScript config (required for prepack / NPM publishing) |
 | `e2e/` | — | Playwright E2E tests; see [End-to-end tests (Playwright)](#end-to-end-tests-playwright) and [E2E tests](docs/e2e/e2e-tests.md) |
 | `e2e/e2e-videos/` | — | Per-test video output (from `yarn test:e2e`). Gitignored. |
 | `docs/e2e/walkthrough-videos/` | — | Walkthrough clips for [Real usage walkthrough](docs/real-usage-walkthrough.md). After E2E: `node scripts/copy-walkthrough-videos.js` (WebM); then `yarn walkthrough:gif` (GIFs for GitHub; requires [ffmpeg](https://ffmpeg.org/)). Committed. |
@@ -162,9 +168,8 @@ On first backend start, migrations run and the database is seeded if empty ([dem
 
 ## 🔌 Add to your existing Backstage app
 
-1. Clone this repo and copy `hypo-stage` and `hypo-stage-backend` into your app’s `plugins/` directory.
-2. Add the packages: `yarn --cwd packages/app add @internal/plugin-hypo-stage` and `yarn --cwd packages/backend add @internal/plugin-hypo-stage-backend`.
-3. Configure [frontend](#step-2-configure-the-frontend) (routes + sidebar) and [backend](#step-3-configure-the-backend) (register plugin + API).
+1. Add the packages: `yarn --cwd packages/app add @archhypo/plugin-hypo-stage` and `yarn --cwd packages/backend add @archhypo/plugin-hypo-stage-backend` (or [copy from source](#step-0-add-the-plugin-packages) into `plugins/`).
+2. Configure [frontend](#step-2-configure-the-frontend) (routes + sidebar) and [backend](#step-3-configure-the-backend) (register plugin + API).
 
 Full step-by-step: [Installation](#installation).
 
@@ -174,24 +179,34 @@ Full step-by-step: [Installation](#installation).
 
 Use these steps to add HypoStage to an existing Backstage application (v1.16.0+).
 
-### Step 0: Clone and copy plugin directories
+### Step 0: Add the plugin packages
+
+**Option A — From NPM** (when published):
+
+```bash
+yarn --cwd packages/app add @archhypo/plugin-hypo-stage
+yarn --cwd packages/backend add @archhypo/plugin-hypo-stage-backend
+```
+
+**Option B — From source** (clone and copy into your app’s `plugins/` directory):
 
 ```bash
 git clone https://github.com/ArchHypo/hypo-stage.git
 cd hypo-stage
-
 cp -r hypo-stage /path/to/your/backstage/plugins/
 cp -r hypo-stage-backend /path/to/your/backstage/plugins/
 ```
 
-### Step 1: Install the plugin packages
+### Step 1: Install the plugin packages (if using Option B)
 
-From your Backstage app root (adjust paths if you use `apps/web` or `apps/backend`):
+From your Backstage app root, after copying the plugin directories (adjust paths if you use `apps/web` or `apps/backend`):
 
 ```bash
-yarn --cwd packages/app add @internal/plugin-hypo-stage
-yarn --cwd packages/backend add @internal/plugin-hypo-stage-backend
+yarn --cwd packages/app add @archhypo/plugin-hypo-stage
+yarn --cwd packages/backend add @archhypo/plugin-hypo-stage-backend
 ```
+
+*If you used Option A (NPM), the packages are already installed; proceed to Step 2.*
 
 ### Step 2: Configure the frontend
 
@@ -203,7 +218,7 @@ import {
   CreateHypothesisPage,
   HypothesisPage,
   EditHypothesisPage,
-} from '@internal/plugin-hypo-stage';
+} from '@archhypo/plugin-hypo-stage';
 
 // Inside your <FlatRoutes>:
 <Route path="/hypo-stage" element={<HypoStagePage />} />
@@ -228,7 +243,7 @@ import { createBackend } from '@backstage/backend-defaults';
 
 const backend = createBackend();
 // ... other plugins ...
-backend.add(import('@internal/plugin-hypo-stage-backend'));
+backend.add(import('@archhypo/plugin-hypo-stage-backend'));
 backend.start();
 ```
 
@@ -236,7 +251,7 @@ backend.start();
 
 ```ts
 import { discoveryApiRef, fetchApiRef } from '@backstage/core-plugin-api';
-import { HypoStageApiClient, HypoStageApiRef } from '@internal/plugin-hypo-stage';
+import { HypoStageApiClient, HypoStageApiRef } from '@archhypo/plugin-hypo-stage';
 
 createApiFactory({
   api: HypoStageApiRef,

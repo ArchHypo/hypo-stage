@@ -1,0 +1,8 @@
+{
+  "extends": "@backstage/cli/config/tsconfig.json",
+  "compilerOptions": {
+    "outDir": "dist-types"
+  },
+  "include": ["hypo-stage/src", "hypo-stage-backend/src"],
+  "exclude": ["node_modules"]
+}

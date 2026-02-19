@@ -1,5 +1,5 @@
 import { createApiRef, DiscoveryApi, FetchApi } from "@backstage/core-plugin-api";
-import { CreateHypothesisInput, UpdateHypothesisInput, Hypothesis, HypothesisEvent, CreateTechnicalPlanningInput, TechnicalPlanning, UpdateTechnicalPlanningInput } from "@internal/plugin-hypo-stage-backend";
+import { CreateHypothesisInput, UpdateHypothesisInput, Hypothesis, HypothesisEvent, CreateTechnicalPlanningInput, TechnicalPlanning, UpdateTechnicalPlanningInput } from "@archhypo/plugin-hypo-stage-backend";
 
 /** Parse backend error body so validation messages (e.g. targetDate) are shown to the user. */
 async function getErrorMessage(response: Response, fallback: string): Promise<string> {

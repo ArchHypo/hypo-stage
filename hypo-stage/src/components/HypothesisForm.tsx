@@ -2,7 +2,7 @@ import { default as React } from 'react';
 import { Typography, Button, Paper, CircularProgress, Grid, Box } from '@material-ui/core';
 import Add from '@material-ui/icons/Add';
 import Save from '@material-ui/icons/Save';
-import { Hypothesis } from '@internal/plugin-hypo-stage-backend';
+import { Hypothesis } from '@archhypo/plugin-hypo-stage-backend';
 import { CreateHypothesisFormData } from '../hooks/forms/useCreateHypothesis';
 import { EditHypothesisFormData } from '../hooks/forms/useEditHypothesis';
 import { validateHypothesisStatement } from '../utils/validators';

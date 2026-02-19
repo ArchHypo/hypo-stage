@@ -13,19 +13,13 @@ Before submitting a PR to the Backstage repository, ensure the following are com
   - `@archhypo/plugin-hypo-stage` (frontend)
   - `@archhypo/plugin-hypo-stage-backend` (backend)
 - [ ] **Repository link on NPM**: Ensure each package's NPM page has a link back to https://github.com/ArchHypo/hypo-stage (set via `repository` in `package.json`).
-- [ ] **Remove `private: true`** from both package.json files when publishing.
+- [x] **Remove `private: true`** — Done; packages are ready for publishing.
 
 > **Tip**: Use an NPM scope that matches your organization name (`@archhypo`) — this builds trust per Backstage's submission guidelines.
 
-### 2. Package Name Migration (if currently using `@internal`)
+### 2. Package Name Migration
 
-If your packages currently use `@internal/plugin-hypo-stage`, you will need to:
-
-1. Update `package.json` in both `hypo-stage/` and `hypo-stage-backend/`:
-   - Change `"name": "@internal/plugin-hypo-stage"` → `"name": "@archhypo/plugin-hypo-stage"`
-   - Change `"name": "@internal/plugin-hypo-stage-backend"` → `"name": "@archhypo/plugin-hypo-stage-backend"`
-2. Update all imports across the codebase from `@internal/plugin-hypo-stage*` to `@archhypo/plugin-hypo-stage*`.
-3. Update the frontend dependency on the backend in `hypo-stage/package.json`.
+✅ Complete. Packages use `@archhypo/plugin-hypo-stage` and `@archhypo/plugin-hypo-stage-backend`. `backstage.pluginId` and `backstage.pluginPackages` are set (via `backstage-cli repo fix --publish`). A root `tsconfig.json` exists for prepack.
 
 ### 3. Fix `repository.directory` in package.json
 

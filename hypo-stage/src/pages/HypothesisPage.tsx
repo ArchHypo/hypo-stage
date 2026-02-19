@@ -35,7 +35,7 @@ import { useNotifications } from '../providers/NotificationProvider';
 import ArrowBack from '@material-ui/icons/ArrowBack';
 import Edit from '@material-ui/icons/Edit';
 import DeleteIcon from '@material-ui/icons/Delete';
-import { Hypothesis, HypothesisEvent } from '@internal/plugin-hypo-stage-backend';
+import { Hypothesis, HypothesisEvent } from '@archhypo/plugin-hypo-stage-backend';
 
 /** Inner content that uses useNotifications; must be rendered inside NotificationProvider. */
 const HypothesisPageContent = ({

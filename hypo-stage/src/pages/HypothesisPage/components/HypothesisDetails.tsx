@@ -7,7 +7,7 @@ import LinkIcon from '@material-ui/icons/Link';
 import Notes from '@material-ui/icons/Notes';
 import Warning from '@material-ui/icons/Warning';
 import CheckCircle from '@material-ui/icons/CheckCircle';
-import { Hypothesis } from '@internal/plugin-hypo-stage-backend';
+import { Hypothesis } from '@archhypo/plugin-hypo-stage-backend';
 import { getImpactClass, getStatusClass, getUncertaintyClass, useStyles } from '../../../hooks/useStyles';
 import { EntityRefLinks } from '../../../components/EntityRefLinks';
 import { getHypothesisFocusTag } from '../../../utils/hypothesisFocus';

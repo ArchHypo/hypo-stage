@@ -2,7 +2,7 @@
 
 Frontend plugin for [HypoStage](https://github.com/ArchHypo/hypo-stage): architectural hypothesis management in Backstage. Provides the Hypo Stage UI, pages, and catalog entity integration.
 
-**Package:** `@internal/plugin-hypo-stage`
+**Package:** `@archhypo/plugin-hypo-stage`
 
 ## 📑 Table of contents
 
@@ -19,7 +19,7 @@ Frontend plugin for [HypoStage](https://github.com/ArchHypo/hypo-stage): archite
 
 ## ✅ Requirements
 
-- **Backend plugin** — The HypoStage backend (`@internal/plugin-hypo-stage-backend`) must be installed in the same Backstage app and registered in `packages/backend/src/index.ts`. The backend provides the REST API and database used by this frontend.
+- **Backend plugin** — The HypoStage backend (`@archhypo/plugin-hypo-stage-backend`) must be installed in the same Backstage app and registered in `packages/backend/src/index.ts`. The backend provides the REST API and database used by this frontend.
 - **API registration** — The app must register `HypoStageApiRef` in `packages/app/src/apis.ts` (or equivalent) with `HypoStageApiClient` so that the UI can call the backend. See the [main README – Step 3.2](https://github.com/ArchHypo/hypo-stage#32-register-the-frontend-api--in-packagesappsrcapits).
 - **Backend running** — The Backstage backend must be running with a configured database (PostgreSQL or SQLite). Migrations run automatically on backend startup.
 
@@ -85,7 +85,7 @@ For full validation (deps, build, test, lint for both frontend and backend), see
 2. From the app root:
 
    ```bash
-   yarn --cwd packages/app add @internal/plugin-hypo-stage
+   yarn --cwd packages/app add @archhypo/plugin-hypo-stage
    ```
 
 3. Add routes and sidebar entry (see [main README – Configure the frontend](https://github.com/ArchHypo/hypo-stage#step-2-configure-the-frontend)).

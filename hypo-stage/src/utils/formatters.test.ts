@@ -6,7 +6,7 @@ import {
   getRatingLabel,
   getValueLabel,
 } from './formatters';
-import { LikertScale } from '@internal/plugin-hypo-stage-backend';
+import { LikertScale } from '@archhypo/plugin-hypo-stage-backend';
 
 describe('formatters', () => {
   describe('formatDate', () => {

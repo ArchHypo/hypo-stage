@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useApi } from '@backstage/core-plugin-api';
 import { HypoStageApiRef } from '../api/HypoStageApi';
-import { Hypothesis, HypothesisEvent } from '@internal/plugin-hypo-stage-backend';
+import { Hypothesis, HypothesisEvent } from '@archhypo/plugin-hypo-stage-backend';
 
 /**
  * Hook for managing hypothesis data fetching and state

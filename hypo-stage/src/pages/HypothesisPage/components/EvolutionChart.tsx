@@ -10,7 +10,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts';
-import { HypothesisEvent } from '@internal/plugin-hypo-stage-backend';
+import { HypothesisEvent } from '@archhypo/plugin-hypo-stage-backend';
 import { getRatingNumber, getValueLabel } from '../../../utils/formatters';
 import { useStyles } from '../../../hooks/useStyles';
 

@@ -1,4 +1,4 @@
-import { LikertScale } from '@internal/plugin-hypo-stage-backend';
+import { LikertScale } from '@archhypo/plugin-hypo-stage-backend';
 
 /**
  * Format date to a readable string

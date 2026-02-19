@@ -1,8 +1,7 @@
 {
-  "name": "@internal/plugin-hypo-stage-backend",
+  "name": "@archhypo/plugin-hypo-stage-backend",
   "version": "0.1.0",
   "license": "Apache-2.0",
-  "private": true,
   "author": "ArchHypo (https://github.com/ArchHypo)",
   "repository": {
     "type": "git",
@@ -17,7 +16,12 @@
     "types": "dist/index.d.ts"
   },
   "backstage": {
-    "role": "backend-plugin"
+    "role": "backend-plugin",
+    "pluginId": "hypo-stage",
+    "pluginPackages": [
+      "@archhypo/plugin-hypo-stage",
+      "@archhypo/plugin-hypo-stage-backend"
+    ]
   },
   "scripts": {
     "start": "backstage-cli package start",

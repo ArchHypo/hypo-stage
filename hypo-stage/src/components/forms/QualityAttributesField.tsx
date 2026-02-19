@@ -1,7 +1,7 @@
 import { default as React } from 'react';
 import { Chip, FormControl, TextField } from '@material-ui/core';
 import { Autocomplete } from '@material-ui/lab';
-import { QualityAttribute } from '@internal/plugin-hypo-stage-backend';
+import { QualityAttribute } from '@archhypo/plugin-hypo-stage-backend';
 import { useStyles } from '../../hooks/useStyles';
 
 /** Default helper text when none provided */

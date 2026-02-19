@@ -19,7 +19,7 @@ import { useStyles } from '../hooks/useStyles';
 import { HypoStageApiRef } from '../api/HypoStageApi';
 import { TechnicalPlanningForm } from './TechnicalPlanningForm';
 import { useEditTechnicalPlanning } from '../hooks/forms/useEditTechnicalPlanning';
-import { TechnicalPlanning } from '@internal/plugin-hypo-stage-backend';
+import { TechnicalPlanning } from '@archhypo/plugin-hypo-stage-backend';
 
 interface TechnicalPlanningItemProps {
   technicalPlanning: TechnicalPlanning;

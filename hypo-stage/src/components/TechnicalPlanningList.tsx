@@ -12,7 +12,7 @@ import { useStyles } from '../hooks/useStyles';
 import { TechnicalPlanningForm } from './TechnicalPlanningForm';
 import { TechnicalPlanningItem } from './TechnicalPlanningItem';
 import { useCreateTechnicalPlanning } from '../hooks/forms/useCreateTechnicalPlanning';
-import { Hypothesis } from '@internal/plugin-hypo-stage-backend';
+import { Hypothesis } from '@archhypo/plugin-hypo-stage-backend';
 
 interface TechnicalPlanningListProps {
   hypothesis: Hypothesis;
