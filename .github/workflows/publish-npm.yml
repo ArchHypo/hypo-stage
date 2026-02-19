@@ -2,8 +2,8 @@
 #
 # How to release:
 #   1. Update version in hypo-stage/package.json and hypo-stage-backend/package.json to e.g. 0.1.1
-#   2. Commit and push
-#   3. Create and push a tag:  git tag v0.1.1 && git push origin v0.1.1
+#   2. Merge version bump via PR (main is protected)
+#   3. Create a GitHub Release with tag v0.1.1 from main (Releases → Create a new release)
 #
 # Required: Add NPM_TOKEN (automation or granular token with publish rights) to repo secrets.
 

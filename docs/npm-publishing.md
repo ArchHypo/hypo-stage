@@ -59,20 +59,36 @@ Follow these steps exactly. The tag **must** match the version in both `package.
 
 Both must have the **exact same** version string. The workflow will fail if they differ or don't match the tag.
 
-**2. Commit, push, and create tag:**
+**2. Commit, push, open PR, and merge**
+
+Because `main` is protected, merge the version bump via a pull request:
 
 ```bash
 NEW_VERSION="0.1.1"
 
+git checkout -b "release-v$NEW_VERSION"
 git add hypo-stage/package.json hypo-stage-backend/package.json
 git commit -m "chore: release v$NEW_VERSION"
-git push origin main
-
-git tag "v$NEW_VERSION"
-git push origin "v$NEW_VERSION"
+git push origin "release-v$NEW_VERSION"
 ```
 
-**3. Monitor the workflow**
+Open a PR, get it approved, merge to `main`.
+
+**3. Create a GitHub Release** (after the PR is merged)
+
+Using the GitHub web interface creates a tag and triggers the publish workflow:
+
+1. Open the repo on GitHub → **Releases** (sidebar or `/releases`)
+2. Click **Create a new release**
+3. **Choose a tag** → **Create new tag** on publish → enter `v0.1.1` (replace with your version)
+4. **Target** → select `main` (ensure the merged PR is on main)
+5. **Release title** → e.g. `v0.1.1` or `Release v0.1.1`
+6. **Description** → optional; add a changelog or leave blank
+7. Click **Publish release**
+
+Publishing the release creates the tag and triggers the NPM publish workflow.
+
+**4. Monitor the workflow**
 
 - Go to **Actions** in the repo
 - The "Publish to NPM" workflow runs automatically
@@ -80,18 +96,11 @@ git push origin "v$NEW_VERSION"
 
 **Tag format:** Use `v` + semver (e.g. `v0.1.1`, `v1.0.0`). The workflow strips the `v` and checks it matches both `package.json` versions.
 
-#### Quick copy-paste (replace `0.1.1` with your version)
+#### Quick summary (replace `0.1.1` with your version)
 
-```bash
-V=0.1.1
-# 1. Edit hypo-stage/package.json and hypo-stage-backend/package.json → "version": "0.1.1"
-# 2. Then:
-git add hypo-stage/package.json hypo-stage-backend/package.json
-git commit -m "chore: release v$V"
-git push origin main
-git tag "v$V"
-git push origin "v$V"
-```
+1. Edit `hypo-stage/package.json` and `hypo-stage-backend/package.json` → `"version": "0.1.1"`
+2. Branch, commit, push, open PR, merge to `main` (see step 2 above)
+3. After merge: **Releases** → **Create a new release** → create tag `v0.1.1` from `main` → **Publish release**
 
 ---
 
