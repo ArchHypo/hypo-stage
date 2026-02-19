@@ -1,96 +1,137 @@
-# ⚙️ HypoStage Backend Plugin
+# HypoStage Backend Plugin
 
-Backend plugin for [HypoStage](https://github.com/ArchHypo/hypo-stage): persistence and API for architectural hypotheses and technical planning. Uses the Backstage database and catalog services.
+Backend plugin for [HypoStage](https://github.com/ArchHypo/hypo-stage): REST API, database, and services for architectural hypothesis management in [Backstage](https://backstage.io).
 
 **Package:** `@archhypo/plugin-hypo-stage-backend`
 
-## 📑 Table of contents
-
-- [✅ Requirements](#requirements)
-- [🔨 Build, test and lint](#build-test-and-lint)
-- [📦 What this package provides](#what-this-package-provides)
-- [🗄️ Database migrations](#database-migrations)
-- [📥 Installation into a Backstage app](#installation-into-a-backstage-app)
+> **Important:** The frontend package `@archhypo/plugin-hypo-stage` must be installed in the same Backstage app to use this backend.
 
 ---
 
-## ✅ Requirements
+## Features
 
-- **Backstage backend** with `coreServices.database` configured (PostgreSQL or SQLite in `app-config.yaml`).
-- **PostgreSQL** (recommended for production) or SQLite (e.g. for local dev). For a local Postgres instance without modifying your app, use the repo’s Docker Compose: from the [repository root](https://github.com/ArchHypo/hypo-stage), run `make start-dependencies` (see [Running with Docker](https://github.com/ArchHypo/hypo-stage#running-with-docker) in the main README).
+- **HypothesisService** — CRUD for hypotheses and technical planning
+- **REST API** — Full API for the frontend
+- **Database** — Knex migrations; PostgreSQL or SQLite
+- **Catalog integration** — Entity refs and team filtering
 
 ---
 
-## 🔨 Build, test and lint
+## Compatibility
 
-From the **repository root** (parent of this directory), run:
+- **Backstage:** v1.16.0+
+- **Node.js:** 20+
+
+---
+
+## Installation
+
+### 1. Install packages
+
+From your Backstage app root:
 
 ```bash
-# All plugins (recommended)
-make build    # or: yarn build
-make test     # or: yarn test
-make lint     # or: yarn lint
+yarn --cwd packages/app add @archhypo/plugin-hypo-stage
+yarn --cwd packages/backend add @archhypo/plugin-hypo-stage-backend
 ```
 
-From **this directory** only:
+### 2. Register the backend plugin
 
-```bash
-yarn install    # if not already installed from root
-yarn build      # needs dist-types from root first; use root `yarn build`
-yarn test
-yarn lint
+In `packages/backend/src/index.ts`:
+
+```ts
+import { createBackend } from '@backstage/backend-defaults';
+
+const backend = createBackend();
+// ... other plugins ...
+backend.add(import('@archhypo/plugin-hypo-stage-backend'));
+backend.start();
 ```
 
-For full validation (deps, build, test, lint for both frontend and backend), see [Validating usage](https://github.com/ArchHypo/hypo-stage/blob/main/README.md#validating-usage) in the main README.
+### 3. Configure the database
+
+The plugin uses Backstage's database. Add to `app-config.yaml`:
+
+**PostgreSQL (recommended):**
+
+```yaml
+backend:
+  database:
+    client: pg
+    connection:
+      host: ${POSTGRES_HOST}
+      port: ${POSTGRES_PORT}
+      user: ${POSTGRES_USER}
+      password: ${POSTGRES_PASSWORD}
+      database: backstage
+    plugin:
+      hypo-stage:
+        connection:
+          database: backstage_plugin_hypo_stage
+```
+
+**SQLite (dev):**
+
+```yaml
+backend:
+  database:
+    client: better-sqlite3
+    connection: ':memory:'
+```
+
+Migrations run automatically when the backend starts. No manual step required.
 
 ---
 
-## 📦 What this package provides
+## REST API
 
-- **HypothesisService** – Create, read, update, delete hypotheses and technical planning items; event history.
-- **REST API** – Mounted under the Backstage backend:
-  - `GET/POST /hypotheses`, `GET/PUT/DELETE /hypotheses/:id`
-  - `GET /hypotheses/:id/events`
-  - `GET /hypotheses/entity-refs`, `GET /hypotheses/teams`, `GET /hypotheses/referenced-entity-refs`
-  - `GET /hypotheses/stats`
-  - `POST /hypotheses/:id/technical_plannings`, `PUT/DELETE /technical_plannings/:id`
-- **Database** – Uses Backstage’s `coreServices.database` (Knex). Migrations in `migrations/` (hypothesis, hypothesisEvents, technicalPlanning tables).
-- **Catalog integration** – Uses `CatalogService` for entity refs and team filtering (optional `spec.team` on components).
+The plugin mounts these routes under the Backstage backend:
 
----
-
-## 🗄️ Database migrations
-
-Migrations run **automatically** when the Backstage backend starts: the plugin calls `database.getClient()` and runs `migrate.latest()` from the `migrations/` directory (unless the Backstage config sets `database.migrations.skip`). No manual migration step is required.
-
-| Migration | Tables / purpose |
-|-----------|-------------------|
-| `20250716_000001_create_hypothesis.js` | `hypothesis` table |
-| `20250827_000002_create_hypothesis_events.js` | `hypothesis_events` table (evolution history) |
-| `20250902_00003_create_technical_planning.js` | `technical_planning` table |
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/hypotheses` | List hypotheses (query: entityRef, team, focus) |
+| `POST` | `/hypotheses` | Create hypothesis |
+| `GET` | `/hypotheses/:id` | Get hypothesis by ID |
+| `PUT` | `/hypotheses/:id` | Update hypothesis |
+| `DELETE` | `/hypotheses/:id` | Delete hypothesis |
+| `GET` | `/hypotheses/:id/events` | Get evolution events |
+| `GET` | `/hypotheses/entity-refs` | List entity refs for autocomplete |
+| `GET` | `/hypotheses/teams` | List teams for filter |
+| `GET` | `/hypotheses/referenced-entity-refs` | Entity refs referenced by hypotheses |
+| `GET` | `/hypotheses/stats` | Aggregated stats |
+| `POST` | `/hypotheses/:id/technical_plannings` | Add technical planning item |
+| `PUT` | `/technical_plannings/:id` | Update technical planning item |
+| `DELETE` | `/technical_plannings/:id` | Delete technical planning item |
 
 ---
 
-## 📥 Installation into a Backstage app
+## Database
 
-1. Copy this `hypo-stage-backend` directory into your app’s `plugins/` folder.
-2. From the app root:
+### Migrations
 
-   ```bash
-   yarn --cwd packages/backend add @archhypo/plugin-hypo-stage-backend
-   ```
+Migrations run automatically on backend startup. Located in `migrations/`:
 
-3. In `packages/backend/src/index.ts`:
+| Migration | Tables |
+|-----------|--------|
+| `20250716_000001_create_hypothesis.js` | `hypothesis` |
+| `20250827_000002_create_hypothesis_events.js` | `hypothesis_events` (evolution history) |
+| `20250902_00003_create_technical_planning.js` | `technical_planning` |
 
-   ```ts
-   import { createBackend } from '@backstage/backend-defaults';
+### Plugin-specific database
 
-   const backend = createBackend();
-   // ... other plugins ...
-   backend.add(import('@archhypo/plugin-hypo-stage-backend'));
-   backend.start();
-   ```
+For production, use a dedicated database per plugin. Configure `backend.database.plugin.hypo-stage.connection` as shown above. The main `backend.database.connection` can point to the default Backstage DB; the plugin uses its own connection when `plugin.hypo-stage` is set.
 
-4. Ensure the backend has a database configured (PostgreSQL or SQLite via `app-config.yaml`). For a local Postgres instance you can use the [repo Docker Compose](https://github.com/ArchHypo/hypo-stage#running-with-docker): `make start-dependencies` at the repo root.
+---
 
-Full installation, configuration, and Docker usage are in the [repository README](https://github.com/ArchHypo/hypo-stage/blob/main/README.md).
+## Frontend configuration
+
+The frontend must be configured separately. See the [frontend package README](https://www.npmjs.com/package/@archhypo/plugin-hypo-stage) or [repository](https://github.com/ArchHypo/hypo-stage) for:
+
+- Routes and sidebar
+- API registration (`HypoStageApiRef` / `HypoStageApiClient`)
+
+---
+
+## Documentation
+
+Full documentation, Docker, standalone run, and E2E tests: [github.com/ArchHypo/hypo-stage](https://github.com/ArchHypo/hypo-stage)
