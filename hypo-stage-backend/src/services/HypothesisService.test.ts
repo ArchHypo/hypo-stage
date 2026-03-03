@@ -261,6 +261,120 @@ describe('HypothesisService', () => {
       expect(tablesCalled).toEqual(['technicalPlanning']);
       expect(tablesCalled).not.toContain('hypothesisEvents');
     });
+
+    it('should update hypothesis when only uncertainty is provided (no impact)', async () => {
+      const hypothesisId = 'hyp-1';
+      const input = {
+        entityRef: 'component:default/foo',
+        actionType: 'Experiment' as const,
+        description: 'Test description',
+        expectedOutcome: 'Test outcome',
+        documentations: ['https://example.com'],
+        targetDate: '2026-06-01',
+        uncertainty: 'High' as const,
+      };
+
+      const createdTechPlan = {
+        id: 'tp-1',
+        hypothesisId,
+        ...input,
+        documentations: JSON.stringify(input.documentations),
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      const insertChain = createChain(jest.fn());
+      insertChain.insert.mockReturnValue(insertChain);
+      insertChain.returning.mockResolvedValueOnce([createdTechPlan]).mockResolvedValueOnce([{}]);
+
+      const updateChain = {
+        where: jest.fn().mockReturnThis(),
+        update: jest.fn().mockResolvedValue(1),
+      };
+
+      const tablesCalled: string[] = [];
+      mockTrx = jest.fn((table: string) => {
+        tablesCalled.push(table);
+        if (table === 'hypothesis') return updateChain;
+        return insertChain;
+      });
+      mockDb.transaction = jest.fn((callback: (trx: any) => Promise<any>) =>
+        callback(mockTrx),
+      );
+
+      service = await createHypothesisService({
+        logger: mockLogger,
+        database: mockDatabase,
+      });
+
+      await service.createTechnicalPlanning(hypothesisId, input);
+
+      expect(mockTrx).toHaveBeenCalledWith('hypothesis');
+      expect(mockTrx).toHaveBeenCalledWith('hypothesisEvents');
+      expect(updateChain.update).toHaveBeenCalledWith(
+        expect.objectContaining({ uncertainty: 'High' }),
+      );
+      expect(updateChain.update).toHaveBeenCalledWith(
+        expect.not.objectContaining({ impact: expect.anything() }),
+      );
+    });
+
+    it('should update hypothesis when only impact is provided (no uncertainty)', async () => {
+      const hypothesisId = 'hyp-1';
+      const input = {
+        entityRef: 'component:default/foo',
+        actionType: 'Experiment' as const,
+        description: 'Test description',
+        expectedOutcome: 'Test outcome',
+        documentations: ['https://example.com'],
+        targetDate: '2026-06-01',
+        impact: 'Very High' as const,
+      };
+
+      const createdTechPlan = {
+        id: 'tp-1',
+        hypothesisId,
+        ...input,
+        documentations: JSON.stringify(input.documentations),
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      const insertChain = createChain(jest.fn());
+      insertChain.insert.mockReturnValue(insertChain);
+      insertChain.returning.mockResolvedValueOnce([createdTechPlan]).mockResolvedValueOnce([{}]);
+
+      const updateChain = {
+        where: jest.fn().mockReturnThis(),
+        update: jest.fn().mockResolvedValue(1),
+      };
+
+      const tablesCalled: string[] = [];
+      mockTrx = jest.fn((table: string) => {
+        tablesCalled.push(table);
+        if (table === 'hypothesis') return updateChain;
+        return insertChain;
+      });
+      mockDb.transaction = jest.fn((callback: (trx: any) => Promise<any>) =>
+        callback(mockTrx),
+      );
+
+      service = await createHypothesisService({
+        logger: mockLogger,
+        database: mockDatabase,
+      });
+
+      await service.createTechnicalPlanning(hypothesisId, input);
+
+      expect(mockTrx).toHaveBeenCalledWith('hypothesis');
+      expect(mockTrx).toHaveBeenCalledWith('hypothesisEvents');
+      expect(updateChain.update).toHaveBeenCalledWith(
+        expect.objectContaining({ impact: 'Very High' }),
+      );
+      expect(updateChain.update).toHaveBeenCalledWith(
+        expect.not.objectContaining({ uncertainty: expect.anything() }),
+      );
+    });
   });
 
   describe('updateTechnicalPlanning', () => {
@@ -318,6 +432,120 @@ describe('HypothesisService', () => {
       expect(mockTrx).toHaveBeenCalledWith('hypothesis');
       expect(mockTrx).toHaveBeenCalledWith('hypothesisEvents');
       expect(updateHypChain.where).toHaveBeenCalledWith('id', 'hyp-1');
+    });
+
+    it('should update hypothesis when only uncertainty is provided during edit', async () => {
+      const techPlanId = 'tp-1';
+      const input = {
+        expectedOutcome: 'Updated outcome',
+        documentations: ['https://example.com/updated'],
+        uncertainty: 'Low' as const,
+      };
+
+      const updatedTechPlan = {
+        id: techPlanId,
+        hypothesisId: 'hyp-1',
+        ...input,
+        documentations: JSON.stringify(input.documentations),
+        updatedAt: new Date(),
+      };
+
+      const updateTpChain = {
+        where: jest.fn().mockReturnThis(),
+        update: jest.fn().mockReturnThis(),
+        returning: jest.fn().mockResolvedValue([updatedTechPlan]),
+      };
+
+      const updateHypChain = {
+        where: jest.fn().mockReturnThis(),
+        update: jest.fn().mockResolvedValue(1),
+      };
+
+      const insertChain = createChain(jest.fn());
+      insertChain.insert.mockReturnValue(insertChain);
+      insertChain.returning.mockResolvedValueOnce([{}]);
+
+      mockTrx = jest.fn((table: string) => {
+        if (table === 'technicalPlanning') return updateTpChain;
+        if (table === 'hypothesis') return updateHypChain;
+        return insertChain;
+      });
+      mockDb.transaction = jest.fn((callback: (trx: any) => Promise<any>) =>
+        callback(mockTrx),
+      );
+
+      service = await createHypothesisService({
+        logger: mockLogger,
+        database: mockDatabase,
+      });
+
+      await service.updateTechnicalPlanning(techPlanId, input);
+
+      expect(mockTrx).toHaveBeenCalledWith('hypothesis');
+      expect(mockTrx).toHaveBeenCalledWith('hypothesisEvents');
+      expect(updateHypChain.update).toHaveBeenCalledWith(
+        expect.objectContaining({ uncertainty: 'Low' }),
+      );
+      expect(updateHypChain.update).toHaveBeenCalledWith(
+        expect.not.objectContaining({ impact: expect.anything() }),
+      );
+    });
+
+    it('should update hypothesis when only impact is provided during edit', async () => {
+      const techPlanId = 'tp-1';
+      const input = {
+        expectedOutcome: 'Updated outcome',
+        documentations: ['https://example.com/updated'],
+        impact: 'High' as const,
+      };
+
+      const updatedTechPlan = {
+        id: techPlanId,
+        hypothesisId: 'hyp-1',
+        ...input,
+        documentations: JSON.stringify(input.documentations),
+        updatedAt: new Date(),
+      };
+
+      const updateTpChain = {
+        where: jest.fn().mockReturnThis(),
+        update: jest.fn().mockReturnThis(),
+        returning: jest.fn().mockResolvedValue([updatedTechPlan]),
+      };
+
+      const updateHypChain = {
+        where: jest.fn().mockReturnThis(),
+        update: jest.fn().mockResolvedValue(1),
+      };
+
+      const insertChain = createChain(jest.fn());
+      insertChain.insert.mockReturnValue(insertChain);
+      insertChain.returning.mockResolvedValueOnce([{}]);
+
+      mockTrx = jest.fn((table: string) => {
+        if (table === 'technicalPlanning') return updateTpChain;
+        if (table === 'hypothesis') return updateHypChain;
+        return insertChain;
+      });
+      mockDb.transaction = jest.fn((callback: (trx: any) => Promise<any>) =>
+        callback(mockTrx),
+      );
+
+      service = await createHypothesisService({
+        logger: mockLogger,
+        database: mockDatabase,
+      });
+
+      await service.updateTechnicalPlanning(techPlanId, input);
+
+      expect(mockTrx).toHaveBeenCalledWith('hypothesis');
+      expect(mockTrx).toHaveBeenCalledWith('hypothesisEvents');
+      expect(updateHypChain.update).toHaveBeenCalledWith(
+        expect.objectContaining({ impact: 'High' }),
+      );
+      expect(updateHypChain.update).toHaveBeenCalledWith(
+        expect.not.objectContaining({ uncertainty: expect.anything() }),
+      );
     });
   });
 
