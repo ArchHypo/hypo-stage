@@ -51,23 +51,38 @@ export type TechnicalPlanning = {
   targetDate: Date;
 }
 
-export type CreateHypothesisEvent = {
+export type BaseHypothesisEvent = {
   timestamp: Date;
   id: string;
   hypothesisId: string;
+  technicalPlanningId?: string | null;
+};
+
+export type CreateHypothesisEvent = BaseHypothesisEvent & {
   eventType: "CREATE";
   changes: CreateHypothesisInput;
 };
 
-export type UpdateHypothesisEvent = {
-  timestamp: Date;
-  id: string;
-  hypothesisId: string;
+export type UpdateHypothesisEvent = BaseHypothesisEvent & {
   eventType: "UPDATE";
   changes: UpdateHypothesisInput;
 };
 
-export type HypothesisEvent = CreateHypothesisEvent | UpdateHypothesisEvent;
+export type TechnicalPlanningCreateEvent = BaseHypothesisEvent & {
+  eventType: "TECHNICAL_PLANNING_CREATE";
+  changes: { uncertainty?: LikertScale; impact?: LikertScale };
+};
+
+export type TechnicalPlanningUpdateEvent = BaseHypothesisEvent & {
+  eventType: "TECHNICAL_PLANNING_UPDATE";
+  changes: { uncertainty?: LikertScale; impact?: LikertScale };
+};
+
+export type HypothesisEvent =
+  | CreateHypothesisEvent
+  | UpdateHypothesisEvent
+  | TechnicalPlanningCreateEvent
+  | TechnicalPlanningUpdateEvent;
 
 export interface HypothesisService {
   create(input: CreateHypothesisInput): Promise<Hypothesis>;

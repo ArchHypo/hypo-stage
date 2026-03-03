@@ -42,7 +42,7 @@ export const HypothesisForm: React.FC<CreateHypothesisFormProps | EditHypothesis
   const isEditMode = mode === 'edit';
   const startIcon = isCreateMode ? <Add /> : <Save />;
   const title = isCreateMode ? 'Create New Hypothesis' : 'Update Hypothesis';
-  const subtitle = isCreateMode ? 'Define your hypothesis and assess its uncertainty and potential impact' : 'Update your hypothesis and reassess its uncertainty and potential impact';
+  const subtitle = isCreateMode ? 'Define your hypothesis and assess its uncertainty and potential impact' : 'Update your hypothesis details';
 
   const handleSubmit = () => {
     onSubmit?.();
@@ -122,25 +122,29 @@ export const HypothesisForm: React.FC<CreateHypothesisFormProps | EditHypothesis
             />
           </Grid>
 
-          {/* Uncertainty level */}
-          <Grid item xs={12} md={6}>
-            <LikertScaleField
-              rating={formData.uncertainty ? getRatingNumber(formData.uncertainty) : 0}
-              onRatingChange={(rating) => onFieldChange('uncertainty', getRatingString(rating))}
-              label="Uncertainty Level"
-              description="How far is the team from validating/falsifying this hypothesis?"
-            />
-          </Grid>
+          {isCreateMode && (
+            <>
+              {/* Uncertainty level */}
+              <Grid item xs={12} md={6}>
+                <LikertScaleField
+                  rating={formData.uncertainty ? getRatingNumber(formData.uncertainty) : 0}
+                  onRatingChange={(rating) => onFieldChange('uncertainty', getRatingString(rating))}
+                  label="Uncertainty Level"
+                  description="How far is the team from validating/falsifying this hypothesis?"
+                />
+              </Grid>
 
-          {/* Impact level */}
-          <Grid item xs={12} md={6}>
-            <LikertScaleField
-              rating={formData.impact ? getRatingNumber(formData.impact) : 0}
-              onRatingChange={(rating) => onFieldChange('impact', getRatingString(rating))}
-              label="Impact Level"
-              description="What is the potential impact on the system if the hypothesis proves false?"
-            />
-          </Grid>
+              {/* Impact level */}
+              <Grid item xs={12} md={6}>
+                <LikertScaleField
+                  rating={formData.impact ? getRatingNumber(formData.impact) : 0}
+                  onRatingChange={(rating) => onFieldChange('impact', getRatingString(rating))}
+                  label="Impact Level"
+                  description="What is the potential impact on the system if the hypothesis proves false?"
+                />
+              </Grid>
+            </>
+          )}
 
           {/* Quality attributes */}
           <Grid item xs={12}>

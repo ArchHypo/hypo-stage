@@ -4,7 +4,7 @@ import { HypoStageApiRef } from '../../api/HypoStageApi';
 import { useFormState } from '../useFormState';
 import { useApiCall } from '../useApiCall';
 import { useNotifications } from '../../providers/NotificationProvider';
-import { UpdateHypothesisInput, Status, SourceType, QualityAttribute, LikertScale, Hypothesis } from '@archhypo/plugin-hypo-stage-backend';
+import { UpdateHypothesisInput, Status, SourceType, QualityAttribute, Hypothesis } from '@archhypo/plugin-hypo-stage-backend';
 
 /** Form data shape for the Edit Hypothesis form */
 export interface EditHypothesisFormData {
@@ -13,8 +13,6 @@ export interface EditHypothesisFormData {
   sourceType: SourceType;
   relatedArtefacts: string[];
   qualityAttributes: QualityAttribute[];
-  uncertainty: LikertScale;
-  impact: LikertScale;
   notes: string;
 }
 
@@ -33,8 +31,6 @@ export const useEditHypothesis = (hypothesisId: string | undefined) => {
     sourceType: 'Other',
     relatedArtefacts: [],
     qualityAttributes: [],
-    uncertainty: 'Medium',
-    impact: 'Medium',
     notes: '',
   });
 
@@ -58,8 +54,6 @@ export const useEditHypothesis = (hypothesisId: string | undefined) => {
           sourceType: found.sourceType,
           relatedArtefacts: found.relatedArtefacts,
           qualityAttributes: found.qualityAttributes,
-          uncertainty: found.uncertainty,
-          impact: found.impact,
           notes: found.notes || '',
         });
       } else {
@@ -80,8 +74,6 @@ export const useEditHypothesis = (hypothesisId: string | undefined) => {
         sourceType: formData.sourceType,
         relatedArtefacts: formData.relatedArtefacts,
         qualityAttributes: formData.qualityAttributes,
-        uncertainty: formData.uncertainty,
-        impact: formData.impact,
         notes: formData.notes.trim() || null,
       };
 

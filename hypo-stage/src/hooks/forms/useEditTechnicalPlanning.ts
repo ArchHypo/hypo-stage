@@ -4,11 +4,13 @@ import { HypoStageApiRef } from '../../api/HypoStageApi';
 import { useFormState } from '../useFormState';
 import { useApiCall } from '../useApiCall';
 import { useNotifications } from '../../providers/NotificationProvider';
-import { UpdateTechnicalPlanningInput, TechnicalPlanning } from '@archhypo/plugin-hypo-stage-backend';
+import { UpdateTechnicalPlanningInput, TechnicalPlanning, LikertScale } from '@archhypo/plugin-hypo-stage-backend';
 
 export interface EditTechnicalPlanningFormData {
   expectedOutcome: string;
   documentations: string[];
+  uncertainty: LikertScale | '';
+  impact: LikertScale | '';
 }
 
 export const useEditTechnicalPlanning = (technicalPlanning: TechnicalPlanning) => {
@@ -18,6 +20,8 @@ export const useEditTechnicalPlanning = (technicalPlanning: TechnicalPlanning) =
   const { formData, updateField } = useFormState<EditTechnicalPlanningFormData>({
     expectedOutcome: technicalPlanning.expectedOutcome,
     documentations: technicalPlanning.documentations,
+    uncertainty: '',
+    impact: '',
   });
 
   const isFormValid = formData.expectedOutcome.trim().length > 0 &&
@@ -31,6 +35,8 @@ export const useEditTechnicalPlanning = (technicalPlanning: TechnicalPlanning) =
       const technicalPlanningData: UpdateTechnicalPlanningInput = {
         expectedOutcome: formData.expectedOutcome.trim(),
         documentations: formData.documentations,
+        ...(formData.uncertainty ? { uncertainty: formData.uncertainty as LikertScale } : {}),
+        ...(formData.impact ? { impact: formData.impact as LikertScale } : {}),
       };
 
       await execute(() => api.updateTechnicalPlanning(technicalPlanning.id, technicalPlanningData));

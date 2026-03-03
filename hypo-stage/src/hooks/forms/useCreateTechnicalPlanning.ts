@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 import { useApi } from '@backstage/core-plugin-api';
 import { HypoStageApiRef } from '../../api/HypoStageApi';
-import { CreateTechnicalPlanningInput, ActionType } from '@archhypo/plugin-hypo-stage-backend';
+import { CreateTechnicalPlanningInput, ActionType, LikertScale } from '@archhypo/plugin-hypo-stage-backend';
 import { useFormState } from '../useFormState';
 import { useApiCall } from '../useApiCall';
 import { useNotifications } from '../../providers/NotificationProvider';
@@ -13,6 +13,8 @@ export interface CreateTechnicalPlanningFormData {
   expectedOutcome: string;
   documentations: string[];
   targetDate: string;
+  uncertainty: LikertScale | '';
+  impact: LikertScale | '';
 }
 
 export const useCreateTechnicalPlanning = (hypothesisId: string) => {
@@ -26,6 +28,8 @@ export const useCreateTechnicalPlanning = (hypothesisId: string) => {
     expectedOutcome: '',
     documentations: [],
     targetDate: '',
+    uncertainty: '',
+    impact: '',
   });
 
   const isFormValid = formData.entityRef !== '' &&
@@ -48,6 +52,8 @@ export const useCreateTechnicalPlanning = (hypothesisId: string) => {
         expectedOutcome: formData.expectedOutcome.trim(),
         documentations: formData.documentations,
         targetDate: formData.targetDate,
+        ...(formData.uncertainty ? { uncertainty: formData.uncertainty as LikertScale } : {}),
+        ...(formData.impact ? { impact: formData.impact as LikertScale } : {}),
       };
 
       await execute(() => api.createTechnicalPlanning(hypothesisId, technicalPlanningData));

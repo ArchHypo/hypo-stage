@@ -11,9 +11,11 @@ Architectural hypothesis management for [Backstage](https://backstage.io). Creat
 ## Features
 
 - **Hypothesis management** — Create, edit, view, and delete architectural hypotheses
-- **Uncertainty & impact** — Likert-scale assessment with evolution tracking
+- **Uncertainty & impact** — Likert-scale assessment with evolution tracking; values are set on creation and can only be changed through technical planning actions
 - **Quality attributes** — Associate hypotheses with performance, security, maintainability, etc.
-- **Technical planning** — Link experiments, spikes, and tasks to hypotheses
+- **Technical planning** — Link experiments, spikes, and tasks to hypotheses; optionally reassess uncertainty and impact when creating or editing a plan
+- **Labeled Assessment** — Hypothesis detail view shows clearly labeled chips for Status, Uncertainty, Impact, and Focus
+- **Evolution chart** — Distinct visual markers distinguish manual changes from technical-planning-linked changes, with informative tooltips
 - **Catalog integration** — Optional Hypotheses tab on entity pages; filter by entity and team
 
 ---

@@ -27,13 +27,23 @@ const renderWithTheme = (ui: React.ReactElement) => {
   return render(<ThemeProvider theme={theme}>{ui}</ThemeProvider>);
 };
 
-const createFormData = (overrides = {}) => ({
+const createFormData = (overrides = {}): any => ({
   statement: '',
   entityRefs: [],
   status: 'Open',
   sourceType: 'Requirements',
   uncertainty: 'Medium',
   impact: 'Medium',
+  qualityAttributes: [],
+  relatedArtefacts: [],
+  notes: '',
+  ...overrides,
+});
+
+const editFormData = (overrides = {}): any => ({
+  entityRefs: [],
+  status: 'Open',
+  sourceType: 'Requirements',
   qualityAttributes: [],
   relatedArtefacts: [],
   notes: '',
@@ -91,6 +101,22 @@ describe('HypothesisForm', () => {
       await user.click(screen.getByRole('button', { name: /Create New Hypothesis/i }));
       expect(onSubmit).toHaveBeenCalled();
     });
+
+    it('should render uncertainty and impact fields in create mode', () => {
+      const formData = createFormData();
+      renderWithTheme(
+        <HypothesisForm
+          mode="create"
+          formData={formData}
+          onFieldChange={jest.fn()}
+          isFormValid={false}
+          loading={false}
+        />,
+      );
+
+      expect(screen.getByText('Uncertainty Level')).toBeInTheDocument();
+      expect(screen.getByText('Impact Level')).toBeInTheDocument();
+    });
   });
 
   describe('edit mode', () => {
@@ -111,7 +137,7 @@ describe('HypothesisForm', () => {
     };
 
     it('should render form with update title', () => {
-      const formData = createFormData();
+      const formData = editFormData();
       renderWithTheme(
         <HypothesisForm
           mode="edit"
@@ -127,7 +153,7 @@ describe('HypothesisForm', () => {
     });
 
     it('should render submit button with update label', () => {
-      const formData = createFormData();
+      const formData = editFormData();
       renderWithTheme(
         <HypothesisForm
           mode="edit"
@@ -140,6 +166,23 @@ describe('HypothesisForm', () => {
       );
 
       expect(screen.getByRole('button', { name: /Update Hypothesis/i })).toBeInTheDocument();
+    });
+
+    it('should NOT render uncertainty and impact fields in edit mode', () => {
+      const formData = editFormData();
+      renderWithTheme(
+        <HypothesisForm
+          mode="edit"
+          hypothesis={mockHypothesis}
+          formData={formData}
+          onFieldChange={jest.fn()}
+          isFormValid={false}
+          loading={false}
+        />,
+      );
+
+      expect(screen.queryByText('Uncertainty Level')).not.toBeInTheDocument();
+      expect(screen.queryByText('Impact Level')).not.toBeInTheDocument();
     });
   });
 });

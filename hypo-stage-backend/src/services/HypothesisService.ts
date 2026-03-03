@@ -195,13 +195,14 @@ export async function createHypothesisService({
   async createTechnicalPlanning(hypothesisId: string, input: CreateTechnicalPlanningInput): Promise<TechnicalPlanning> {
     logger.info('Creating technical planning', { hypothesisId, input });
 
+    const { uncertainty, impact, ...techPlanFields } = input;
+
     return await db.transaction(async (trx) => {
-      // Create the technical planning
       const createdTechPlans = await trx('technicalPlanning').insert({
         hypothesisId,
-        ...input,
-        documentations: JSON.stringify(input.documentations),
-        targetDate: new Date(input.targetDate),
+        ...techPlanFields,
+        documentations: JSON.stringify(techPlanFields.documentations),
+        targetDate: new Date(techPlanFields.targetDate),
       }).returning('*');
 
       if (!createdTechPlans || createdTechPlans.length === 0) {
@@ -209,9 +210,30 @@ export async function createHypothesisService({
       }
 
       const createdTechPlan = createdTechPlans[0];
-
-      // Parse documentations
       createdTechPlan.documentations = JSON.parse(createdTechPlan.documentations);
+
+      if (uncertainty || impact) {
+        const hypothesisUpdate: Record<string, any> = { updatedAt: new Date() };
+        const eventChanges: Record<string, string> = {};
+
+        if (uncertainty) {
+          hypothesisUpdate.uncertainty = uncertainty;
+          eventChanges.uncertainty = uncertainty;
+        }
+        if (impact) {
+          hypothesisUpdate.impact = impact;
+          eventChanges.impact = impact;
+        }
+
+        await trx('hypothesis').where('id', hypothesisId).update(hypothesisUpdate);
+
+        await trx('hypothesisEvents').insert({
+          hypothesisId,
+          eventType: 'TECHNICAL_PLANNING_CREATE',
+          technicalPlanningId: createdTechPlan.id,
+          changes: JSON.stringify(eventChanges),
+        });
+      }
 
       return createdTechPlan;
     });
@@ -220,14 +242,15 @@ export async function createHypothesisService({
   async updateTechnicalPlanning(id: string, input: UpdateTechnicalPlanningInput): Promise<TechnicalPlanning> {
     logger.info('Updating technical planning', { id, input });
 
+    const { uncertainty, impact, ...techPlanFields } = input;
+
     return await db.transaction(async (trx) => {
-      // Update the technical planning
       const updatedTechPlans = await trx('technicalPlanning')
         .where('id', id)
         .update({
           updatedAt: new Date(),
-          ...input,
-          documentations: JSON.stringify(input.documentations),
+          ...techPlanFields,
+          documentations: JSON.stringify(techPlanFields.documentations),
         })
         .returning('*');
 
@@ -236,9 +259,31 @@ export async function createHypothesisService({
       }
 
       const updatedTechPlan = updatedTechPlans[0];
-
-      // Parse documentations
       updatedTechPlan.documentations = JSON.parse(updatedTechPlan.documentations);
+
+      if (uncertainty || impact) {
+        const hypothesisId = updatedTechPlan.hypothesisId;
+        const hypothesisUpdate: Record<string, any> = { updatedAt: new Date() };
+        const eventChanges: Record<string, string> = {};
+
+        if (uncertainty) {
+          hypothesisUpdate.uncertainty = uncertainty;
+          eventChanges.uncertainty = uncertainty;
+        }
+        if (impact) {
+          hypothesisUpdate.impact = impact;
+          eventChanges.impact = impact;
+        }
+
+        await trx('hypothesis').where('id', hypothesisId).update(hypothesisUpdate);
+
+        await trx('hypothesisEvents').insert({
+          hypothesisId,
+          eventType: 'TECHNICAL_PLANNING_UPDATE',
+          technicalPlanningId: id,
+          changes: JSON.stringify(eventChanges),
+        });
+      }
 
       return updatedTechPlan;
     });

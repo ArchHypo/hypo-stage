@@ -8,7 +8,9 @@ import { CreateTechnicalPlanningFormData } from '../hooks/forms/useCreateTechnic
 import { EditTechnicalPlanningFormData } from '../hooks/forms/useEditTechnicalPlanning';
 import { TechnicalPlanning } from '@archhypo/plugin-hypo-stage-backend';
 import { ACTION_TYPE_OPTIONS } from '../utils/constants';
+import { getRatingNumber, getRatingString } from '../utils/formatters';
 import { CustomSelectField, CustomTextField } from './forms/FormField';
+import { LikertScaleField } from './forms/LikertScaleField';
 
 interface BaseTechnicalPlanningFormProps {
   isFormValid: boolean;
@@ -129,6 +131,32 @@ export const TechnicalPlanningForm: React.FC<CreateTechnicalPlanningFormProps | 
               onUrlsChange={(value) => onFieldChange('documentations', value)}
               placeholder="https://example.com/docs"
               helperText="No documentation links added yet. Add links to relevant documentation, design docs, or planning materials."
+            />
+          </Grid>
+
+          {/* Optional: Reassess uncertainty and impact */}
+          <Grid item xs={12}>
+            <Typography variant="h6" gutterBottom>
+              Reassess Uncertainty & Impact (optional)
+            </Typography>
+            <Typography variant="body2" color="textSecondary" gutterBottom>
+              If this technical planning changes the hypothesis uncertainty or impact, update the values below.
+            </Typography>
+          </Grid>
+          <Grid item xs={12} md={6}>
+            <LikertScaleField
+              rating={formData.uncertainty ? getRatingNumber(formData.uncertainty) : 0}
+              onRatingChange={(rating) => onFieldChange('uncertainty', rating === 0 ? '' : getRatingString(rating))}
+              label="New Uncertainty Level"
+              description="Leave unset to keep the current value"
+            />
+          </Grid>
+          <Grid item xs={12} md={6}>
+            <LikertScaleField
+              rating={formData.impact ? getRatingNumber(formData.impact) : 0}
+              onRatingChange={(rating) => onFieldChange('impact', rating === 0 ? '' : getRatingString(rating))}
+              label="New Impact Level"
+              description="Leave unset to keep the current value"
             />
           </Grid>
         </Grid>

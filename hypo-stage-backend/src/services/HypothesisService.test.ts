@@ -163,6 +163,164 @@ describe('HypothesisService', () => {
     });
   });
 
+  describe('createTechnicalPlanning', () => {
+    it('should update hypothesis and create TECHNICAL_PLANNING_CREATE event when uncertainty/impact provided', async () => {
+      const hypothesisId = 'hyp-1';
+      const input = {
+        entityRef: 'component:default/foo',
+        actionType: 'Experiment' as const,
+        description: 'Test description',
+        expectedOutcome: 'Test outcome',
+        documentations: ['https://example.com'],
+        targetDate: '2026-06-01',
+        uncertainty: 'High' as const,
+        impact: 'Low' as const,
+      };
+
+      const createdTechPlan = {
+        id: 'tp-1',
+        hypothesisId,
+        ...input,
+        documentations: JSON.stringify(input.documentations),
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      const insertChain = createChain(jest.fn());
+      insertChain.insert.mockReturnValue(insertChain);
+      insertChain.returning.mockResolvedValueOnce([createdTechPlan]).mockResolvedValueOnce([{}]);
+
+      const updateChain = {
+        where: jest.fn().mockReturnThis(),
+        update: jest.fn().mockResolvedValue(1),
+      };
+
+      const tablesCalled: string[] = [];
+      mockTrx = jest.fn((table: string) => {
+        tablesCalled.push(table);
+        if (table === 'hypothesis') return updateChain;
+        return insertChain;
+      });
+      mockDb.transaction = jest.fn((callback: (trx: any) => Promise<any>) =>
+        callback(mockTrx),
+      );
+
+      service = await createHypothesisService({
+        logger: mockLogger,
+        database: mockDatabase,
+      });
+
+      await service.createTechnicalPlanning(hypothesisId, input);
+
+      expect(mockTrx).toHaveBeenCalledWith('technicalPlanning');
+      expect(mockTrx).toHaveBeenCalledWith('hypothesis');
+      expect(mockTrx).toHaveBeenCalledWith('hypothesisEvents');
+      expect(updateChain.where).toHaveBeenCalledWith('id', hypothesisId);
+    });
+
+    it('should NOT create event when uncertainty/impact not provided', async () => {
+      const hypothesisId = 'hyp-1';
+      const input = {
+        entityRef: 'component:default/foo',
+        actionType: 'Experiment' as const,
+        description: 'Test description',
+        expectedOutcome: 'Test outcome',
+        documentations: ['https://example.com'],
+        targetDate: '2026-06-01',
+      };
+
+      const createdTechPlan = {
+        id: 'tp-1',
+        hypothesisId,
+        ...input,
+        documentations: JSON.stringify(input.documentations),
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      const insertChain = createChain(jest.fn());
+      insertChain.insert.mockReturnValue(insertChain);
+      insertChain.returning.mockResolvedValueOnce([createdTechPlan]);
+
+      const tablesCalled: string[] = [];
+      mockTrx = jest.fn((table: string) => {
+        tablesCalled.push(table);
+        return insertChain;
+      });
+      mockDb.transaction = jest.fn((callback: (trx: any) => Promise<any>) =>
+        callback(mockTrx),
+      );
+
+      service = await createHypothesisService({
+        logger: mockLogger,
+        database: mockDatabase,
+      });
+
+      await service.createTechnicalPlanning(hypothesisId, input);
+
+      expect(tablesCalled).toEqual(['technicalPlanning']);
+      expect(tablesCalled).not.toContain('hypothesisEvents');
+    });
+  });
+
+  describe('updateTechnicalPlanning', () => {
+    it('should update hypothesis and create TECHNICAL_PLANNING_UPDATE event when uncertainty/impact provided', async () => {
+      const techPlanId = 'tp-1';
+      const input = {
+        expectedOutcome: 'Updated outcome',
+        documentations: ['https://example.com/updated'],
+        uncertainty: 'Very High' as const,
+        impact: 'Medium' as const,
+      };
+
+      const updatedTechPlan = {
+        id: techPlanId,
+        hypothesisId: 'hyp-1',
+        ...input,
+        documentations: JSON.stringify(input.documentations),
+        updatedAt: new Date(),
+      };
+
+      const updateTpChain = {
+        where: jest.fn().mockReturnThis(),
+        update: jest.fn().mockReturnThis(),
+        returning: jest.fn().mockResolvedValue([updatedTechPlan]),
+      };
+
+      const updateHypChain = {
+        where: jest.fn().mockReturnThis(),
+        update: jest.fn().mockResolvedValue(1),
+      };
+
+      const insertChain = createChain(jest.fn());
+      insertChain.insert.mockReturnValue(insertChain);
+      insertChain.returning.mockResolvedValueOnce([{}]);
+
+      const tablesCalled: string[] = [];
+      mockTrx = jest.fn((table: string) => {
+        tablesCalled.push(table);
+        if (table === 'technicalPlanning') return updateTpChain;
+        if (table === 'hypothesis') return updateHypChain;
+        return insertChain;
+      });
+      mockDb.transaction = jest.fn((callback: (trx: any) => Promise<any>) =>
+        callback(mockTrx),
+      );
+
+      service = await createHypothesisService({
+        logger: mockLogger,
+        database: mockDatabase,
+      });
+
+      await service.updateTechnicalPlanning(techPlanId, input);
+
+      expect(mockTrx).toHaveBeenCalledWith('technicalPlanning');
+      expect(mockTrx).toHaveBeenCalledWith('hypothesis');
+      expect(mockTrx).toHaveBeenCalledWith('hypothesisEvents');
+      expect(updateHypChain.where).toHaveBeenCalledWith('id', 'hyp-1');
+    });
+  });
+
   describe('getAll', () => {
     it('should return all hypotheses with technical plannings', async () => {
       const mockHypotheses = [

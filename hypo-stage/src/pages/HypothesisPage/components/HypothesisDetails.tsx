@@ -70,26 +70,38 @@ export const HypothesisDetails: React.FC<HypothesisDetailsProps> = ({
           <Assessment />
           Assessment
         </Typography>
-        <Box className={`${classes.flexWrap} ${classes.marginBottom}`} style={{ gap: 8 }}>
-          <Chip
-            label={hypothesis.status}
-            className={`${classes.statusChip} ${getStatusClass(hypothesis.status, classes)}`}
-          />
-          <Chip
-            label={hypothesis.uncertainty}
-            className={`${classes.statusChip} ${getUncertaintyClass(hypothesis.uncertainty, classes)}`}
-          />
-          <Chip
-            label={hypothesis.impact}
-            className={`${classes.statusChip} ${getImpactClass(hypothesis.impact, classes)}`}
-          />
-          {focusTag !== null && (
+        <Box className={`${classes.flexWrap} ${classes.marginBottom}`} style={{ gap: 12 }}>
+          <Box display="flex" alignItems="center" style={{ gap: 4 }}>
+            <Typography variant="caption" color="textSecondary"><strong>Status:</strong></Typography>
             <Chip
-              label={focusTag === 'need-attention' ? 'Needs attention' : 'Can postpone'}
-              className={`${classes.statusChip} ${
-                focusTag === 'need-attention' ? classes.focusChipNeedAttention : classes.focusChipCanPostpone
-              }`}
+              label={hypothesis.status}
+              className={`${classes.statusChip} ${getStatusClass(hypothesis.status, classes)}`}
             />
+          </Box>
+          <Box display="flex" alignItems="center" style={{ gap: 4 }}>
+            <Typography variant="caption" color="textSecondary"><strong>Uncertainty:</strong></Typography>
+            <Chip
+              label={hypothesis.uncertainty}
+              className={`${classes.statusChip} ${getUncertaintyClass(hypothesis.uncertainty, classes)}`}
+            />
+          </Box>
+          <Box display="flex" alignItems="center" style={{ gap: 4 }}>
+            <Typography variant="caption" color="textSecondary"><strong>Impact:</strong></Typography>
+            <Chip
+              label={hypothesis.impact}
+              className={`${classes.statusChip} ${getImpactClass(hypothesis.impact, classes)}`}
+            />
+          </Box>
+          {focusTag !== null && (
+            <Box display="flex" alignItems="center" style={{ gap: 4 }}>
+              <Typography variant="caption" color="textSecondary"><strong>Focus:</strong></Typography>
+              <Chip
+                label={focusTag === 'need-attention' ? 'Needs attention' : 'Can postpone'}
+                className={`${classes.statusChip} ${
+                  focusTag === 'need-attention' ? classes.focusChipNeedAttention : classes.focusChipCanPostpone
+                }`}
+              />
+            </Box>
           )}
         </Box>
 
