@@ -1,5 +1,5 @@
 import { default as React } from 'react';
-import { Typography, IconButton } from '@material-ui/core';
+import { Typography, IconButton, Link } from '@material-ui/core';
 import TrendingUp from '@material-ui/icons/TrendingUp';
 import Help from '@material-ui/icons/Help';
 import { useStyles } from '../../hooks/useStyles';
@@ -11,6 +11,7 @@ interface LikertScaleFieldProps {
   label: string;
   description: string;
   className?: string;
+  allowClear?: boolean;
 }
 
 export const LikertScaleField: React.FC<LikertScaleFieldProps> = ({
@@ -18,14 +19,15 @@ export const LikertScaleField: React.FC<LikertScaleFieldProps> = ({
   onRatingChange,
   label,
   description,
-  className
+  className,
+  allowClear = false,
 }) => {
   const classes = useStyles();
 
   return (
     <div className={`${classes.ratingSection} ${className || ''}`}>
       <Typography className={classes.ratingTitle}>
-        {label === 'Uncertainty Level' ? <Help /> : <TrendingUp />}
+        {label === 'Uncertainty Level' || label === 'New Uncertainty Level' ? <Help /> : <TrendingUp />}
         {label}
       </Typography>
       <Typography className={classes.ratingDescription}>
@@ -47,6 +49,16 @@ export const LikertScaleField: React.FC<LikertScaleFieldProps> = ({
         <Typography className={classes.ratingLabel}>
           {getRatingLabel(rating)}
         </Typography>
+        {allowClear && rating > 0 && (
+          <Link
+            component="button"
+            variant="caption"
+            onClick={() => onRatingChange(0)}
+            style={{ marginLeft: 8 }}
+          >
+            Clear
+          </Link>
+        )}
       </div>
     </div>
   );

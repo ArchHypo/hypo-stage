@@ -149,6 +149,7 @@ export const TechnicalPlanningForm: React.FC<CreateTechnicalPlanningFormProps | 
               onRatingChange={(rating) => onFieldChange('uncertainty', rating === 0 ? '' : getRatingString(rating))}
               label="New Uncertainty Level"
               description="Leave unset to keep the current value"
+              allowClear
             />
           </Grid>
           <Grid item xs={12} md={6}>
@@ -157,6 +158,7 @@ export const TechnicalPlanningForm: React.FC<CreateTechnicalPlanningFormProps | 
               onRatingChange={(rating) => onFieldChange('impact', rating === 0 ? '' : getRatingString(rating))}
               label="New Impact Level"
               description="Leave unset to keep the current value"
+              allowClear
             />
           </Grid>
         </Grid>
