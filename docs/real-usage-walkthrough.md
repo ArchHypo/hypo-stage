@@ -48,7 +48,7 @@ From the detail page, open **Edit** to change status, source type, quality attri
 
 ## 5. 📅 Technical planning
 
-On a hypothesis detail page, use **Add Technical Planning** to add items: owner, action type, target date, description, expected outcome, and documentation links. When creating or editing a plan, you can optionally reassess uncertainty and impact (pre-filled with current values). These changes are recorded as events and shown in the evolution chart with distinct square markers and tooltips displaying the technical planning ID. You can edit or delete each item; delete requires confirmation.
+On a hypothesis detail page, use **Add Technical Planning** to add items: owner, action type, target date, description, expected outcome, and documentation links. When creating or editing a plan, you can optionally reassess uncertainty and impact (pre-filled with current values). These changes are recorded as events and shown in the evolution chart with distinct square markers and tooltips displaying the technical planning number and short ID. You can edit or delete each item; delete requires confirmation.
 
 ![Technical planning](e2e/walkthrough-videos/walkthrough-5-technical-planning.gif)
 

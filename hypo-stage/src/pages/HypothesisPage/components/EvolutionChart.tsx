@@ -117,18 +117,6 @@ const CustomTooltipContent = ({ active, payload, hypothesis }: any) => {
       <Typography variant="caption" style={{ color: '#666', display: 'block' }}>
         {sourceLabel}
       </Typography>
-      {payload.map((entry: any, index: number) => (
-        entry.value !== null && entry.value !== undefined && (
-          <Typography
-            key={index}
-            variant="caption"
-            display="block"
-            style={{ color: entry.color }}
-          >
-            {entry.name === 'uncertainty' ? 'Uncertainty' : 'Impact'}: {getValueLabel(entry.value)}
-          </Typography>
-        )
-      ))}
     </Box>
   );
 };
