@@ -87,23 +87,23 @@ const CustomTooltipContent = ({ active, payload, hypothesis }: any) => {
   return (
     <Box
       style={{
-        backgroundColor: 'white',
+        backgroundColor: '#fff',
         border: '1px solid #ccc',
         borderRadius: 4,
         padding: '8px 12px',
+        color: '#333',
       }}
     >
-      <Typography variant="caption" style={{ fontWeight: 600 }}>
+      <Typography variant="caption" style={{ fontWeight: 600, color: '#333', display: 'block' }}>
         {dataPoint.timestamp}
       </Typography>
-      <Typography variant="caption" display="block" color="textSecondary">
+      <Typography variant="caption" style={{ color: '#666', display: 'block' }}>
         {sourceLabel}
       </Typography>
       {planningIdLabel && (
         <Typography
           variant="caption"
-          display="block"
-          style={{ fontFamily: 'monospace', color: '#555' }}
+          style={{ fontFamily: 'monospace', color: '#555', display: 'block' }}
         >
           ID: {planningIdLabel}
         </Typography>
