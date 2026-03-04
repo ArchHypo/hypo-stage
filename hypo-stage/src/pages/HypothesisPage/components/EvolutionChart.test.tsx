@@ -65,7 +65,7 @@ const createMockEvents = (): HypothesisEvent[] => [
     eventType: 'CREATE',
     changes: { uncertainty: 'High', impact: 'Medium' },
     timestamp: new Date('2026-01-01'),
-  } as HypothesisEvent,
+  } as unknown as HypothesisEvent,
   {
     id: 'evt-2',
     hypothesisId: 'hyp-1',
@@ -73,7 +73,7 @@ const createMockEvents = (): HypothesisEvent[] => [
     technicalPlanningId: 'tp-aaaabbbb-cccc-dddd',
     changes: { uncertainty: 'Very High', technicalPlanningId: 'tp-aaaabbbb-cccc-dddd' },
     timestamp: new Date('2026-02-01'),
-  } as HypothesisEvent,
+  } as unknown as HypothesisEvent,
   {
     id: 'evt-3',
     hypothesisId: 'hyp-1',
@@ -81,7 +81,7 @@ const createMockEvents = (): HypothesisEvent[] => [
     technicalPlanningId: 'tp-aaaabbbb-cccc-dddd',
     changes: { impact: 'High', technicalPlanningId: 'tp-aaaabbbb-cccc-dddd' },
     timestamp: new Date('2026-03-01'),
-  } as HypothesisEvent,
+  } as unknown as HypothesisEvent,
 ];
 
 describe('EvolutionChart', () => {
@@ -112,14 +112,14 @@ describe('EvolutionChart', () => {
         eventType: 'CREATE',
         changes: { uncertainty: 'High', impact: 'Medium' },
         timestamp: new Date('2026-01-01'),
-      } as HypothesisEvent,
+      } as unknown as HypothesisEvent,
       {
         id: 'evt-2',
         hypothesisId: 'hyp-1',
         eventType: 'UPDATE',
         changes: { impact: 'High' },
         timestamp: new Date('2026-02-01'),
-      } as HypothesisEvent,
+      } as unknown as HypothesisEvent,
     ];
     renderWithTheme(<EvolutionChart hypothesis={hypothesis} events={events} />);
 
@@ -136,7 +136,7 @@ describe('EvolutionChart', () => {
         eventType: 'CREATE',
         changes: { uncertainty: 'High', impact: 'Medium' },
         timestamp: new Date('2026-01-01'),
-      } as HypothesisEvent,
+      } as unknown as HypothesisEvent,
       {
         id: 'evt-2',
         hypothesisId: 'hyp-1',
@@ -144,7 +144,7 @@ describe('EvolutionChart', () => {
         technicalPlanningId: 'tp-aaaabbbb-cccc-dddd',
         changes: { uncertainty: 'Very High', technicalPlanningId: 'tp-aaaabbbb-cccc-dddd' },
         timestamp: new Date('2026-02-01'),
-      } as HypothesisEvent,
+      } as unknown as HypothesisEvent,
     ];
     renderWithTheme(<EvolutionChart hypothesis={hypothesis} events={events} />);
 
@@ -161,7 +161,7 @@ describe('EvolutionChart', () => {
         eventType: 'CREATE',
         changes: { uncertainty: 'High', impact: 'Medium' },
         timestamp: new Date('2026-03-04T13:21:00Z'),
-      } as HypothesisEvent,
+      } as unknown as HypothesisEvent,
       {
         id: 'evt-2',
         hypothesisId: 'hyp-1',
@@ -169,7 +169,7 @@ describe('EvolutionChart', () => {
         technicalPlanningId: 'tp-aaaabbbb-cccc-dddd',
         changes: { uncertainty: 'Very High', impact: 'Very High' },
         timestamp: new Date('2026-03-04T13:22:00Z'),
-      } as HypothesisEvent,
+      } as unknown as HypothesisEvent,
       {
         id: 'evt-3',
         hypothesisId: 'hyp-1',
@@ -177,7 +177,7 @@ describe('EvolutionChart', () => {
         technicalPlanningId: 'tp-aaaabbbb-cccc-dddd',
         changes: { uncertainty: 'High' },
         timestamp: new Date('2026-03-04T14:42:00Z'),
-      } as HypothesisEvent,
+      } as unknown as HypothesisEvent,
     ];
     renderWithTheme(<EvolutionChart hypothesis={hypothesis} events={events} />);
 
