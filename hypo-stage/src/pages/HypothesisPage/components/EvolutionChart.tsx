@@ -141,19 +141,25 @@ export const EvolutionChart: React.FC<EvolutionChartProps> = ({
     if (!hypothesis || events.length === 0) return [];
 
     const chartData: ChartDataPoint[] = [];
+    let lastUncertainty: number | undefined;
+    let lastImpact: number | undefined;
 
     events.forEach(event => {
       const changes = event.changes as Record<string, any>;
-      const hasUncertainty = changes.uncertainty;
-      const hasImpact = changes.impact;
+      if (changes.uncertainty) {
+        lastUncertainty = getRatingNumber(changes.uncertainty);
+      }
+      if (changes.impact) {
+        lastImpact = getRatingNumber(changes.impact);
+      }
       chartData.push({
         timestamp: new Date(event.timestamp).toLocaleDateString('en-US', {
           year: 'numeric',
           month: 'short',
           day: 'numeric',
         }),
-        uncertainty: hasUncertainty ? getRatingNumber(changes.uncertainty) : undefined,
-        impact: hasImpact ? getRatingNumber(changes.impact) : undefined,
+        uncertainty: lastUncertainty,
+        impact: lastImpact,
         technicalPlanningId: event.technicalPlanningId ?? null,
         eventType: event.eventType,
       });
