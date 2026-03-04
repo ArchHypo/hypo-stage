@@ -87,10 +87,10 @@ const CustomTooltipContent = ({ active, payload, hypothesis }: any) => {
       const techPlan = planIndex >= 0 ? plannings[planIndex] : null;
       if (techPlan) {
         headerLabel = `Technical Planning #${planIndex + 1}`;
-        sourceLabel = `${actionWord}: ${techPlan.actionType}`;
+        sourceLabel = dataPoint.technicalPlanningId.substring(0, 8);
       } else {
         headerLabel = `Technical Planning ${actionWord}`;
-        sourceLabel = dataPoint.timestamp;
+        sourceLabel = dataPoint.technicalPlanningId.substring(0, 8);
       }
     } else {
       headerLabel = `Technical Planning ${actionWord}`;
