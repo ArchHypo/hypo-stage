@@ -33,9 +33,11 @@ const CustomDot = (props: any) => {
   const { cx, cy, payload, stroke } = props;
   if (cx === null || cx === undefined || cy === null || cy === undefined || (payload.uncertainty === null || payload.uncertainty === undefined) && (payload.impact === null || payload.impact === undefined)) return null;
 
-  const isLinkedToTechPlan = !!payload.technicalPlanningId;
+  const isTechPlanEvent =
+    payload.eventType === 'TECHNICAL_PLANNING_CREATE' ||
+    payload.eventType === 'TECHNICAL_PLANNING_UPDATE';
 
-  if (isLinkedToTechPlan) {
+  if (isTechPlanEvent) {
     const size = 5;
     return (
       <rect
@@ -66,21 +68,26 @@ const CustomTooltipContent = ({ active, payload, hypothesis }: any) => {
   if (!active || !payload || payload.length === 0) return null;
 
   const dataPoint = payload[0]?.payload as ChartDataPoint;
-  const isLinkedToTechPlan = !!dataPoint.technicalPlanningId;
+  const isTechPlanningEvent =
+    dataPoint.eventType === 'TECHNICAL_PLANNING_CREATE' ||
+    dataPoint.eventType === 'TECHNICAL_PLANNING_UPDATE';
 
   let sourceLabel = 'Manual change';
   let planningIdLabel: string | null = null;
   if (dataPoint.eventType === 'CREATE') {
     sourceLabel = 'Hypothesis creation';
-  } else if (isLinkedToTechPlan && hypothesis?.technicalPlannings) {
-    const techPlan = hypothesis.technicalPlannings.find(
-      (tp: any) => tp.id === dataPoint.technicalPlanningId,
-    );
-    sourceLabel = techPlan
-      ? `Technical Planning: ${techPlan.actionType}`
-      : 'Technical Planning (deleted)';
-    if (dataPoint.technicalPlanningId) {
+  } else if (isTechPlanningEvent) {
+    const actionWord = dataPoint.eventType === 'TECHNICAL_PLANNING_CREATE' ? 'Created' : 'Updated';
+    if (dataPoint.technicalPlanningId && hypothesis?.technicalPlannings) {
+      const techPlan = hypothesis.technicalPlannings.find(
+        (tp: any) => tp.id === dataPoint.technicalPlanningId,
+      );
+      sourceLabel = techPlan
+        ? `Technical Planning ${actionWord}: ${techPlan.actionType}`
+        : `Technical Planning ${actionWord}`;
       planningIdLabel = dataPoint.technicalPlanningId.substring(0, 8);
+    } else {
+      sourceLabel = `Technical Planning ${actionWord}`;
     }
   }
 
