@@ -72,10 +72,11 @@ const CustomTooltipContent = ({ active, payload, hypothesis }: any) => {
     dataPoint.eventType === 'TECHNICAL_PLANNING_CREATE' ||
     dataPoint.eventType === 'TECHNICAL_PLANNING_UPDATE';
 
+  let headerLabel = dataPoint.timestamp;
   let sourceLabel = 'Manual change';
-  let planningRef: string | null = null;
   if (dataPoint.eventType === 'CREATE') {
-    sourceLabel = 'Hypothesis creation';
+    headerLabel = 'Hypothesis creation';
+    sourceLabel = dataPoint.timestamp;
   } else if (isTechPlanningEvent) {
     const actionWord = dataPoint.eventType === 'TECHNICAL_PLANNING_CREATE' ? 'Created' : 'Updated';
     if (dataPoint.technicalPlanningId && hypothesis?.technicalPlannings) {
@@ -85,16 +86,15 @@ const CustomTooltipContent = ({ active, payload, hypothesis }: any) => {
       );
       const techPlan = planIndex >= 0 ? plannings[planIndex] : null;
       if (techPlan) {
-        const planNum = `#${planIndex + 1}`;
-        const shortId = dataPoint.technicalPlanningId.substring(0, 8);
-        sourceLabel = `Technical Planning ${actionWord}: ${techPlan.actionType}`;
-        planningRef = `${planNum} (${shortId})`;
+        headerLabel = `Technical Planning #${planIndex + 1}`;
+        sourceLabel = `${actionWord}: ${techPlan.actionType}`;
       } else {
-        sourceLabel = `Technical Planning ${actionWord}`;
-        planningRef = dataPoint.technicalPlanningId.substring(0, 8);
+        headerLabel = `Technical Planning ${actionWord}`;
+        sourceLabel = dataPoint.timestamp;
       }
     } else {
-      sourceLabel = `Technical Planning ${actionWord}`;
+      headerLabel = `Technical Planning ${actionWord}`;
+      sourceLabel = dataPoint.timestamp;
     }
   }
 
@@ -109,19 +109,11 @@ const CustomTooltipContent = ({ active, payload, hypothesis }: any) => {
       }}
     >
       <Typography variant="caption" style={{ fontWeight: 600, color: '#333', display: 'block' }}>
-        {dataPoint.timestamp}
+        {headerLabel}
       </Typography>
       <Typography variant="caption" style={{ color: '#666', display: 'block' }}>
         {sourceLabel}
       </Typography>
-      {planningRef && (
-        <Typography
-          variant="caption"
-          style={{ fontFamily: 'monospace', color: '#444', display: 'block', fontWeight: 600 }}
-        >
-          Planning {planningRef}
-        </Typography>
-      )}
       {payload.map((entry: any, index: number) => (
         entry.value !== null && entry.value !== undefined && (
           <Typography
@@ -167,7 +159,7 @@ export const EvolutionChart: React.FC<EvolutionChartProps> = ({
         }),
         uncertainty: lastUncertainty,
         impact: lastImpact,
-        technicalPlanningId: event.technicalPlanningId ?? null,
+        technicalPlanningId: event.technicalPlanningId ?? changes.technicalPlanningId ?? null,
         eventType: event.eventType,
       });
     });
