@@ -73,19 +73,26 @@ const CustomTooltipContent = ({ active, payload, hypothesis }: any) => {
     dataPoint.eventType === 'TECHNICAL_PLANNING_UPDATE';
 
   let sourceLabel = 'Manual change';
-  let planningIdLabel: string | null = null;
+  let planningRef: string | null = null;
   if (dataPoint.eventType === 'CREATE') {
     sourceLabel = 'Hypothesis creation';
   } else if (isTechPlanningEvent) {
     const actionWord = dataPoint.eventType === 'TECHNICAL_PLANNING_CREATE' ? 'Created' : 'Updated';
     if (dataPoint.technicalPlanningId && hypothesis?.technicalPlannings) {
-      const techPlan = hypothesis.technicalPlannings.find(
+      const plannings = hypothesis.technicalPlannings;
+      const planIndex = plannings.findIndex(
         (tp: any) => tp.id === dataPoint.technicalPlanningId,
       );
-      sourceLabel = techPlan
-        ? `Technical Planning ${actionWord}: ${techPlan.actionType}`
-        : `Technical Planning ${actionWord}`;
-      planningIdLabel = dataPoint.technicalPlanningId.substring(0, 8);
+      const techPlan = planIndex >= 0 ? plannings[planIndex] : null;
+      if (techPlan) {
+        const planNum = `#${planIndex + 1}`;
+        const shortId = dataPoint.technicalPlanningId.substring(0, 8);
+        sourceLabel = `Technical Planning ${actionWord}: ${techPlan.actionType}`;
+        planningRef = `${planNum} (${shortId})`;
+      } else {
+        sourceLabel = `Technical Planning ${actionWord}`;
+        planningRef = dataPoint.technicalPlanningId.substring(0, 8);
+      }
     } else {
       sourceLabel = `Technical Planning ${actionWord}`;
     }
@@ -107,12 +114,12 @@ const CustomTooltipContent = ({ active, payload, hypothesis }: any) => {
       <Typography variant="caption" style={{ color: '#666', display: 'block' }}>
         {sourceLabel}
       </Typography>
-      {planningIdLabel && (
+      {planningRef && (
         <Typography
           variant="caption"
-          style={{ fontFamily: 'monospace', color: '#555', display: 'block' }}
+          style={{ fontFamily: 'monospace', color: '#444', display: 'block', fontWeight: 600 }}
         >
-          ID: {planningIdLabel}
+          Planning {planningRef}
         </Typography>
       )}
       {payload.map((entry: any, index: number) => (
