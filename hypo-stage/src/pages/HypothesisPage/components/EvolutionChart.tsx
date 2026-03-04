@@ -94,7 +94,9 @@ const CustomTooltipContent = ({ active, payload, hypothesis }: any) => {
       }
     } else {
       headerLabel = `Technical Planning ${actionWord}`;
-      sourceLabel = dataPoint.timestamp;
+      sourceLabel = dataPoint.technicalPlanningId
+        ? dataPoint.technicalPlanningId.substring(0, 8)
+        : dataPoint.timestamp;
     }
   }
 
