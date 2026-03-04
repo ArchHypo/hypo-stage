@@ -10,9 +10,9 @@ Backend plugin for [HypoStage](https://github.com/ArchHypo/hypo-stage): REST API
 
 ## Features
 
-- **HypothesisService** — CRUD for hypotheses and technical planning
+- **HypothesisService** — CRUD for hypotheses and technical planning; uncertainty/impact changes are tied to technical planning actions with dedicated event types (`TECHNICAL_PLANNING_CREATE`, `TECHNICAL_PLANNING_UPDATE`)
 - **REST API** — Full API for the frontend
-- **Database** — Knex migrations; PostgreSQL or SQLite
+- **Database** — Knex migrations; PostgreSQL or SQLite; `hypothesisEvents` tracks evolution with optional `technicalPlanningId` FK
 - **Catalog integration** — Entity refs and team filtering
 
 ---
@@ -114,8 +114,9 @@ Migrations run automatically on backend startup. Located in `migrations/`:
 | Migration | Tables |
 |-----------|--------|
 | `20250716_000001_create_hypothesis.js` | `hypothesis` |
-| `20250827_000002_create_hypothesis_events.js` | `hypothesis_events` (evolution history) |
-| `20250902_00003_create_technical_planning.js` | `technical_planning` |
+| `20250827_000002_create_hypothesis_events.js` | `hypothesisEvents` (evolution history) |
+| `20250902_00003_create_technical_planning.js` | `technicalPlanning` |
+| `20260303_000004_add_technical_planning_id_to_events.js` | Adds `technicalPlanningId` FK to `hypothesisEvents` (links events to technical planning) |
 
 ### Plugin-specific database
 
