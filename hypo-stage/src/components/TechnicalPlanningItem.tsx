@@ -19,22 +19,28 @@ import { useStyles } from '../hooks/useStyles';
 import { HypoStageApiRef } from '../api/HypoStageApi';
 import { TechnicalPlanningForm } from './TechnicalPlanningForm';
 import { useEditTechnicalPlanning } from '../hooks/forms/useEditTechnicalPlanning';
-import { TechnicalPlanning } from '@archhypo/plugin-hypo-stage-backend';
+import { TechnicalPlanning, Hypothesis } from '@archhypo/plugin-hypo-stage-backend';
 
 interface TechnicalPlanningItemProps {
   technicalPlanning: TechnicalPlanning;
+  hypothesis: Hypothesis;
   index: number;
   onRefresh: () => void;
 }
 
 export const TechnicalPlanningItem: React.FC<TechnicalPlanningItemProps> = ({
   technicalPlanning,
+  hypothesis,
   index,
   onRefresh
 }) => {
   const classes = useStyles();
   const api = useApi(HypoStageApiRef);
-  const { formData, updateField, loading, isFormValid, handleSubmit } = useEditTechnicalPlanning(technicalPlanning);
+  const { formData, updateField, loading, isFormValid, handleSubmit } = useEditTechnicalPlanning(
+    technicalPlanning,
+    hypothesis.uncertainty,
+    hypothesis.impact,
+  );
   const [isEditing, setIsEditing] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -120,6 +126,17 @@ export const TechnicalPlanningItem: React.FC<TechnicalPlanningItemProps> = ({
           />
         ) : (
           <Grid container spacing={2}>
+            <Grid item xs={12}>
+              <Typography variant="caption" color="textSecondary">
+                Planning ID
+              </Typography>
+              <Typography
+                variant="body2"
+                style={{ fontFamily: 'monospace', fontSize: '0.85rem', marginTop: 2, marginBottom: 8 }}
+              >
+                {technicalPlanning.id}
+              </Typography>
+            </Grid>
             <Grid item xs={12}>
               <Typography variant="h6" gutterBottom>
                 Owner

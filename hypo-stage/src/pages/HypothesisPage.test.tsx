@@ -110,9 +110,9 @@ describe('HypothesisPage', () => {
   it('should render labeled Assessment chips', async () => {
     await renderWithProviders(<HypothesisPage />);
 
-    expect(screen.getByText('Status:')).toBeInTheDocument();
-    expect(screen.getByText('Uncertainty:')).toBeInTheDocument();
-    expect(screen.getByText('Impact:')).toBeInTheDocument();
+    expect(screen.getByText('Status: Open')).toBeInTheDocument();
+    expect(screen.getByText('Uncertainty: Medium')).toBeInTheDocument();
+    expect(screen.getByText('Impact: High')).toBeInTheDocument();
   });
 
   it('should render action bar with Back, Edit, and Delete buttons for responsive layout', async () => {

@@ -13,15 +13,19 @@ export interface EditTechnicalPlanningFormData {
   impact: LikertScale | '';
 }
 
-export const useEditTechnicalPlanning = (technicalPlanning: TechnicalPlanning) => {
+export const useEditTechnicalPlanning = (
+  technicalPlanning: TechnicalPlanning,
+  currentUncertainty?: LikertScale,
+  currentImpact?: LikertScale,
+) => {
   const api = useApi(HypoStageApiRef);
   const { loading, execute } = useApiCall();
   const { showSuccess, showError } = useNotifications();
   const { formData, updateField } = useFormState<EditTechnicalPlanningFormData>({
     expectedOutcome: technicalPlanning.expectedOutcome,
     documentations: technicalPlanning.documentations,
-    uncertainty: '',
-    impact: '',
+    uncertainty: currentUncertainty || '',
+    impact: currentImpact || '',
   });
 
   const isFormValid = formData.expectedOutcome.trim().length > 0 &&
@@ -35,8 +39,8 @@ export const useEditTechnicalPlanning = (technicalPlanning: TechnicalPlanning) =
       const technicalPlanningData: UpdateTechnicalPlanningInput = {
         expectedOutcome: formData.expectedOutcome.trim(),
         documentations: formData.documentations,
-        ...(formData.uncertainty ? { uncertainty: formData.uncertainty as LikertScale } : {}),
-        ...(formData.impact ? { impact: formData.impact as LikertScale } : {}),
+        ...(formData.uncertainty && formData.uncertainty !== currentUncertainty ? { uncertainty: formData.uncertainty as LikertScale } : {}),
+        ...(formData.impact && formData.impact !== currentImpact ? { impact: formData.impact as LikertScale } : {}),
       };
 
       await execute(() => api.updateTechnicalPlanning(technicalPlanning.id, technicalPlanningData));
@@ -46,7 +50,7 @@ export const useEditTechnicalPlanning = (technicalPlanning: TechnicalPlanning) =
     } catch (error) {
       showError(error instanceof Error ? error.message : 'Failed to update technical planning');
     }
-  }, [technicalPlanning.id, api, formData, isFormValid, execute, showSuccess, showError]);
+  }, [technicalPlanning.id, api, formData, isFormValid, execute, showSuccess, showError, currentUncertainty, currentImpact]);
 
   return {
     formData,

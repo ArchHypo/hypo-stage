@@ -17,7 +17,11 @@ export interface CreateTechnicalPlanningFormData {
   impact: LikertScale | '';
 }
 
-export const useCreateTechnicalPlanning = (hypothesisId: string) => {
+export const useCreateTechnicalPlanning = (
+  hypothesisId: string,
+  currentUncertainty?: LikertScale,
+  currentImpact?: LikertScale,
+) => {
   const api = useApi(HypoStageApiRef);
   const { loading, execute } = useApiCall();
   const { showSuccess, showError } = useNotifications();
@@ -28,8 +32,8 @@ export const useCreateTechnicalPlanning = (hypothesisId: string) => {
     expectedOutcome: '',
     documentations: [],
     targetDate: '',
-    uncertainty: '',
-    impact: '',
+    uncertainty: currentUncertainty || '',
+    impact: currentImpact || '',
   });
 
   const isFormValid = formData.entityRef !== '' &&
@@ -52,8 +56,8 @@ export const useCreateTechnicalPlanning = (hypothesisId: string) => {
         expectedOutcome: formData.expectedOutcome.trim(),
         documentations: formData.documentations,
         targetDate: formData.targetDate,
-        ...(formData.uncertainty ? { uncertainty: formData.uncertainty as LikertScale } : {}),
-        ...(formData.impact ? { impact: formData.impact as LikertScale } : {}),
+        ...(formData.uncertainty && formData.uncertainty !== currentUncertainty ? { uncertainty: formData.uncertainty as LikertScale } : {}),
+        ...(formData.impact && formData.impact !== currentImpact ? { impact: formData.impact as LikertScale } : {}),
       };
 
       await execute(() => api.createTechnicalPlanning(hypothesisId, technicalPlanningData));
@@ -64,7 +68,7 @@ export const useCreateTechnicalPlanning = (hypothesisId: string) => {
     } catch (error) {
       showError(error instanceof Error ? error.message : 'Failed to create technical planning');
     }
-  }, [hypothesisId, api, formData, isFormValid, execute, showSuccess, showError, resetForm]);
+  }, [hypothesisId, api, formData, isFormValid, execute, showSuccess, showError, resetForm, currentUncertainty, currentImpact]);
 
   return {
     formData,

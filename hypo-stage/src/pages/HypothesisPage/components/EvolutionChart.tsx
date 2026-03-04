@@ -69,6 +69,7 @@ const CustomTooltipContent = ({ active, payload, hypothesis }: any) => {
   const isLinkedToTechPlan = !!dataPoint.technicalPlanningId;
 
   let sourceLabel = 'Manual change';
+  let planningIdLabel: string | null = null;
   if (dataPoint.eventType === 'CREATE') {
     sourceLabel = 'Hypothesis creation';
   } else if (isLinkedToTechPlan && hypothesis?.technicalPlannings) {
@@ -78,6 +79,9 @@ const CustomTooltipContent = ({ active, payload, hypothesis }: any) => {
     sourceLabel = techPlan
       ? `Technical Planning: ${techPlan.actionType}`
       : 'Technical Planning (deleted)';
+    if (dataPoint.technicalPlanningId) {
+      planningIdLabel = dataPoint.technicalPlanningId.substring(0, 8);
+    }
   }
 
   return (
@@ -95,6 +99,15 @@ const CustomTooltipContent = ({ active, payload, hypothesis }: any) => {
       <Typography variant="caption" display="block" color="textSecondary">
         {sourceLabel}
       </Typography>
+      {planningIdLabel && (
+        <Typography
+          variant="caption"
+          display="block"
+          style={{ fontFamily: 'monospace', color: '#555' }}
+        >
+          ID: {planningIdLabel}
+        </Typography>
+      )}
       {payload.map((entry: any, index: number) => (
         entry.value !== null && entry.value !== undefined && (
           <Typography

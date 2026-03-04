@@ -24,7 +24,11 @@ export const TechnicalPlanningList: React.FC<TechnicalPlanningListProps> = ({
   onRefresh
 }) => {
   const classes = useStyles();
-  const { formData, updateField, loading, isFormValid, handleSubmit } = useCreateTechnicalPlanning(hypothesis.id);
+  const { formData, updateField, loading, isFormValid, handleSubmit } = useCreateTechnicalPlanning(
+    hypothesis.id,
+    hypothesis.uncertainty,
+    hypothesis.impact,
+  );
   const [showTechnicalPlanningForm, setShowTechnicalPlanningForm] = useState(false);
 
   return (
@@ -47,6 +51,7 @@ export const TechnicalPlanningList: React.FC<TechnicalPlanningListProps> = ({
                 <Grid item xs={12} key={techPlan.id}>
                   <TechnicalPlanningItem
                     technicalPlanning={techPlan}
+                    hypothesis={hypothesis}
                     index={index}
                     onRefresh={onRefresh}
                   />
