@@ -155,7 +155,7 @@ export const EvolutionChart: React.FC<EvolutionChartProps> = ({
     );
     const hasDuplicateDates = new Set(dates).size < dates.length;
 
-    const chartData: ChartDataPoint[] = [];
+    const points: ChartDataPoint[] = [];
     let lastUncertainty: number | undefined;
     let lastImpact: number | undefined;
 
@@ -177,7 +177,7 @@ export const EvolutionChart: React.FC<EvolutionChartProps> = ({
         hour: '2-digit',
         minute: '2-digit',
       });
-      chartData.push({
+      points.push({
         timestamp: `${dateLabel} ${timeLabel}`,
         displayLabel: hasDuplicateDates ? `${dateLabel} ${timeLabel}` : dateLabel,
         uncertainty: lastUncertainty,
@@ -187,7 +187,7 @@ export const EvolutionChart: React.FC<EvolutionChartProps> = ({
       });
     });
 
-    return chartData;
+    return points;
   }, [hypothesis, events]);
 
   return (
