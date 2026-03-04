@@ -375,6 +375,64 @@ describe('HypothesisService', () => {
         expect.not.objectContaining({ uncertainty: expect.anything() }),
       );
     });
+
+    it('should include technicalPlanningId in changes JSON when creating event', async () => {
+      const hypothesisId = 'hyp-1';
+      const input = {
+        entityRef: 'component:default/foo',
+        actionType: 'Experiment' as const,
+        description: 'Test description',
+        expectedOutcome: 'Test outcome',
+        documentations: ['https://example.com'],
+        targetDate: '2026-06-01',
+        uncertainty: 'High' as const,
+        impact: 'Low' as const,
+      };
+
+      const createdTechPlan = {
+        id: 'tp-1',
+        hypothesisId,
+        ...input,
+        documentations: JSON.stringify(input.documentations),
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      const techPlanInsertChain = createChain(jest.fn());
+      techPlanInsertChain.insert.mockReturnValue(techPlanInsertChain);
+      techPlanInsertChain.returning.mockResolvedValueOnce([createdTechPlan]);
+
+      const updateChain = {
+        where: jest.fn().mockReturnThis(),
+        update: jest.fn().mockResolvedValue(1),
+      };
+
+      const eventsInsertChain = {
+        insert: jest.fn().mockReturnThis(),
+      };
+
+      mockTrx = jest.fn((table: string) => {
+        if (table === 'technicalPlanning') return techPlanInsertChain;
+        if (table === 'hypothesis') return updateChain;
+        return eventsInsertChain;
+      });
+      mockDb.transaction = jest.fn((callback: (trx: any) => Promise<any>) =>
+        callback(mockTrx),
+      );
+
+      service = await createHypothesisService({
+        logger: mockLogger,
+        database: mockDatabase,
+      });
+
+      await service.createTechnicalPlanning(hypothesisId, input);
+
+      expect(eventsInsertChain.insert).toHaveBeenCalled();
+      const insertArg = eventsInsertChain.insert.mock.calls[0][0];
+      expect(insertArg).toBeDefined();
+      const changes = JSON.parse(insertArg.changes);
+      expect(changes.technicalPlanningId).toBe('tp-1');
+    });
   });
 
   describe('updateTechnicalPlanning', () => {
@@ -546,6 +604,61 @@ describe('HypothesisService', () => {
       expect(updateHypChain.update).toHaveBeenCalledWith(
         expect.not.objectContaining({ uncertainty: expect.anything() }),
       );
+    });
+
+    it('should include technicalPlanningId in changes JSON when updating event', async () => {
+      const techPlanId = 'tp-1';
+      const input = {
+        expectedOutcome: 'Updated outcome',
+        documentations: ['https://example.com/updated'],
+        uncertainty: 'Very High' as const,
+        impact: 'Medium' as const,
+      };
+
+      const updatedTechPlan = {
+        id: techPlanId,
+        hypothesisId: 'hyp-1',
+        ...input,
+        documentations: JSON.stringify(input.documentations),
+        updatedAt: new Date(),
+      };
+
+      const updateTpChain = {
+        where: jest.fn().mockReturnThis(),
+        update: jest.fn().mockReturnThis(),
+        returning: jest.fn().mockResolvedValue([updatedTechPlan]),
+      };
+
+      const updateHypChain = {
+        where: jest.fn().mockReturnThis(),
+        update: jest.fn().mockResolvedValue(1),
+      };
+
+      const eventsInsertChain = {
+        insert: jest.fn().mockReturnThis(),
+      };
+
+      mockTrx = jest.fn((table: string) => {
+        if (table === 'technicalPlanning') return updateTpChain;
+        if (table === 'hypothesis') return updateHypChain;
+        return eventsInsertChain;
+      });
+      mockDb.transaction = jest.fn((callback: (trx: any) => Promise<any>) =>
+        callback(mockTrx),
+      );
+
+      service = await createHypothesisService({
+        logger: mockLogger,
+        database: mockDatabase,
+      });
+
+      await service.updateTechnicalPlanning(techPlanId, input);
+
+      expect(eventsInsertChain.insert).toHaveBeenCalled();
+      const insertArg = eventsInsertChain.insert.mock.calls[0][0];
+      expect(insertArg).toBeDefined();
+      const changes = JSON.parse(insertArg.changes);
+      expect(changes.technicalPlanningId).toBe(techPlanId);
     });
   });
 

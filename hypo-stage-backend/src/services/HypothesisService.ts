@@ -227,6 +227,7 @@ export async function createHypothesisService({
 
         await trx('hypothesis').where('id', hypothesisId).update(hypothesisUpdate);
 
+        eventChanges.technicalPlanningId = createdTechPlan.id;
         await trx('hypothesisEvents').insert({
           hypothesisId,
           eventType: 'TECHNICAL_PLANNING_CREATE',
@@ -277,6 +278,7 @@ export async function createHypothesisService({
 
         await trx('hypothesis').where('id', hypothesisId).update(hypothesisUpdate);
 
+        eventChanges.technicalPlanningId = id;
         await trx('hypothesisEvents').insert({
           hypothesisId,
           eventType: 'TECHNICAL_PLANNING_UPDATE',
