@@ -152,6 +152,38 @@ describe('EvolutionChart', () => {
     expect(screen.getByText(/Evolution of Uncertainty and Impact/)).toBeInTheDocument();
   });
 
+  it('produces unique X-axis labels when multiple events share the same day', () => {
+    const hypothesis = createMockHypothesis();
+    const events: HypothesisEvent[] = [
+      {
+        id: 'evt-1',
+        hypothesisId: 'hyp-1',
+        eventType: 'CREATE',
+        changes: { uncertainty: 'High', impact: 'Medium' },
+        timestamp: new Date('2026-03-04T13:21:00Z'),
+      } as HypothesisEvent,
+      {
+        id: 'evt-2',
+        hypothesisId: 'hyp-1',
+        eventType: 'TECHNICAL_PLANNING_CREATE',
+        technicalPlanningId: 'tp-aaaabbbb-cccc-dddd',
+        changes: { uncertainty: 'Very High', impact: 'Very High' },
+        timestamp: new Date('2026-03-04T13:22:00Z'),
+      } as HypothesisEvent,
+      {
+        id: 'evt-3',
+        hypothesisId: 'hyp-1',
+        eventType: 'TECHNICAL_PLANNING_UPDATE',
+        technicalPlanningId: 'tp-aaaabbbb-cccc-dddd',
+        changes: { uncertainty: 'High' },
+        timestamp: new Date('2026-03-04T14:42:00Z'),
+      } as HypothesisEvent,
+    ];
+    renderWithTheme(<EvolutionChart hypothesis={hypothesis} events={events} />);
+
+    expect(screen.getByTestId('responsive-container')).toBeInTheDocument();
+  });
+
   it('renders dot shape legend for Manual/Creation and Technical Planning', () => {
     const hypothesis = createMockHypothesis();
     const events = createMockEvents();

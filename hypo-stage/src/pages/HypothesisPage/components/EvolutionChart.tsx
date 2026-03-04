@@ -1,4 +1,4 @@
-import { default as React } from 'react';
+import { default as React, useMemo } from 'react';
 import { Card, CardContent, Typography, Box } from '@material-ui/core';
 import Assessment from '@material-ui/icons/Assessment';
 import {
@@ -17,6 +17,7 @@ import { useStyles } from '../../../hooks/useStyles';
 
 interface ChartDataPoint {
   timestamp: string;
+  displayLabel: string;
   uncertainty: number | undefined;
   impact: number | undefined;
   technicalPlanningId?: string | null;
@@ -72,11 +73,11 @@ const CustomTooltipContent = ({ active, payload, hypothesis }: any) => {
     dataPoint.eventType === 'TECHNICAL_PLANNING_CREATE' ||
     dataPoint.eventType === 'TECHNICAL_PLANNING_UPDATE';
 
-  let headerLabel = dataPoint.timestamp;
+  let headerLabel = dataPoint.displayLabel;
   let sourceLabel = 'Manual change';
   if (dataPoint.eventType === 'CREATE') {
     headerLabel = 'Hypothesis creation';
-    sourceLabel = dataPoint.timestamp;
+    sourceLabel = dataPoint.displayLabel;
   } else if (isTechPlanningEvent) {
     const actionWord = dataPoint.eventType === 'TECHNICAL_PLANNING_CREATE' ? 'Created' : 'Updated';
     if (dataPoint.technicalPlanningId && hypothesis?.technicalPlannings) {
@@ -96,7 +97,7 @@ const CustomTooltipContent = ({ active, payload, hypothesis }: any) => {
       headerLabel = `Technical Planning ${actionWord}`;
       sourceLabel = dataPoint.technicalPlanningId
         ? dataPoint.technicalPlanningId.substring(0, 8)
-        : dataPoint.timestamp;
+        : dataPoint.displayLabel;
     }
   }
 
@@ -138,14 +139,27 @@ export const EvolutionChart: React.FC<EvolutionChartProps> = ({
   className
 }) => {
   const classes = useStyles();
-  const prepareChartData = (): ChartDataPoint[] => {
+  const chartData = useMemo((): ChartDataPoint[] => {
     if (!hypothesis || events.length === 0) return [];
+
+    const sortedEvents = [...events].sort(
+      (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
+    );
+
+    const dates = sortedEvents.map(e =>
+      new Date(e.timestamp).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+      }),
+    );
+    const hasDuplicateDates = new Set(dates).size < dates.length;
 
     const chartData: ChartDataPoint[] = [];
     let lastUncertainty: number | undefined;
     let lastImpact: number | undefined;
 
-    events.forEach(event => {
+    sortedEvents.forEach(event => {
       const changes = event.changes as Record<string, any>;
       if (changes.uncertainty) {
         lastUncertainty = getRatingNumber(changes.uncertainty);
@@ -153,12 +167,19 @@ export const EvolutionChart: React.FC<EvolutionChartProps> = ({
       if (changes.impact) {
         lastImpact = getRatingNumber(changes.impact);
       }
+      const date = new Date(event.timestamp);
+      const dateLabel = date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+      });
+      const timeLabel = date.toLocaleTimeString('en-US', {
+        hour: '2-digit',
+        minute: '2-digit',
+      });
       chartData.push({
-        timestamp: new Date(event.timestamp).toLocaleDateString('en-US', {
-          year: 'numeric',
-          month: 'short',
-          day: 'numeric',
-        }),
+        timestamp: `${dateLabel} ${timeLabel}`,
+        displayLabel: hasDuplicateDates ? `${dateLabel} ${timeLabel}` : dateLabel,
         uncertainty: lastUncertainty,
         impact: lastImpact,
         technicalPlanningId: event.technicalPlanningId ?? changes.technicalPlanningId ?? null,
@@ -167,7 +188,7 @@ export const EvolutionChart: React.FC<EvolutionChartProps> = ({
     });
 
     return chartData;
-  };
+  }, [hypothesis, events]);
 
   return (
     <Card className={className}>
@@ -196,10 +217,10 @@ export const EvolutionChart: React.FC<EvolutionChartProps> = ({
             </Box>
             <div className={classes.chartContainer}>
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={prepareChartData()}>
+                <LineChart data={chartData}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis
-                    dataKey="timestamp"
+                    dataKey="displayLabel"
                     angle={-45}
                     textAnchor="end"
                     height={80}
