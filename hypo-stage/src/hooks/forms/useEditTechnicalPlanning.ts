@@ -32,7 +32,7 @@ export const useEditTechnicalPlanning = (
     formData.expectedOutcome.trim().length <= 500 &&
     formData.documentations.length > 0;
 
-  const handleSubmit = useCallback(async (onSuccess?: () => void) => {
+  const handleSubmit = useCallback(async (onSuccess?: () => void | Promise<void>) => {
     if (!isFormValid) return;
 
     try {
@@ -46,7 +46,7 @@ export const useEditTechnicalPlanning = (
       await execute(() => api.updateTechnicalPlanning(technicalPlanning.id, technicalPlanningData));
 
       showSuccess('Technical planning updated successfully!');
-      onSuccess?.();
+      await onSuccess?.();
     } catch (error) {
       showError(error instanceof Error ? error.message : 'Failed to update technical planning');
     }

@@ -45,7 +45,7 @@ const HypothesisPageContent = ({
 }: {
   hypothesis: Hypothesis;
   events: HypothesisEvent[];
-  refreshHypothesis: () => void;
+  refreshHypothesis: () => Promise<void>;
 }) => {
   const classes = useStyles();
   const navigate = useNavigate();

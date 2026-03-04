@@ -25,7 +25,7 @@ interface TechnicalPlanningItemProps {
   technicalPlanning: TechnicalPlanning;
   hypothesis: Hypothesis;
   index: number;
-  onRefresh: () => void;
+  onRefresh: () => Promise<void>;
 }
 
 export const TechnicalPlanningItem: React.FC<TechnicalPlanningItemProps> = ({
@@ -54,7 +54,7 @@ export const TechnicalPlanningItem: React.FC<TechnicalPlanningItemProps> = ({
     try {
       await api.deleteTechnicalPlanning(technicalPlanning.id);
       setDeleteDialogOpen(false);
-      onRefresh();
+      await onRefresh();
     } catch (err) {
       // Error handling is done by the notification system
     } finally {
@@ -72,9 +72,9 @@ export const TechnicalPlanningItem: React.FC<TechnicalPlanningItemProps> = ({
 
 
   const handleEditSubmit = () => {
-    handleSubmit(() => {
+    handleSubmit(async () => {
       setIsEditing(false);
-      onRefresh();
+      await onRefresh();
     });
   };
 

@@ -16,7 +16,7 @@ import { Hypothesis } from '@archhypo/plugin-hypo-stage-backend';
 
 interface TechnicalPlanningListProps {
   hypothesis: Hypothesis;
-  onRefresh: () => void;
+  onRefresh: () => Promise<void>;
 }
 
 export const TechnicalPlanningList: React.FC<TechnicalPlanningListProps> = ({
@@ -100,9 +100,9 @@ export const TechnicalPlanningList: React.FC<TechnicalPlanningListProps> = ({
                 isFormValid={isFormValid}
                 loading={loading}
                 onSubmit={() => {
-                  handleSubmit(() => {
+                  handleSubmit(async () => {
                     setShowTechnicalPlanningForm(false);
-                    onRefresh();
+                    await onRefresh();
                   });
                 }}
                 onCancel={() => setShowTechnicalPlanningForm(false)}

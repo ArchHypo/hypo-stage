@@ -45,7 +45,7 @@ export const useCreateTechnicalPlanning = (
     formData.documentations.length > 0 &&
     formData.targetDate !== '';
 
-  const handleSubmit = useCallback(async (onSuccess?: () => void) => {
+  const handleSubmit = useCallback(async (onSuccess?: () => void | Promise<void>) => {
     if (!isFormValid) return;
 
     try {
@@ -64,7 +64,7 @@ export const useCreateTechnicalPlanning = (
 
       showSuccess('Technical planning added successfully! 🎉');
       resetForm();
-      onSuccess?.();
+      await onSuccess?.();
     } catch (error) {
       showError(error instanceof Error ? error.message : 'Failed to create technical planning');
     }
