@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useEffect } from 'react';
 import { useApi } from '@backstage/core-plugin-api';
 import { HypoStageApiRef } from '../../api/HypoStageApi';
 import { CreateTechnicalPlanningInput, ActionType, LikertScale } from '@archhypo/plugin-hypo-stage-backend';
@@ -25,7 +25,7 @@ export const useCreateTechnicalPlanning = (
   const api = useApi(HypoStageApiRef);
   const { loading, execute } = useApiCall();
   const { showSuccess, showError } = useNotifications();
-  const { formData, updateField, resetForm } = useFormState<CreateTechnicalPlanningFormData>({
+  const { formData, updateField, updateFields, resetForm } = useFormState<CreateTechnicalPlanningFormData>({
     entityRef: '',
     actionType: '',
     description: '',
@@ -35,6 +35,13 @@ export const useCreateTechnicalPlanning = (
     uncertainty: currentUncertainty || '',
     impact: currentImpact || '',
   });
+
+  useEffect(() => {
+    updateFields({
+      uncertainty: currentUncertainty || '',
+      impact: currentImpact || '',
+    });
+  }, [currentUncertainty, currentImpact, updateFields]);
 
   const isFormValid = formData.entityRef !== '' &&
     formData.actionType !== '' &&

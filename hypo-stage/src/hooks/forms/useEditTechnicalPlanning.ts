@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useEffect } from 'react';
 import { useApi } from '@backstage/core-plugin-api';
 import { HypoStageApiRef } from '../../api/HypoStageApi';
 import { useFormState } from '../useFormState';
@@ -21,12 +21,19 @@ export const useEditTechnicalPlanning = (
   const api = useApi(HypoStageApiRef);
   const { loading, execute } = useApiCall();
   const { showSuccess, showError } = useNotifications();
-  const { formData, updateField } = useFormState<EditTechnicalPlanningFormData>({
+  const { formData, updateField, updateFields } = useFormState<EditTechnicalPlanningFormData>({
     expectedOutcome: technicalPlanning.expectedOutcome,
     documentations: technicalPlanning.documentations,
     uncertainty: currentUncertainty || '',
     impact: currentImpact || '',
   });
+
+  useEffect(() => {
+    updateFields({
+      uncertainty: currentUncertainty || '',
+      impact: currentImpact || '',
+    });
+  }, [currentUncertainty, currentImpact, updateFields]);
 
   const isFormValid = formData.expectedOutcome.trim().length > 0 &&
     formData.expectedOutcome.trim().length <= 500 &&
