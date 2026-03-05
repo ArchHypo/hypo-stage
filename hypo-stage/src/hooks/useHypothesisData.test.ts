@@ -112,7 +112,6 @@ describe('useHypothesisData', () => {
 
     const { result } = renderHook(() => useHypothesisData('hyp-1'), { wrapper });
 
-    // Wait for initial load
     await waitFor(() => {
       expect(result.current.loading).toBe(false);
     });
@@ -120,7 +119,6 @@ describe('useHypothesisData', () => {
     expect(result.current.events).toEqual(initialEvents);
     expect(mockHypoStageApi.getEvents).toHaveBeenCalledTimes(1);
 
-    // Call refreshHypothesis
     await act(async () => {
       await result.current.refreshHypothesis();
     });

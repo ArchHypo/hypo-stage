@@ -97,11 +97,11 @@ const SEED_HYPOTHESES = [
   },
 ];
 
-function getEvolutionEventsForPayment(insertedId, now, dayMs) {
+function getEvolutionEventsForPayment(insertedId, planningIds, now, dayMs) {
   return [
-    { hypothesisId: insertedId, eventType: 'UPDATE', timestamp: new Date(now - 30 * dayMs), changes: JSON.stringify({ uncertainty: 'Very High', impact: 'Very High' }) },
-    { hypothesisId: insertedId, eventType: 'UPDATE', timestamp: new Date(now - 20 * dayMs), changes: JSON.stringify({ uncertainty: 'High', impact: 'High' }) },
-    { hypothesisId: insertedId, eventType: 'UPDATE', timestamp: new Date(now - 10 * dayMs), changes: JSON.stringify({ uncertainty: 'Medium', impact: 'High' }) },
+    { hypothesisId: insertedId, eventType: 'TECHNICAL_PLANNING_CREATE', timestamp: new Date(now - 30 * dayMs), changes: JSON.stringify({ uncertainty: 'Very High', impact: 'Very High', technicalPlanningId: planningIds[0] }) },
+    { hypothesisId: insertedId, eventType: 'TECHNICAL_PLANNING_CREATE', timestamp: new Date(now - 20 * dayMs), changes: JSON.stringify({ uncertainty: 'High', impact: 'High', technicalPlanningId: planningIds[1] }) },
+    { hypothesisId: insertedId, eventType: 'TECHNICAL_PLANNING_CREATE', timestamp: new Date(now - 10 * dayMs), changes: JSON.stringify({ uncertainty: 'Medium', impact: 'High', technicalPlanningId: planningIds[2] }) },
   ];
 }
 
@@ -137,10 +137,10 @@ function getTechnicalPlanningForPayment(insertedId, now, dayMs) {
   ];
 }
 
-function getEvolutionEventsForInventory(insertedId, now, dayMs) {
+function getEvolutionEventsForInventory(insertedId, planningIds, now, dayMs) {
   return [
-    { hypothesisId: insertedId, eventType: 'UPDATE', timestamp: new Date(now - 14 * dayMs), changes: JSON.stringify({ uncertainty: 'High', impact: 'Very High' }) },
-    { hypothesisId: insertedId, eventType: 'UPDATE', timestamp: new Date(now - 7 * dayMs), changes: JSON.stringify({ uncertainty: 'High', impact: 'High' }) },
+    { hypothesisId: insertedId, eventType: 'TECHNICAL_PLANNING_CREATE', timestamp: new Date(now - 14 * dayMs), changes: JSON.stringify({ uncertainty: 'High', impact: 'Very High', technicalPlanningId: planningIds[0] }) },
+    { hypothesisId: insertedId, eventType: 'TECHNICAL_PLANNING_CREATE', timestamp: new Date(now - 7 * dayMs), changes: JSON.stringify({ uncertainty: 'High', impact: 'High', technicalPlanningId: planningIds[1] }) },
   ];
 }
 
@@ -181,15 +181,21 @@ exports.up = async function up(knex) {
     if (paymentRow) {
       const paymentPlanCount = await knex('technicalPlanning').where('hypothesisId', paymentRow.id).count('* as n').first();
       if (Number(paymentPlanCount?.n ?? 0) === 0) {
-        await knex('hypothesisEvents').insert(getEvolutionEventsForPayment(paymentRow.id, now, dayMs));
-        await knex('technicalPlanning').insert(getTechnicalPlanningForPayment(paymentRow.id, now, dayMs));
+        const paymentPlanIds = await knex('technicalPlanning')
+          .insert(getTechnicalPlanningForPayment(paymentRow.id, now, dayMs))
+          .returning('id');
+        const pIds = paymentPlanIds.map(r => r.id);
+        await knex('hypothesisEvents').insert(getEvolutionEventsForPayment(paymentRow.id, pIds, now, dayMs));
       }
     }
     if (inventoryRow) {
       const inventoryPlanCount = await knex('technicalPlanning').where('hypothesisId', inventoryRow.id).count('* as n').first();
       if (Number(inventoryPlanCount?.n ?? 0) === 0) {
-        await knex('hypothesisEvents').insert(getEvolutionEventsForInventory(inventoryRow.id, now, dayMs));
-        await knex('technicalPlanning').insert(getTechnicalPlanningForInventory(inventoryRow.id, now, dayMs));
+        const inventoryPlanIds = await knex('technicalPlanning')
+          .insert(getTechnicalPlanningForInventory(inventoryRow.id, now, dayMs))
+          .returning('id');
+        const iIds = inventoryPlanIds.map(r => r.id);
+        await knex('hypothesisEvents').insert(getEvolutionEventsForInventory(inventoryRow.id, iIds, now, dayMs));
       }
     }
     if (hasExisting) return;
@@ -206,12 +212,18 @@ exports.up = async function up(knex) {
     });
 
     if (row.statement === PAYMENT_STATEMENT) {
-      await knex('hypothesisEvents').insert(getEvolutionEventsForPayment(inserted.id, now, dayMs));
-      await knex('technicalPlanning').insert(getTechnicalPlanningForPayment(inserted.id, now, dayMs));
+      const paymentPlanIds = await knex('technicalPlanning')
+        .insert(getTechnicalPlanningForPayment(inserted.id, now, dayMs))
+        .returning('id');
+      const pIds = paymentPlanIds.map(r => r.id);
+      await knex('hypothesisEvents').insert(getEvolutionEventsForPayment(inserted.id, pIds, now, dayMs));
     }
     if (row.statement === INVENTORY_STATEMENT) {
-      await knex('hypothesisEvents').insert(getEvolutionEventsForInventory(inserted.id, now, dayMs));
-      await knex('technicalPlanning').insert(getTechnicalPlanningForInventory(inserted.id, now, dayMs));
+      const inventoryPlanIds = await knex('technicalPlanning')
+        .insert(getTechnicalPlanningForInventory(inserted.id, now, dayMs))
+        .returning('id');
+      const iIds = inventoryPlanIds.map(r => r.id);
+      await knex('hypothesisEvents').insert(getEvolutionEventsForInventory(inserted.id, iIds, now, dayMs));
     }
   }
 };
