@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { useApi } from '@backstage/core-plugin-api';
 import { HypoStageApiRef } from '../../api/HypoStageApi';
 import { CreateTechnicalPlanningInput, ActionType, LikertScale } from '@archhypo/plugin-hypo-stage-backend';
@@ -36,11 +36,30 @@ export const useCreateTechnicalPlanning = (
     impact: currentImpact || '',
   });
 
+  const dirtyFields = useRef<Set<string>>(new Set());
+  const latestUncertainty = useRef(currentUncertainty);
+  const latestImpact = useRef(currentImpact);
+  latestUncertainty.current = currentUncertainty;
+  latestImpact.current = currentImpact;
+
+  const wrappedUpdateField = useCallback((field: keyof CreateTechnicalPlanningFormData, value: any) => {
+    if (field === 'uncertainty' || field === 'impact') {
+      dirtyFields.current.add(field);
+    }
+    updateField(field, value);
+  }, [updateField]);
+
   useEffect(() => {
-    updateFields({
-      uncertainty: currentUncertainty || '',
-      impact: currentImpact || '',
-    });
+    const updates: Partial<CreateTechnicalPlanningFormData> = {};
+    if (!dirtyFields.current.has('uncertainty')) {
+      updates.uncertainty = currentUncertainty || '';
+    }
+    if (!dirtyFields.current.has('impact')) {
+      updates.impact = currentImpact || '';
+    }
+    if (Object.keys(updates).length > 0) {
+      updateFields(updates);
+    }
   }, [currentUncertainty, currentImpact, updateFields]);
 
   const isFormValid = formData.entityRef !== '' &&
@@ -63,26 +82,32 @@ export const useCreateTechnicalPlanning = (
         expectedOutcome: formData.expectedOutcome.trim(),
         documentations: formData.documentations,
         targetDate: formData.targetDate,
-        ...(formData.uncertainty && formData.uncertainty !== currentUncertainty ? { uncertainty: formData.uncertainty as LikertScale } : {}),
-        ...(formData.impact && formData.impact !== currentImpact ? { impact: formData.impact as LikertScale } : {}),
+        ...(formData.uncertainty && formData.uncertainty !== latestUncertainty.current ? { uncertainty: formData.uncertainty as LikertScale } : {}),
+        ...(formData.impact && formData.impact !== latestImpact.current ? { impact: formData.impact as LikertScale } : {}),
       };
 
       await execute(() => api.createTechnicalPlanning(hypothesisId, technicalPlanningData));
 
       showSuccess('Technical planning added successfully! 🎉');
+      dirtyFields.current.clear();
       resetForm();
       await onSuccess?.();
     } catch (error) {
       showError(error instanceof Error ? error.message : 'Failed to create technical planning');
     }
-  }, [hypothesisId, api, formData, isFormValid, execute, showSuccess, showError, resetForm, currentUncertainty, currentImpact]);
+  }, [hypothesisId, api, formData, isFormValid, execute, showSuccess, showError, resetForm]);
+
+  const wrappedResetForm = useCallback(() => {
+    dirtyFields.current.clear();
+    resetForm();
+  }, [resetForm]);
 
   return {
     formData,
-    updateField,
+    updateField: wrappedUpdateField,
     loading,
     isFormValid,
     handleSubmit,
-    resetForm
+    resetForm: wrappedResetForm
   };
 };

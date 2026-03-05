@@ -3,7 +3,6 @@ import { renderHook, act } from '@testing-library/react';
 import { TestApiProvider } from '@backstage/test-utils';
 import { HypoStageApiRef } from '../../api/HypoStageApi';
 import { useEditTechnicalPlanning } from './useEditTechnicalPlanning';
-import { TechnicalPlanning } from '@archhypo/plugin-hypo-stage-backend';
 
 jest.mock('../../providers/NotificationProvider', () => ({
   useNotifications: () => ({
@@ -20,27 +19,28 @@ const mockApi = {
   getEvents: jest.fn(),
   deleteHypothesis: jest.fn(),
   createTechnicalPlanning: jest.fn(),
-  updateTechnicalPlanning: jest.fn(),
+  updateTechnicalPlanning: jest.fn().mockResolvedValue({ id: 'tp-1' }),
   deleteTechnicalPlanning: jest.fn(),
 };
+
+const basePlanning = {
+  id: 'tp-1',
+  hypothesisId: 'hyp-1',
+  entityRef: 'component:default/svc',
+  actionType: 'Spike',
+  description: 'Some description',
+  expectedOutcome: 'Outcome text',
+  documentations: ['https://example.com'],
+  targetDate: '2026-06-01',
+  createdAt: '2026-01-01',
+  updatedAt: '2026-01-01',
+} as any;
 
 const wrapper = ({ children }: { children: ReactNode }) =>
   createElement(TestApiProvider, {
     apis: [[HypoStageApiRef, mockApi]],
     children,
   });
-
-const basePlanning: TechnicalPlanning = {
-  id: 'tp-1',
-  entityRef: 'component:default/svc',
-  actionType: 'Spike',
-  description: 'Test planning',
-  expectedOutcome: 'Test outcome',
-  documentations: ['https://example.com'],
-  targetDate: new Date(),
-  createdAt: new Date(),
-  updatedAt: new Date(),
-};
 
 describe('useEditTechnicalPlanning', () => {
   beforeEach(() => jest.clearAllMocks());
@@ -55,7 +55,7 @@ describe('useEditTechnicalPlanning', () => {
     expect(result.current.formData.impact).toBe('Medium');
   });
 
-  it('syncs form when hypothesis uncertainty/impact change externally', () => {
+  it('syncs untouched fields when hypothesis values change externally', () => {
     let uncertainty = 'High' as any;
     let impact = 'Medium' as any;
 
@@ -63,9 +63,6 @@ describe('useEditTechnicalPlanning', () => {
       () => useEditTechnicalPlanning(basePlanning, uncertainty, impact),
       { wrapper },
     );
-
-    expect(result.current.formData.uncertainty).toBe('High');
-    expect(result.current.formData.impact).toBe('Medium');
 
     uncertainty = 'Very High';
     impact = 'High';
@@ -75,23 +72,7 @@ describe('useEditTechnicalPlanning', () => {
     expect(result.current.formData.impact).toBe('High');
   });
 
-  it('syncs only the changed value when one dimension changes', () => {
-    let uncertainty = 'High' as any;
-    const impact = 'Medium' as any;
-
-    const { result, rerender } = renderHook(
-      () => useEditTechnicalPlanning(basePlanning, uncertainty, impact),
-      { wrapper },
-    );
-
-    uncertainty = 'Low';
-    rerender();
-
-    expect(result.current.formData.uncertainty).toBe('Low');
-    expect(result.current.formData.impact).toBe('Medium');
-  });
-
-  it('does not lose manual edits to non-assessment fields on sync', () => {
+  it('preserves user-edited fields when hypothesis values change externally', () => {
     let uncertainty = 'High' as any;
     let impact = 'Medium' as any;
 
@@ -101,17 +82,87 @@ describe('useEditTechnicalPlanning', () => {
     );
 
     act(() => {
-      result.current.updateField('expectedOutcome', 'My updated outcome');
+      result.current.updateField('uncertainty', 'Low');
     });
 
-    expect(result.current.formData.expectedOutcome).toBe('My updated outcome');
+    expect(result.current.formData.uncertainty).toBe('Low');
 
     uncertainty = 'Very High';
     impact = 'High';
     rerender();
 
-    expect(result.current.formData.uncertainty).toBe('Very High');
+    expect(result.current.formData.uncertainty).toBe('Low');
     expect(result.current.formData.impact).toBe('High');
-    expect(result.current.formData.expectedOutcome).toBe('My updated outcome');
+  });
+
+  it('compares against latest hypothesis values at submit time', async () => {
+    let uncertainty = 'High' as any;
+    let impact = 'Medium' as any;
+
+    const { result, rerender } = renderHook(
+      () => useEditTechnicalPlanning(basePlanning, uncertainty, impact),
+      { wrapper },
+    );
+
+    act(() => {
+      result.current.updateField('uncertainty', 'Low');
+    });
+
+    uncertainty = 'Very High';
+    impact = 'High';
+    rerender();
+
+    await act(async () => {
+      await result.current.handleSubmit();
+    });
+
+    expect(mockApi.updateTechnicalPlanning).toHaveBeenCalledWith(
+      'tp-1',
+      expect.objectContaining({ uncertainty: 'Low' }),
+    );
+  });
+
+  it('omits uncertainty when form value matches latest hypothesis value', async () => {
+    let uncertainty = 'High' as any;
+    const impact = 'Medium' as any;
+
+    const { result, rerender } = renderHook(
+      () => useEditTechnicalPlanning(basePlanning, uncertainty, impact),
+      { wrapper },
+    );
+
+    act(() => {
+      result.current.updateField('uncertainty', 'Very High');
+    });
+
+    uncertainty = 'Very High';
+    rerender();
+
+    await act(async () => {
+      await result.current.handleSubmit();
+    });
+
+    const call = mockApi.updateTechnicalPlanning.mock.calls[0][1];
+    expect(call.uncertainty).toBeUndefined();
+  });
+
+  it('sends correct technicalPlanning.id to the API', async () => {
+    const { result } = renderHook(
+      () => useEditTechnicalPlanning(basePlanning, 'High', 'Medium'),
+      { wrapper },
+    );
+
+    act(() => {
+      result.current.updateField('uncertainty', 'Low');
+    });
+
+    await act(async () => {
+      await result.current.handleSubmit();
+    });
+
+    expect(mockApi.updateTechnicalPlanning).toHaveBeenCalledWith(
+      'tp-1',
+      expect.anything(),
+    );
   });
 });

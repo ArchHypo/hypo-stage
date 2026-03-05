@@ -18,7 +18,7 @@ const mockApi = {
   updateHypothesis: jest.fn(),
   getEvents: jest.fn(),
   deleteHypothesis: jest.fn(),
-  createTechnicalPlanning: jest.fn(),
+  createTechnicalPlanning: jest.fn().mockResolvedValue({ id: 'tp-new' }),
   updateTechnicalPlanning: jest.fn(),
   deleteTechnicalPlanning: jest.fn(),
 };
@@ -42,7 +42,7 @@ describe('useCreateTechnicalPlanning', () => {
     expect(result.current.formData.impact).toBe('Medium');
   });
 
-  it('syncs form when hypothesis uncertainty/impact change externally', () => {
+  it('syncs untouched fields when hypothesis values change externally', () => {
     let uncertainty = 'High' as any;
     let impact = 'Medium' as any;
 
@@ -50,9 +50,6 @@ describe('useCreateTechnicalPlanning', () => {
       () => useCreateTechnicalPlanning('hyp-1', uncertainty, impact),
       { wrapper },
     );
-
-    expect(result.current.formData.uncertainty).toBe('High');
-    expect(result.current.formData.impact).toBe('Medium');
 
     uncertainty = 'Very High';
     impact = 'High';
@@ -62,26 +59,7 @@ describe('useCreateTechnicalPlanning', () => {
     expect(result.current.formData.impact).toBe('High');
   });
 
-  it('syncs only the changed value when one dimension changes', () => {
-    let uncertainty = 'High' as any;
-    const impact = 'Medium' as any;
-
-    const { result, rerender } = renderHook(
-      () => useCreateTechnicalPlanning('hyp-1', uncertainty, impact),
-      { wrapper },
-    );
-
-    expect(result.current.formData.uncertainty).toBe('High');
-    expect(result.current.formData.impact).toBe('Medium');
-
-    uncertainty = 'Low';
-    rerender();
-
-    expect(result.current.formData.uncertainty).toBe('Low');
-    expect(result.current.formData.impact).toBe('Medium');
-  });
-
-  it('does not lose manual edits to non-assessment fields on sync', () => {
+  it('preserves user-edited fields when hypothesis values change externally', () => {
     let uncertainty = 'High' as any;
     let impact = 'Medium' as any;
 
@@ -91,17 +69,78 @@ describe('useCreateTechnicalPlanning', () => {
     );
 
     act(() => {
-      result.current.updateField('expectedOutcome', 'My custom outcome');
+      result.current.updateField('uncertainty', 'Low');
     });
 
-    expect(result.current.formData.expectedOutcome).toBe('My custom outcome');
+    expect(result.current.formData.uncertainty).toBe('Low');
 
     uncertainty = 'Very High';
     impact = 'High';
     rerender();
 
-    expect(result.current.formData.uncertainty).toBe('Very High');
+    expect(result.current.formData.uncertainty).toBe('Low');
     expect(result.current.formData.impact).toBe('High');
-    expect(result.current.formData.expectedOutcome).toBe('My custom outcome');
+  });
+
+  it('compares against latest hypothesis values at submit time', async () => {
+    let uncertainty = 'High' as any;
+    const impact = 'Medium' as any;
+
+    const { result, rerender } = renderHook(
+      () => useCreateTechnicalPlanning('hyp-1', uncertainty, impact),
+      { wrapper },
+    );
+
+    act(() => {
+      result.current.updateField('entityRef', 'component:default/svc');
+      result.current.updateField('actionType', 'Spike');
+      result.current.updateField('description', 'Test description');
+      result.current.updateField('expectedOutcome', 'Test outcome');
+      result.current.updateField('documentations', ['https://example.com']);
+      result.current.updateField('targetDate', '2026-06-01');
+      result.current.updateField('uncertainty', 'Low');
+    });
+
+    uncertainty = 'Very High';
+    rerender();
+
+    await act(async () => {
+      await result.current.handleSubmit();
+    });
+
+    expect(mockApi.createTechnicalPlanning).toHaveBeenCalledWith(
+      'hyp-1',
+      expect.objectContaining({ uncertainty: 'Low' }),
+    );
+  });
+
+  it('omits uncertainty when form value matches latest hypothesis value', async () => {
+    let uncertainty = 'High' as any;
+    const impact = 'Medium' as any;
+
+    const { result, rerender } = renderHook(
+      () => useCreateTechnicalPlanning('hyp-1', uncertainty, impact),
+      { wrapper },
+    );
+
+    act(() => {
+      result.current.updateField('entityRef', 'component:default/svc');
+      result.current.updateField('actionType', 'Spike');
+      result.current.updateField('description', 'Test description');
+      result.current.updateField('expectedOutcome', 'Test outcome');
+      result.current.updateField('documentations', ['https://example.com']);
+      result.current.updateField('targetDate', '2026-06-01');
+      result.current.updateField('uncertainty', 'Very High');
+    });
+
+    uncertainty = 'Very High';
+    rerender();
+
+    await act(async () => {
+      await result.current.handleSubmit();
+    });
+
+    const call = mockApi.createTechnicalPlanning.mock.calls[0][1];
+    expect(call.uncertainty).toBeUndefined();
   });
 });

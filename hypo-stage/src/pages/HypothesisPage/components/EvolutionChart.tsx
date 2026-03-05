@@ -16,6 +16,7 @@ import { getRatingNumber, getValueLabel } from '../../../utils/formatters';
 import { useStyles } from '../../../hooks/useStyles';
 
 interface ChartDataPoint {
+  uniqueKey: string;
   timestamp: string;
   displayLabel: string;
   uncertainty: number | undefined;
@@ -147,7 +148,7 @@ export const EvolutionChart: React.FC<EvolutionChartProps> = ({
     let lastUncertainty: number | undefined;
     let lastImpact: number | undefined;
 
-    sortedEvents.forEach(event => {
+    sortedEvents.forEach((event, index) => {
       const changes = event.changes as Record<string, any>;
       if (changes.uncertainty) {
         lastUncertainty = getRatingNumber(changes.uncertainty);
@@ -165,9 +166,12 @@ export const EvolutionChart: React.FC<EvolutionChartProps> = ({
         hour: '2-digit',
         minute: '2-digit',
       });
+      const displayLabel = hasDuplicateDates ? `${dateLabel} ${timeLabel}` : dateLabel;
+      const uniqueKey = event.id ?? `evt-${event.timestamp}-${index}`;
       points.push({
+        uniqueKey,
         timestamp: `${dateLabel} ${timeLabel}`,
-        displayLabel: hasDuplicateDates ? `${dateLabel} ${timeLabel}` : dateLabel,
+        displayLabel,
         uncertainty: lastUncertainty,
         impact: lastImpact,
         technicalPlanningId: event.technicalPlanningId ?? changes.technicalPlanningId ?? null,
@@ -208,10 +212,14 @@ export const EvolutionChart: React.FC<EvolutionChartProps> = ({
                 <LineChart data={chartData}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis
-                    dataKey="displayLabel"
+                    dataKey="uniqueKey"
                     angle={-45}
                     textAnchor="end"
                     height={80}
+                    tickFormatter={(uniqueKey: string) => {
+                      const point = chartData.find(p => p.uniqueKey === uniqueKey);
+                      return point?.displayLabel ?? uniqueKey;
+                    }}
                   />
                   <YAxis
                     domain={[1, 5]}

@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { useApi } from '@backstage/core-plugin-api';
 import { HypoStageApiRef } from '../../api/HypoStageApi';
 import { useFormState } from '../useFormState';
@@ -28,11 +28,30 @@ export const useEditTechnicalPlanning = (
     impact: currentImpact || '',
   });
 
+  const dirtyFields = useRef<Set<string>>(new Set());
+  const latestUncertainty = useRef(currentUncertainty);
+  const latestImpact = useRef(currentImpact);
+  latestUncertainty.current = currentUncertainty;
+  latestImpact.current = currentImpact;
+
+  const wrappedUpdateField = useCallback((field: keyof EditTechnicalPlanningFormData, value: any) => {
+    if (field === 'uncertainty' || field === 'impact') {
+      dirtyFields.current.add(field);
+    }
+    updateField(field, value);
+  }, [updateField]);
+
   useEffect(() => {
-    updateFields({
-      uncertainty: currentUncertainty || '',
-      impact: currentImpact || '',
-    });
+    const updates: Partial<EditTechnicalPlanningFormData> = {};
+    if (!dirtyFields.current.has('uncertainty')) {
+      updates.uncertainty = currentUncertainty || '';
+    }
+    if (!dirtyFields.current.has('impact')) {
+      updates.impact = currentImpact || '';
+    }
+    if (Object.keys(updates).length > 0) {
+      updateFields(updates);
+    }
   }, [currentUncertainty, currentImpact, updateFields]);
 
   const isFormValid = formData.expectedOutcome.trim().length > 0 &&
@@ -46,8 +65,8 @@ export const useEditTechnicalPlanning = (
       const technicalPlanningData: UpdateTechnicalPlanningInput = {
         expectedOutcome: formData.expectedOutcome.trim(),
         documentations: formData.documentations,
-        ...(formData.uncertainty && formData.uncertainty !== currentUncertainty ? { uncertainty: formData.uncertainty as LikertScale } : {}),
-        ...(formData.impact && formData.impact !== currentImpact ? { impact: formData.impact as LikertScale } : {}),
+        ...(formData.uncertainty && formData.uncertainty !== latestUncertainty.current ? { uncertainty: formData.uncertainty as LikertScale } : {}),
+        ...(formData.impact && formData.impact !== latestImpact.current ? { impact: formData.impact as LikertScale } : {}),
       };
 
       await execute(() => api.updateTechnicalPlanning(technicalPlanning.id, technicalPlanningData));
@@ -57,11 +76,11 @@ export const useEditTechnicalPlanning = (
     } catch (error) {
       showError(error instanceof Error ? error.message : 'Failed to update technical planning');
     }
-  }, [technicalPlanning.id, api, formData, isFormValid, execute, showSuccess, showError, currentUncertainty, currentImpact]);
+  }, [technicalPlanning.id, api, formData, isFormValid, execute, showSuccess, showError]);
 
   return {
     formData,
-    updateField,
+    updateField: wrappedUpdateField,
     loading,
     isFormValid,
     handleSubmit
