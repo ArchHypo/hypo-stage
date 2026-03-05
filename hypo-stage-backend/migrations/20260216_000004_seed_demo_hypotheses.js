@@ -15,6 +15,7 @@
  */
 const PAYMENT_STATEMENT = 'Moving payment processing to a dedicated service will reduce coupling and allow independent scaling.';
 const INVENTORY_STATEMENT = 'Replacing the legacy inventory system with a modern service will improve order fulfilment latency and reliability.';
+const GATEWAY_STATEMENT = 'Introducing a shared API gateway may centralise auth and rate limiting but adds a single point of failure.';
 
 /** Full seed rows; used by up() to insert and by down() to delete only these exact records. */
 const SEED_HYPOTHESES = [
@@ -80,9 +81,9 @@ const SEED_HYPOTHESES = [
     sourceType: 'Architecture Decision',
     relatedArtefacts: JSON.stringify([]),
     qualityAttributes: JSON.stringify(['Security', 'Reliability']),
-    uncertainty: 'Very High',
-    impact: 'Very High',
-    notes: 'Needs attention: high uncertainty and impact. Technical plans in progress.',
+    uncertainty: 'High',
+    impact: 'High',
+    notes: 'Uncertainty and impact reduced after initial technical planning spikes.',
   },
   {
     entityRefs: JSON.stringify(['component:default/analytics-service']),
@@ -101,7 +102,9 @@ function getEvolutionEventsForPayment(insertedId, planningIds, now, dayMs) {
   return [
     { hypothesisId: insertedId, eventType: 'TECHNICAL_PLANNING_CREATE', timestamp: new Date(now - 30 * dayMs), changes: JSON.stringify({ uncertainty: 'Very High', impact: 'Very High', technicalPlanningId: planningIds[0] }) },
     { hypothesisId: insertedId, eventType: 'TECHNICAL_PLANNING_CREATE', timestamp: new Date(now - 20 * dayMs), changes: JSON.stringify({ uncertainty: 'High', impact: 'High', technicalPlanningId: planningIds[1] }) },
-    { hypothesisId: insertedId, eventType: 'TECHNICAL_PLANNING_CREATE', timestamp: new Date(now - 10 * dayMs), changes: JSON.stringify({ uncertainty: 'Medium', impact: 'High', technicalPlanningId: planningIds[2] }) },
+    { hypothesisId: insertedId, eventType: 'TECHNICAL_PLANNING_UPDATE', timestamp: new Date(now - 15 * dayMs), changes: JSON.stringify({ uncertainty: 'Medium', technicalPlanningId: planningIds[1] }) },
+    { hypothesisId: insertedId, eventType: 'TECHNICAL_PLANNING_CREATE', timestamp: new Date(now - 10 * dayMs), changes: JSON.stringify({ impact: 'Medium', technicalPlanningId: planningIds[2] }) },
+    { hypothesisId: insertedId, eventType: 'TECHNICAL_PLANNING_UPDATE', timestamp: new Date(now - 5 * dayMs), changes: JSON.stringify({ uncertainty: 'Low', technicalPlanningId: planningIds[2] }) },
   ];
 }
 
@@ -140,7 +143,8 @@ function getTechnicalPlanningForPayment(insertedId, now, dayMs) {
 function getEvolutionEventsForInventory(insertedId, planningIds, now, dayMs) {
   return [
     { hypothesisId: insertedId, eventType: 'TECHNICAL_PLANNING_CREATE', timestamp: new Date(now - 14 * dayMs), changes: JSON.stringify({ uncertainty: 'High', impact: 'Very High', technicalPlanningId: planningIds[0] }) },
-    { hypothesisId: insertedId, eventType: 'TECHNICAL_PLANNING_CREATE', timestamp: new Date(now - 7 * dayMs), changes: JSON.stringify({ uncertainty: 'High', impact: 'High', technicalPlanningId: planningIds[1] }) },
+    { hypothesisId: insertedId, eventType: 'TECHNICAL_PLANNING_UPDATE', timestamp: new Date(now - 10 * dayMs), changes: JSON.stringify({ impact: 'High', technicalPlanningId: planningIds[0] }) },
+    { hypothesisId: insertedId, eventType: 'TECHNICAL_PLANNING_CREATE', timestamp: new Date(now - 7 * dayMs), changes: JSON.stringify({ uncertainty: 'Medium', impact: 'High', technicalPlanningId: planningIds[1] }) },
   ];
 }
 
@@ -163,6 +167,37 @@ function getTechnicalPlanningForInventory(insertedId, now, dayMs) {
       expectedOutcome: 'Go/no-go criteria and rollback plan.',
       documentations: JSON.stringify(['https://wiki.example.com/inventory-migration']),
       targetDate: new Date(now + 21 * dayMs),
+    },
+  ];
+}
+
+function getEvolutionEventsForGateway(insertedId, planningIds, now, dayMs) {
+  return [
+    { hypothesisId: insertedId, eventType: 'TECHNICAL_PLANNING_CREATE', timestamp: new Date(now - 4 * dayMs), changes: JSON.stringify({ uncertainty: 'High', impact: 'Very High', technicalPlanningId: planningIds[0] }) },
+    { hypothesisId: insertedId, eventType: 'TECHNICAL_PLANNING_CREATE', timestamp: new Date(now - 2 * dayMs), changes: JSON.stringify({ uncertainty: 'High', technicalPlanningId: planningIds[1] }) },
+    { hypothesisId: insertedId, eventType: 'TECHNICAL_PLANNING_UPDATE', timestamp: new Date(now - 1 * dayMs), changes: JSON.stringify({ impact: 'High', technicalPlanningId: planningIds[1] }) },
+  ];
+}
+
+function getTechnicalPlanningForGateway(insertedId, now, dayMs) {
+  return [
+    {
+      hypothesisId: insertedId,
+      entityRef: 'component:default/api-gateway',
+      actionType: 'Spike',
+      description: 'Evaluate single-point-of-failure risk with load and chaos testing.',
+      expectedOutcome: 'Failure-mode report and availability metrics under load.',
+      documentations: JSON.stringify(['https://wiki.example.com/gateway-spike']),
+      targetDate: new Date(now + 10 * dayMs),
+    },
+    {
+      hypothesisId: insertedId,
+      entityRef: 'component:default/api-gateway',
+      actionType: 'Experiment',
+      description: 'A/B deploy gateway in staging with canary routing to measure auth latency.',
+      expectedOutcome: 'Latency comparison report: gateway vs direct calls.',
+      documentations: JSON.stringify(['https://wiki.example.com/gateway-experiment']),
+      targetDate: new Date(now + 20 * dayMs),
     },
   ];
 }
@@ -198,6 +233,17 @@ exports.up = async function up(knex) {
         await knex('hypothesisEvents').insert(getEvolutionEventsForInventory(inventoryRow.id, iIds, now, dayMs));
       }
     }
+    const gatewayRow = await knex('hypothesis').where('statement', GATEWAY_STATEMENT).first();
+    if (gatewayRow) {
+      const gatewayPlanCount = await knex('technicalPlanning').where('hypothesisId', gatewayRow.id).count('* as n').first();
+      if (Number(gatewayPlanCount?.n ?? 0) === 0) {
+        const gatewayPlanIds = await knex('technicalPlanning')
+          .insert(getTechnicalPlanningForGateway(gatewayRow.id, now, dayMs))
+          .returning('id');
+        const gIds = gatewayPlanIds.map(r => r.id);
+        await knex('hypothesisEvents').insert(getEvolutionEventsForGateway(gatewayRow.id, gIds, now, dayMs));
+      }
+    }
     if (hasExisting) return;
   }
 
@@ -224,6 +270,13 @@ exports.up = async function up(knex) {
         .returning('id');
       const iIds = inventoryPlanIds.map(r => r.id);
       await knex('hypothesisEvents').insert(getEvolutionEventsForInventory(inserted.id, iIds, now, dayMs));
+    }
+    if (row.statement === GATEWAY_STATEMENT) {
+      const gatewayPlanIds = await knex('technicalPlanning')
+        .insert(getTechnicalPlanningForGateway(inserted.id, now, dayMs))
+        .returning('id');
+      const gIds = gatewayPlanIds.map(r => r.id);
+      await knex('hypothesisEvents').insert(getEvolutionEventsForGateway(inserted.id, gIds, now, dayMs));
     }
   }
 };
