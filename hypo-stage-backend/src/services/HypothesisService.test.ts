@@ -135,6 +135,7 @@ describe('HypothesisService', () => {
 
       const techPlanChain = {
         where: jest.fn().mockReturnThis(),
+        orderBy: jest.fn().mockReturnThis(),
         select: jest.fn().mockResolvedValue([]),
       };
       const insertChain = createChain(jest.fn());
@@ -680,7 +681,9 @@ describe('HypothesisService', () => {
         }
         return {
           where: jest.fn().mockReturnValue({
-            select: jest.fn().mockResolvedValue([]),
+            orderBy: jest.fn().mockReturnValue({
+              select: jest.fn().mockResolvedValue([]),
+            }),
           }),
         };
       });

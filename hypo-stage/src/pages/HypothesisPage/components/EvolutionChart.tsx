@@ -66,10 +66,22 @@ const CustomDot = (props: any) => {
   );
 };
 
-const CustomTooltipContent = ({ active, payload, hypothesis }: any) => {
-  if (!active || !payload || payload.length === 0) return null;
+const CustomTooltipContent = ({
+  active,
+  label,
+  hypothesis,
+  chartData,
+}: {
+  active?: boolean;
+  label?: string;
+  hypothesis: Hypothesis;
+  chartData: ChartDataPoint[];
+}) => {
+  if (!active || !label || !chartData) return null;
 
-  const dataPoint = payload[0]?.payload as ChartDataPoint;
+  // Look up by X-axis value (uniqueKey) to avoid Recharts payload bugs with multiple Line components
+  const dataPoint = chartData.find(p => p.uniqueKey === label);
+  if (!dataPoint) return null;
   const isTechPlanningEvent =
     dataPoint.eventType === 'TECHNICAL_PLANNING_CREATE' ||
     dataPoint.eventType === 'TECHNICAL_PLANNING_UPDATE';
@@ -226,7 +238,7 @@ export const EvolutionChart: React.FC<EvolutionChartProps> = ({
                     ticks={[1, 2, 3, 4, 5]}
                     tickFormatter={getValueLabel}
                   />
-                  <Tooltip content={<CustomTooltipContent hypothesis={hypothesis} />} />
+                  <Tooltip content={<CustomTooltipContent hypothesis={hypothesis} chartData={chartData} />} />
                   <Legend
                     formatter={(value) => value === 'uncertainty' ? 'Uncertainty' : 'Impact'}
                   />

@@ -39,9 +39,10 @@ export async function createHypothesisService({
         createdHypothesis.relatedArtefacts = JSON.parse(createdHypothesis.relatedArtefacts);
         createdHypothesis.qualityAttributes = JSON.parse(createdHypothesis.qualityAttributes);
 
-        // Get technical plannings for this hypothesis
+        // Get technical plannings for this hypothesis (ordered by creation for stable UI numbering)
         const technicalPlannings = await trx('technicalPlanning')
           .where('hypothesisId', createdHypothesis.id)
+          .orderBy('createdAt', 'asc')
           .select('*');
 
         createdHypothesis.technicalPlannings = technicalPlannings.map(tp => ({
@@ -70,6 +71,7 @@ export async function createHypothesisService({
         hypotheses.map(async (hypothesis) => {
           const technicalPlannings = await db('technicalPlanning')
             .where('hypothesisId', hypothesis.id)
+            .orderBy('createdAt', 'asc')
             .select('*');
 
           return {
@@ -100,6 +102,7 @@ export async function createHypothesisService({
       const hypothesis = rows[0];
       const technicalPlannings = await db('technicalPlanning')
         .where('hypothesisId', id)
+        .orderBy('createdAt', 'asc')
         .select('*');
 
       return {
@@ -142,9 +145,10 @@ export async function createHypothesisService({
         updatedHypothesis.relatedArtefacts = JSON.parse(updatedHypothesis.relatedArtefacts);
         updatedHypothesis.qualityAttributes = JSON.parse(updatedHypothesis.qualityAttributes);
 
-        // Get technical plannings for this hypothesis
+        // Get technical plannings for this hypothesis (ordered by creation for stable UI numbering)
         const technicalPlannings = await trx('technicalPlanning')
           .where('hypothesisId', id)
+          .orderBy('createdAt', 'asc')
           .select('*');
 
         updatedHypothesis.technicalPlannings = technicalPlannings.map(tp => ({
