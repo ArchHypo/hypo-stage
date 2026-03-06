@@ -16,7 +16,7 @@ import { Hypothesis } from '@archhypo/plugin-hypo-stage-backend';
 
 interface TechnicalPlanningListProps {
   hypothesis: Hypothesis;
-  onRefresh: () => void;
+  onRefresh: () => Promise<void>;
 }
 
 export const TechnicalPlanningList: React.FC<TechnicalPlanningListProps> = ({
@@ -24,8 +24,13 @@ export const TechnicalPlanningList: React.FC<TechnicalPlanningListProps> = ({
   onRefresh
 }) => {
   const classes = useStyles();
-  const { formData, updateField, loading, isFormValid, handleSubmit } = useCreateTechnicalPlanning(hypothesis.id);
+  const { formData, updateField, loading, isFormValid, handleSubmit } = useCreateTechnicalPlanning(
+    hypothesis.id,
+    hypothesis.uncertainty,
+    hypothesis.impact,
+  );
   const [showTechnicalPlanningForm, setShowTechnicalPlanningForm] = useState(false);
+  const [editingPlanningId, setEditingPlanningId] = useState<string | null>(null);
 
   return (
     <>
@@ -47,8 +52,12 @@ export const TechnicalPlanningList: React.FC<TechnicalPlanningListProps> = ({
                 <Grid item xs={12} key={techPlan.id}>
                   <TechnicalPlanningItem
                     technicalPlanning={techPlan}
+                    hypothesis={hypothesis}
                     index={index}
                     onRefresh={onRefresh}
+                    isEditing={editingPlanningId === techPlan.id}
+                    onEditStart={() => setEditingPlanningId(techPlan.id)}
+                    onEditEnd={() => setEditingPlanningId(null)}
                   />
                 </Grid>
               ))}
@@ -95,9 +104,9 @@ export const TechnicalPlanningList: React.FC<TechnicalPlanningListProps> = ({
                 isFormValid={isFormValid}
                 loading={loading}
                 onSubmit={() => {
-                  handleSubmit(() => {
+                  handleSubmit(async () => {
                     setShowTechnicalPlanningForm(false);
-                    onRefresh();
+                    await onRefresh();
                   });
                 }}
                 onCancel={() => setShowTechnicalPlanningForm(false)}

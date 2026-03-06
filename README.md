@@ -100,10 +100,10 @@ To publish a new version: (1) set `"version": "X.Y.Z"` (using [Semantic Versioni
 ## 📖 What is HypoStage?
 
 - **📝 Hypothesis management** — Create, edit, and track architectural hypotheses with detailed metadata
-- **📊 Uncertainty assessment** — Evaluate uncertainty using Likert-scale ratings
+- **📊 Uncertainty assessment** — Evaluate uncertainty and impact using Likert-scale ratings; values are set on creation and can only be changed through technical planning actions
 - **🏷️ Quality attributes** — Associate hypotheses with performance, security, maintainability, etc.
-- **📅 Technical planning** — Link technical planning items (experiments, spikes) to hypotheses
-- **📈 Visualization** — Evolution and validation status via interactive charts
+- **📅 Technical planning** — Link technical planning items (experiments, spikes) to hypotheses; optionally reassess uncertainty and impact when creating or editing a plan
+- **📈 Visualization** — Evolution chart with distinct visual markers for manual vs. technical-planning-linked changes and informative tooltips
 - **🔗 Catalog integration** — Link hypotheses to Backstage entities; optional Hypotheses tab on component pages
 
 ---
@@ -271,8 +271,8 @@ createApiFactory({
 
 - **Open the plugin**: Sidebar → “Hypo Stage” or go to `/hypo-stage`.
 - **Create a hypothesis**: “Create New Hypothesis” → statement, context, uncertainty/impact, quality attributes, evidence URLs → save.
-- **Manage**: View, edit, and track evolution from the list and detail pages. **Delete** a hypothesis from the list (row icon) or from the detail page; both require typing the hypothesis statement to confirm.
-- **Technical planning**: On a hypothesis detail page, add, edit, and delete technical planning items (each with optional documentation URLs).
+- **Manage**: View, edit, and track evolution from the list and detail pages. **Delete** a hypothesis from the list (row icon) or from the detail page; both require typing the hypothesis statement to confirm. The detail view shows clearly labeled assessment chips (Status, Uncertainty, Impact, Focus).
+- **Technical planning**: On a hypothesis detail page, add, edit, and delete technical planning items (each with optional documentation URLs). When creating or editing a plan, you can optionally reassess uncertainty and impact — these are the only way to change those values after initial creation. Changes are recorded as events and displayed in the evolution chart with distinct markers.
 
 ---
 

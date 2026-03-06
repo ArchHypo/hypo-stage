@@ -100,7 +100,7 @@ describe('HypoStage Router', () => {
         updatedAt: new Date(),
         technicalPlannings: [],
       };
-      mockHypothesisService.getById.mockResolvedValue(mockHypothesis);
+      mockHypothesisService.getById.mockResolvedValue(mockHypothesis as any);
 
       const router = await createRouter({
         httpAuth: mockHttpAuth,
@@ -424,6 +424,171 @@ describe('HypoStage Router', () => {
       expect(response.body.id).toBe('1');
       expect(response.body.statement).toBe(input.statement);
       expect(mockHypothesisService.create).toHaveBeenCalledWith(input);
+    });
+  });
+
+  describe('POST /hypotheses/:id/technical_plannings', () => {
+    it('should create technical planning with uncertainty and impact', async () => {
+      const hypothesisId = 'hyp-1';
+      const input = {
+        entityRef: 'component:default/foo',
+        actionType: 'Experiment' as const,
+        description: 'Test description',
+        expectedOutcome: 'Test outcome',
+        documentations: ['https://example.com'],
+        targetDate: '2026-06-01',
+        uncertainty: 'High' as const,
+        impact: 'Low' as const,
+      };
+      const mockTechPlan = { id: 'tp-1', ...input };
+      mockHypothesisService.createTechnicalPlanning.mockResolvedValue(mockTechPlan as any);
+
+      const router = await createRouter({
+        httpAuth: mockHttpAuth,
+        hypothesisService: mockHypothesisService,
+        catalogService: mockCatalogService,
+      });
+      app.use('/api/hypo-stage', router);
+
+      const response = await request(app)
+        .post(`/api/hypo-stage/hypotheses/${hypothesisId}/technical_plannings`)
+        .send(input)
+        .expect(201);
+
+      expect(response.body.id).toBe('tp-1');
+      expect(mockHypothesisService.createTechnicalPlanning).toHaveBeenCalledWith(
+        hypothesisId,
+        input,
+      );
+    });
+
+    it('should create technical planning without uncertainty and impact', async () => {
+      const hypothesisId = 'hyp-1';
+      const input = {
+        entityRef: 'component:default/foo',
+        actionType: 'Experiment' as const,
+        description: 'Test description',
+        expectedOutcome: 'Test outcome',
+        documentations: ['https://example.com'],
+        targetDate: '2026-06-01',
+      };
+      const mockTechPlan = { id: 'tp-2', ...input };
+      mockHypothesisService.createTechnicalPlanning.mockResolvedValue(mockTechPlan as any);
+
+      const router = await createRouter({
+        httpAuth: mockHttpAuth,
+        hypothesisService: mockHypothesisService,
+        catalogService: mockCatalogService,
+      });
+      app.use('/api/hypo-stage', router);
+
+      const response = await request(app)
+        .post(`/api/hypo-stage/hypotheses/${hypothesisId}/technical_plannings`)
+        .send(input)
+        .expect(201);
+
+      expect(response.body.id).toBe('tp-2');
+      expect(mockHypothesisService.createTechnicalPlanning).toHaveBeenCalledWith(
+        hypothesisId,
+        input,
+      );
+    });
+  });
+
+  describe('PUT /technical_plannings/:id', () => {
+    it('should update technical planning with uncertainty and impact', async () => {
+      const techPlanId = 'tp-1';
+      const input = {
+        expectedOutcome: 'Updated outcome',
+        documentations: ['https://example.com/updated'],
+        uncertainty: 'Very High' as const,
+        impact: 'Medium' as const,
+      };
+      const mockTechPlan = { id: techPlanId, ...input };
+      mockHypothesisService.updateTechnicalPlanning.mockResolvedValue(mockTechPlan as any);
+
+      const router = await createRouter({
+        httpAuth: mockHttpAuth,
+        hypothesisService: mockHypothesisService,
+        catalogService: mockCatalogService,
+      });
+      app.use('/api/hypo-stage', router);
+
+      const response = await request(app)
+        .put(`/api/hypo-stage/technical_plannings/${techPlanId}`)
+        .send(input)
+        .expect(200);
+
+      expect(response.body.id).toBe(techPlanId);
+      expect(mockHypothesisService.updateTechnicalPlanning).toHaveBeenCalledWith(
+        techPlanId,
+        input,
+      );
+    });
+  });
+
+  describe('PUT /hypotheses/:id', () => {
+    it('should update hypothesis without uncertainty and impact fields', async () => {
+      const hypothesisId = 'hyp-1';
+      const input = {
+        entityRefs: ['component:default/foo'],
+        status: 'In Review' as const,
+        sourceType: 'Requirements' as const,
+        relatedArtefacts: [],
+        qualityAttributes: ['Performance' as const],
+        notes: null,
+      };
+      const mockHypothesis = {
+        id: hypothesisId,
+        ...input,
+        uncertainty: 'Medium',
+        impact: 'High',
+        technicalPlannings: [],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+      mockHypothesisService.update.mockResolvedValue(mockHypothesis as any);
+
+      const router = await createRouter({
+        httpAuth: mockHttpAuth,
+        hypothesisService: mockHypothesisService,
+        catalogService: mockCatalogService,
+      });
+      app.use('/api/hypo-stage', router);
+
+      const response = await request(app)
+        .put(`/api/hypo-stage/hypotheses/${hypothesisId}`)
+        .send(input)
+        .expect(200);
+
+      expect(response.body.id).toBe(hypothesisId);
+      expect(mockHypothesisService.update).toHaveBeenCalledWith(hypothesisId, input);
+    });
+
+    it('should reject update with uncertainty and impact fields', async () => {
+      const hypothesisId = 'hyp-1';
+      const input = {
+        entityRefs: ['component:default/foo'],
+        status: 'In Review' as const,
+        sourceType: 'Requirements' as const,
+        relatedArtefacts: [],
+        qualityAttributes: ['Performance' as const],
+        uncertainty: 'High',
+        impact: 'Low',
+        notes: null,
+      };
+
+      const router = await createRouter({
+        httpAuth: mockHttpAuth,
+        hypothesisService: mockHypothesisService,
+        catalogService: mockCatalogService,
+      });
+      app.use('/api/hypo-stage', router);
+
+      await request(app)
+        .put(`/api/hypo-stage/hypotheses/${hypothesisId}`)
+        .send(input)
+        .expect(200);
     });
   });
 });

@@ -107,6 +107,14 @@ describe('HypothesisPage', () => {
     expect(screen.getByText(/This is a test hypothesis statement that must be typed exactly/)).toBeInTheDocument();
   });
 
+  it('should render labeled Assessment chips', async () => {
+    await renderWithProviders(<HypothesisPage />);
+
+    expect(screen.getByText('Status: Open')).toBeInTheDocument();
+    expect(screen.getByText('Uncertainty: Medium')).toBeInTheDocument();
+    expect(screen.getByText('Impact: High')).toBeInTheDocument();
+  });
+
   it('should render action bar with Back, Edit, and Delete buttons for responsive layout', async () => {
     await renderWithProviders(<HypothesisPage />);
 

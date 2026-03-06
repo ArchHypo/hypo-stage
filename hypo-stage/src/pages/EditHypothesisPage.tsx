@@ -72,8 +72,8 @@ const EditHypothesisPageContent = () => {
   };
 
   const focusTag = getHypothesisFocusTag({
-    uncertainty: formData.uncertainty,
-    impact: formData.impact,
+    uncertainty: hypothesis.uncertainty,
+    impact: hypothesis.impact,
   });
 
   const onSubmit = () => {

@@ -8,7 +8,9 @@ import { CreateTechnicalPlanningFormData } from '../hooks/forms/useCreateTechnic
 import { EditTechnicalPlanningFormData } from '../hooks/forms/useEditTechnicalPlanning';
 import { TechnicalPlanning } from '@archhypo/plugin-hypo-stage-backend';
 import { ACTION_TYPE_OPTIONS } from '../utils/constants';
+import { getRatingNumber, getRatingString } from '../utils/formatters';
 import { CustomSelectField, CustomTextField } from './forms/FormField';
+import { LikertScaleField } from './forms/LikertScaleField';
 
 interface BaseTechnicalPlanningFormProps {
   isFormValid: boolean;
@@ -58,6 +60,19 @@ export const TechnicalPlanningForm: React.FC<CreateTechnicalPlanningFormProps | 
 
       <div className={classes.formGrid}>
         <Grid container spacing={3} style={{ width: '100%', margin: 0 }}>
+          {isEditMode && (
+            <Grid item xs={12}>
+              <Typography variant="caption" color="textSecondary">
+                Planning ID
+              </Typography>
+              <Typography
+                variant="body2"
+                style={{ fontFamily: 'monospace', fontSize: '0.85rem', marginTop: 2 }}
+              >
+                {props.technicalPlanning.id}
+              </Typography>
+            </Grid>
+          )}
           {/* Entity reference */}
           <Grid item xs={12}>
             <CustomSelectField
@@ -129,6 +144,32 @@ export const TechnicalPlanningForm: React.FC<CreateTechnicalPlanningFormProps | 
               onUrlsChange={(value) => onFieldChange('documentations', value)}
               placeholder="https://example.com/docs"
               helperText="No documentation links added yet. Add links to relevant documentation, design docs, or planning materials."
+            />
+          </Grid>
+
+          {/* Current uncertainty and impact */}
+          <Grid item xs={12}>
+            <Typography variant="h6" gutterBottom>
+              Current Uncertainty & Impact
+            </Typography>
+            <Typography variant="body2" color="textSecondary" gutterBottom>
+              These are the current values. Change them if this technical planning affects them.
+            </Typography>
+          </Grid>
+          <Grid item xs={12} md={6}>
+            <LikertScaleField
+              rating={formData.uncertainty ? getRatingNumber(formData.uncertainty) : 0}
+              onRatingChange={(rating) => onFieldChange('uncertainty', rating === 0 ? '' : getRatingString(rating))}
+              label="Uncertainty Level"
+              description="Change if this planning affects uncertainty"
+            />
+          </Grid>
+          <Grid item xs={12} md={6}>
+            <LikertScaleField
+              rating={formData.impact ? getRatingNumber(formData.impact) : 0}
+              onRatingChange={(rating) => onFieldChange('impact', rating === 0 ? '' : getRatingString(rating))}
+              label="Impact Level"
+              description="Change if this planning affects impact"
             />
           </Grid>
         </Grid>

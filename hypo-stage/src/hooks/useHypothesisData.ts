@@ -53,6 +53,8 @@ export const useHypothesisData = (hypothesisId?: string) => {
       if (found) {
         setHypothesis(found);
       }
+      const hypothesisEvents = await api.getEvents(hypothesisId);
+      setEvents(hypothesisEvents);
     } catch (err) {
       setError(err as Error);
     }

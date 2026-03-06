@@ -1,5 +1,5 @@
 import { createElement, ReactNode } from 'react';
-import { renderHook, waitFor } from '@testing-library/react';
+import { act, renderHook, waitFor } from '@testing-library/react';
 import { TestApiProvider } from '@backstage/test-utils';
 import { HypoStageApiRef } from '../api/HypoStageApi';
 import { useHypothesisData } from './useHypothesisData';
@@ -81,5 +81,95 @@ describe('useHypothesisData', () => {
 
     expect(result.current.hypothesis).toBeNull();
     expect(result.current.error).toEqual(new Error('Hypothesis not found'));
+  });
+
+  it('refreshHypothesis re-fetches both hypothesis and events', async () => {
+    const mockHypothesis = {
+      id: 'hyp-1',
+      statement: 'Test',
+      status: 'Open' as const,
+      sourceType: 'Other' as const,
+      entityRefs: [],
+      relatedArtefacts: [],
+      qualityAttributes: [],
+      uncertainty: 'Medium' as const,
+      impact: 'Medium' as const,
+      technicalPlannings: [],
+      notes: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    const initialEvents = [{ id: 'evt-1', eventType: 'CREATE', changes: {} }];
+    const updatedEvents = [
+      { id: 'evt-1', eventType: 'CREATE', changes: {} },
+      { id: 'evt-2', eventType: 'TECHNICAL_PLANNING_CREATE', changes: { uncertainty: 'High' } },
+    ];
+
+    mockHypoStageApi.getHypotheses.mockResolvedValue([mockHypothesis]);
+    mockHypoStageApi.getEvents
+      .mockResolvedValueOnce(initialEvents)
+      .mockResolvedValueOnce(updatedEvents);
+
+    const { result } = renderHook(() => useHypothesisData('hyp-1'), { wrapper });
+
+    await waitFor(() => {
+      expect(result.current.loading).toBe(false);
+    });
+
+    expect(result.current.events).toEqual(initialEvents);
+    expect(mockHypoStageApi.getEvents).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      await result.current.refreshHypothesis();
+    });
+
+    expect(mockHypoStageApi.getEvents).toHaveBeenCalledTimes(2);
+    expect(result.current.events).toEqual(updatedEvents);
+  });
+
+  it('refreshHypothesis updates hypothesis data including technicalPlannings', async () => {
+    const initialHypothesis = {
+      id: 'hyp-1',
+      statement: 'Test',
+      status: 'Open' as const,
+      sourceType: 'Other' as const,
+      entityRefs: [],
+      relatedArtefacts: [],
+      qualityAttributes: [],
+      uncertainty: 'Medium' as const,
+      impact: 'Medium' as const,
+      technicalPlannings: [],
+      notes: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    const updatedHypothesis = {
+      ...initialHypothesis,
+      uncertainty: 'High' as const,
+      technicalPlannings: [{ id: 'tp-1' }],
+    };
+
+    mockHypoStageApi.getHypotheses
+      .mockResolvedValueOnce([initialHypothesis])
+      .mockResolvedValueOnce([updatedHypothesis]);
+    mockHypoStageApi.getEvents
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([{ id: 'evt-1', eventType: 'TECHNICAL_PLANNING_CREATE', changes: { uncertainty: 'High' } }]);
+
+    const { result } = renderHook(() => useHypothesisData('hyp-1'), { wrapper });
+
+    await waitFor(() => {
+      expect(result.current.loading).toBe(false);
+    });
+
+    expect(result.current.hypothesis?.technicalPlannings).toEqual([]);
+
+    await act(async () => {
+      await result.current.refreshHypothesis();
+    });
+
+    expect(result.current.hypothesis?.uncertainty).toBe('High');
+    expect(result.current.hypothesis?.technicalPlannings).toEqual([{ id: 'tp-1' }]);
+    expect(result.current.events).toHaveLength(1);
   });
 });

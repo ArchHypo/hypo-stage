@@ -11,6 +11,8 @@ export type {
   SourceType,
   Status,
   TechnicalPlanning,
+  TechnicalPlanningCreateEvent,
+  TechnicalPlanningUpdateEvent,
   UpdateHypothesisInput,
   UpdateTechnicalPlanningInput,
 } from './types/hypothesis';

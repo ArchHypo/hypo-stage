@@ -19,23 +19,34 @@ import { useStyles } from '../hooks/useStyles';
 import { HypoStageApiRef } from '../api/HypoStageApi';
 import { TechnicalPlanningForm } from './TechnicalPlanningForm';
 import { useEditTechnicalPlanning } from '../hooks/forms/useEditTechnicalPlanning';
-import { TechnicalPlanning } from '@archhypo/plugin-hypo-stage-backend';
+import { TechnicalPlanning, Hypothesis } from '@archhypo/plugin-hypo-stage-backend';
 
 interface TechnicalPlanningItemProps {
   technicalPlanning: TechnicalPlanning;
+  hypothesis: Hypothesis;
   index: number;
-  onRefresh: () => void;
+  onRefresh: () => Promise<void>;
+  isEditing: boolean;
+  onEditStart: () => void;
+  onEditEnd: () => void;
 }
 
 export const TechnicalPlanningItem: React.FC<TechnicalPlanningItemProps> = ({
   technicalPlanning,
+  hypothesis,
   index,
-  onRefresh
+  onRefresh,
+  isEditing,
+  onEditStart,
+  onEditEnd,
 }) => {
   const classes = useStyles();
   const api = useApi(HypoStageApiRef);
-  const { formData, updateField, loading, isFormValid, handleSubmit } = useEditTechnicalPlanning(technicalPlanning);
-  const [isEditing, setIsEditing] = useState(false);
+  const { formData, updateField, loading, isFormValid, handleSubmit } = useEditTechnicalPlanning(
+    technicalPlanning,
+    hypothesis.uncertainty,
+    hypothesis.impact,
+  );
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -48,7 +59,8 @@ export const TechnicalPlanningItem: React.FC<TechnicalPlanningItemProps> = ({
     try {
       await api.deleteTechnicalPlanning(technicalPlanning.id);
       setDeleteDialogOpen(false);
-      onRefresh();
+      onEditEnd();
+      await onRefresh();
     } catch (err) {
       // Error handling is done by the notification system
     } finally {
@@ -60,20 +72,15 @@ export const TechnicalPlanningItem: React.FC<TechnicalPlanningItemProps> = ({
     setDeleteDialogOpen(false);
   };
 
-  const handleEditClick = () => {
-    setIsEditing(true);
-  };
-
-
   const handleEditSubmit = () => {
-    handleSubmit(() => {
-      setIsEditing(false);
-      onRefresh();
+    handleSubmit(technicalPlanning.id, async () => {
+      onEditEnd();
+      await onRefresh();
     });
   };
 
   const handleEditCancel = () => {
-    setIsEditing(false);
+    onEditEnd();
   };
 
   return (
@@ -88,7 +95,7 @@ export const TechnicalPlanningItem: React.FC<TechnicalPlanningItemProps> = ({
               variant="outlined"
               size="small"
               startIcon={<EditIcon />}
-              onClick={handleEditClick}
+              onClick={onEditStart}
               disabled={isEditing}
               className={classes.marginRight}
             >
@@ -120,6 +127,17 @@ export const TechnicalPlanningItem: React.FC<TechnicalPlanningItemProps> = ({
           />
         ) : (
           <Grid container spacing={2}>
+            <Grid item xs={12}>
+              <Typography variant="caption" color="textSecondary">
+                Planning ID
+              </Typography>
+              <Typography
+                variant="body2"
+                style={{ fontFamily: 'monospace', fontSize: '0.85rem', marginTop: 2, marginBottom: 8 }}
+              >
+                {technicalPlanning.id}
+              </Typography>
+            </Grid>
             <Grid item xs={12}>
               <Typography variant="h6" gutterBottom>
                 Owner

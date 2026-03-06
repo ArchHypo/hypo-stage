@@ -73,8 +73,6 @@ export const updateHypothesisSchema = z.object({
   sourceType: sourceTypeSchema,
   relatedArtefacts: z.array(z.string().url()),
   qualityAttributes: z.array(qualityAttributeSchema),
-  uncertainty: likertScaleSchema,
-  impact: likertScaleSchema,
   notes: z.string().nullable(),
 });
 
@@ -106,9 +104,13 @@ export const createTechnicalPlanningSchema = z.object({
   expectedOutcome: z.string().min(1).max(500),
   documentations: z.array(z.string().url()),
   targetDate: isoDateStringSchema,
+  uncertainty: likertScaleSchema.optional(),
+  impact: likertScaleSchema.optional(),
 });
 
 export const updateTechnicalPlanningSchema = z.object({
   expectedOutcome: z.string().min(1).max(500),
   documentations: z.array(z.string().url()),
+  uncertainty: likertScaleSchema.optional(),
+  impact: likertScaleSchema.optional(),
 });

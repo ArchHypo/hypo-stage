@@ -72,20 +72,20 @@ export const HypothesisDetails: React.FC<HypothesisDetailsProps> = ({
         </Typography>
         <Box className={`${classes.flexWrap} ${classes.marginBottom}`} style={{ gap: 8 }}>
           <Chip
-            label={hypothesis.status}
+            label={`Status: ${hypothesis.status}`}
             className={`${classes.statusChip} ${getStatusClass(hypothesis.status, classes)}`}
           />
           <Chip
-            label={hypothesis.uncertainty}
+            label={`Uncertainty: ${hypothesis.uncertainty}`}
             className={`${classes.statusChip} ${getUncertaintyClass(hypothesis.uncertainty, classes)}`}
           />
           <Chip
-            label={hypothesis.impact}
+            label={`Impact: ${hypothesis.impact}`}
             className={`${classes.statusChip} ${getImpactClass(hypothesis.impact, classes)}`}
           />
           {focusTag !== null && (
             <Chip
-              label={focusTag === 'need-attention' ? 'Needs attention' : 'Can postpone'}
+              label={`Focus: ${focusTag === 'need-attention' ? 'Needs attention' : 'Can postpone'}`}
               className={`${classes.statusChip} ${
                 focusTag === 'need-attention' ? classes.focusChipNeedAttention : classes.focusChipCanPostpone
               }`}

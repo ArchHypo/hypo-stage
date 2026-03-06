@@ -38,7 +38,7 @@ Open a hypothesis from the list to see its statement, status, assessment (uncert
 
 ## 4. ✏️ Edit a hypothesis
 
-From the detail page, open **Edit** to change status, source type, uncertainty, impact, quality attributes, related artefacts, and notes (statement and entity refs stay read-only). Submit with **Update Hypothesis** to return to the detail view and see the evolution chart update.
+From the detail page, open **Edit** to change status, source type, quality attributes, related artefacts, and notes (statement and entity refs stay read-only). Uncertainty and impact can no longer be changed from the edit form — use technical planning to reassess those values. Submit with **Update Hypothesis** to return to the detail view.
 
 ![Edit a hypothesis](e2e/walkthrough-videos/walkthrough-4-edit.gif)
 
@@ -48,7 +48,7 @@ From the detail page, open **Edit** to change status, source type, uncertainty, 
 
 ## 5. 📅 Technical planning
 
-On a hypothesis detail page, use **Add Technical Planning** to add items: owner, action type, target date, description, expected outcome, and documentation links. You can edit or delete each item; delete requires confirmation.
+On a hypothesis detail page, use **Add Technical Planning** to add items: owner, action type, target date, description, expected outcome, and documentation links. When creating or editing a plan, you can optionally reassess uncertainty and impact (pre-filled with current values). These changes are recorded as events and shown in the evolution chart with distinct square markers and tooltips displaying the technical planning number and short ID. You can edit or delete each item; delete requires confirmation.
 
 ![Technical planning](e2e/walkthrough-videos/walkthrough-5-technical-planning.gif)
 
