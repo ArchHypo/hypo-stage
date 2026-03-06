@@ -26,13 +26,19 @@ interface TechnicalPlanningItemProps {
   hypothesis: Hypothesis;
   index: number;
   onRefresh: () => Promise<void>;
+  isEditing: boolean;
+  onEditStart: () => void;
+  onEditEnd: () => void;
 }
 
 export const TechnicalPlanningItem: React.FC<TechnicalPlanningItemProps> = ({
   technicalPlanning,
   hypothesis,
   index,
-  onRefresh
+  onRefresh,
+  isEditing,
+  onEditStart,
+  onEditEnd,
 }) => {
   const classes = useStyles();
   const api = useApi(HypoStageApiRef);
@@ -41,7 +47,6 @@ export const TechnicalPlanningItem: React.FC<TechnicalPlanningItemProps> = ({
     hypothesis.uncertainty,
     hypothesis.impact,
   );
-  const [isEditing, setIsEditing] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -54,6 +59,7 @@ export const TechnicalPlanningItem: React.FC<TechnicalPlanningItemProps> = ({
     try {
       await api.deleteTechnicalPlanning(technicalPlanning.id);
       setDeleteDialogOpen(false);
+      onEditEnd();
       await onRefresh();
     } catch (err) {
       // Error handling is done by the notification system
@@ -66,20 +72,15 @@ export const TechnicalPlanningItem: React.FC<TechnicalPlanningItemProps> = ({
     setDeleteDialogOpen(false);
   };
 
-  const handleEditClick = () => {
-    setIsEditing(true);
-  };
-
-
   const handleEditSubmit = () => {
-    handleSubmit(async () => {
-      setIsEditing(false);
+    handleSubmit(technicalPlanning.id, async () => {
+      onEditEnd();
       await onRefresh();
     });
   };
 
   const handleEditCancel = () => {
-    setIsEditing(false);
+    onEditEnd();
   };
 
   return (
@@ -94,7 +95,7 @@ export const TechnicalPlanningItem: React.FC<TechnicalPlanningItemProps> = ({
               variant="outlined"
               size="small"
               startIcon={<EditIcon />}
-              onClick={handleEditClick}
+              onClick={onEditStart}
               disabled={isEditing}
               className={classes.marginRight}
             >

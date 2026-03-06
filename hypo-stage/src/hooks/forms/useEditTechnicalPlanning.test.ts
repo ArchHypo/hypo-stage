@@ -113,7 +113,7 @@ describe('useEditTechnicalPlanning', () => {
     rerender();
 
     await act(async () => {
-      await result.current.handleSubmit();
+      await result.current.handleSubmit('tp-1');
     });
 
     expect(mockApi.updateTechnicalPlanning).toHaveBeenCalledWith(
@@ -139,14 +139,14 @@ describe('useEditTechnicalPlanning', () => {
     rerender();
 
     await act(async () => {
-      await result.current.handleSubmit();
+      await result.current.handleSubmit('tp-1');
     });
 
     const call = mockApi.updateTechnicalPlanning.mock.calls[0][1];
     expect(call.uncertainty).toBeUndefined();
   });
 
-  it('sends correct technicalPlanning.id to the API', async () => {
+  it('sends the planning ID passed to handleSubmit to the API', async () => {
     const { result } = renderHook(
       () => useEditTechnicalPlanning(basePlanning, 'High', 'Medium'),
       { wrapper },
@@ -157,11 +157,32 @@ describe('useEditTechnicalPlanning', () => {
     });
 
     await act(async () => {
-      await result.current.handleSubmit();
+      await result.current.handleSubmit('tp-1');
     });
 
     expect(mockApi.updateTechnicalPlanning).toHaveBeenCalledWith(
       'tp-1',
+      expect.anything(),
+    );
+  });
+
+  it('uses the planning ID passed at call time, not from closure', async () => {
+    const planningA = { ...basePlanning, id: 'planning-a-id' };
+    const { result } = renderHook(
+      () => useEditTechnicalPlanning(planningA, 'High', 'Medium'),
+      { wrapper },
+    );
+
+    act(() => {
+      result.current.updateField('uncertainty', 'Low');
+    });
+
+    await act(async () => {
+      await result.current.handleSubmit('planning-b-id');
+    });
+
+    expect(mockApi.updateTechnicalPlanning).toHaveBeenCalledWith(
+      'planning-b-id',
       expect.anything(),
     );
   });

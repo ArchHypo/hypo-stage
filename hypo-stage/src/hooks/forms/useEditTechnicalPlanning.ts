@@ -58,7 +58,10 @@ export const useEditTechnicalPlanning = (
     formData.expectedOutcome.trim().length <= 500 &&
     formData.documentations.length > 0;
 
-  const handleSubmit = useCallback(async (onSuccess?: () => void | Promise<void>) => {
+  const handleSubmit = useCallback(async (
+    planningId: string,
+    onSuccess?: () => void | Promise<void>,
+  ) => {
     if (!isFormValid) return;
 
     try {
@@ -69,14 +72,14 @@ export const useEditTechnicalPlanning = (
         ...(formData.impact && formData.impact !== latestImpact.current ? { impact: formData.impact as LikertScale } : {}),
       };
 
-      await execute(() => api.updateTechnicalPlanning(technicalPlanning.id, technicalPlanningData));
+      await execute(() => api.updateTechnicalPlanning(planningId, technicalPlanningData));
 
       showSuccess('Technical planning updated successfully!');
       await onSuccess?.();
     } catch (error) {
       showError(error instanceof Error ? error.message : 'Failed to update technical planning');
     }
-  }, [technicalPlanning.id, api, formData, isFormValid, execute, showSuccess, showError]);
+  }, [api, formData, isFormValid, execute, showSuccess, showError]);
 
   return {
     formData,
