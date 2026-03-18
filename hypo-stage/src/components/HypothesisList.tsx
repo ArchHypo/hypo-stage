@@ -343,7 +343,7 @@ export const HypothesisList = ({ refreshKey = 0, entityRef }: HypothesisListProp
               This will permanently delete this hypothesis and all its technical planning. This action cannot be undone.
             </DialogContentText>
             <DialogContentText>
-              To confirm, type the complete hypothesis name below. Copy and paste is not allowed.
+              To confirm, type or paste the complete hypothesis name below.
             </DialogContentText>
             <Box mt={2} mb={1}>
               <TextField
@@ -353,7 +353,6 @@ export const HypothesisList = ({ refreshKey = 0, entityRef }: HypothesisListProp
                 placeholder="Type the hypothesis name here..."
                 value={deleteConfirmText}
                 onChange={(e) => setDeleteConfirmText(e.target.value)}
-                onPaste={(e) => e.preventDefault()}
                 inputProps={{
                   'aria-label': 'Confirm hypothesis name',
                   'data-testid': 'delete-hypothesis-confirm-input',
@@ -363,7 +362,7 @@ export const HypothesisList = ({ refreshKey = 0, entityRef }: HypothesisListProp
             </Box>
             <DialogContentText variant="body2" color="textSecondary" component="div">
               <strong>Reference — type this exactly:</strong>
-              <Box component="p" style={{ wordBreak: 'break-word', userSelect: 'none' }}>
+              <Box component="p" style={{ wordBreak: 'break-word' }}>
                 {deleteDialogHypothesis.statement}
               </Box>
             </DialogContentText>
