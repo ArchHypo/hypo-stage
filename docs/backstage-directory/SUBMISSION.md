@@ -2,6 +2,27 @@
 
 This guide walks through submitting HypoStage to the [Backstage Plugin Directory](https://backstage.io/plugins/) and includes pre-submission checks based on the [official documentation](https://backstage.io/docs/plugins/add-to-directory).
 
+## Context and activity log
+
+**Goal:** List HypoStage on the official plugin directory with correct npm packages, docs link, and icon.
+
+**Performed in this repository (HypoStage)**
+
+| When | What |
+|------|------|
+| **npm v1.0.0** | Both `@archhypo/plugin-hypo-stage` and `@archhypo/plugin-hypo-stage-backend` published publicly; install docs and README updated on `main`. |
+| **Directory YAML** | [hypo-stage.yaml](./hypo-stage.yaml) updated for current Backstage validation: required **`status: active`**, **`documentation`** → README on **main** (GitHub URL), **`iconUrl`** → ArchHypo org GitHub avatar (rights: org branding), **`npmPackageName`** → frontend package, **`addedDate`** set for the prepared listing (change if upstream wants the merge date). |
+| **Docs refresh** | This guide and [README.md](./README.md) updated with checklists, upstream PR steps, and suggested PR body for `backstage/backstage`. |
+| **HypoStage PR** | Example tracking PR: [ArchHypo/hypo-stage#36](https://github.com/ArchHypo/hypo-stage/pull/36) — merge so `docs/backstage-directory/` on `main` is the source of truth before copying YAML upstream. |
+
+**Still to do (outside this repo)**
+
+1. Fork [backstage/backstage](https://github.com/backstage/backstage), copy `hypo-stage.yaml` to `microsite/data/plugins/`, run `node ./scripts/verify-plugin-directory.js`.
+2. Open the directory PR; address review (e.g. host icon under `microsite/static/img/` if requested).
+3. After merge, **sync** the final YAML (and this log) back here.
+
+---
+
 ## Prerequisites (HypoStage repo — status)
 
 Before submitting a PR to the Backstage repository, ensure the following are complete:
