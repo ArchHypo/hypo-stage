@@ -13,7 +13,7 @@ Materials for listing **HypoStage** on the [official Backstage Plugin Directory]
 ## Activities performed (HypoStage repo)
 
 - **SemVer 1.0.0** released to npm; packages public with `repository` / `directory` metadata.
-- **`hypo-stage.yaml`** prepared for the microsite: `title`, `author`, `authorUrl`, `category: Discovery`, `description` (within length limits), `documentation` → main README, `npmPackageName` → frontend package, **`status: active`**, **`addedDate`** (set when the directory entry was prepared; adjust if Backstage maintainers request the merge date), **`iconUrl`** → repo-hosted PNG under [icon/](./icon/) (stable `raw.githubusercontent.com` URL on `main`).
+- **`hypo-stage.yaml`** prepared for the microsite: `title`, `author`, `authorUrl`, `category: Discovery`, `description` (within length limits), `documentation` → README at **`v1.0.0`** (stable tag URL), `npmPackageName` → frontend package, **`status: active`**, **`addedDate`** (set when the directory entry was prepared; adjust if Backstage maintainers request the merge date), **`iconUrl`** → repo-hosted PNG under [icon/](./icon/) (stable `raw.githubusercontent.com` URL on `main`).
 - **`SUBMISSION.md`** expanded with completed prerequisite checklists, fork/clone/validate/PR steps, and a suggested PR body for the Backstage repository.
 - **Tracking PR (example):** [HypoStage #36 — directory docs & YAML](https://github.com/ArchHypo/hypo-stage/pull/36) (merge to `main` so this folder on default branch matches what you copy into Backstage).
 
