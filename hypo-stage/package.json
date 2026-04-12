@@ -1,8 +1,24 @@
 {
   "name": "@archhypo/plugin-hypo-stage",
-  "version": "0.1.2",
+  "version": "1.0.0",
+  "description": "Backstage frontend plugin for architectural hypotheses, uncertainty/impact tracking, and technical planning.",
+  "keywords": [
+    "backstage",
+    "backstage-plugin",
+    "hypothesis",
+    "architecture",
+    "architectural-decision-records",
+    "uncertainty",
+    "technical-planning",
+    "catalog",
+    "archhypo"
+  ],
   "license": "Apache-2.0",
   "author": "ArchHypo (https://github.com/ArchHypo)",
+  "homepage": "https://github.com/ArchHypo/hypo-stage#readme",
+  "bugs": {
+    "url": "https://github.com/ArchHypo/hypo-stage/issues"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/ArchHypo/hypo-stage",
@@ -40,7 +56,7 @@
     "@backstage/core-plugin-api": "^1.10.6",
     "@backstage/plugin-catalog-react": "^1.15.2",
     "@backstage/theme": "^0.6.5",
-    "@archhypo/plugin-hypo-stage-backend": "^0.1.0",
+    "@archhypo/plugin-hypo-stage-backend": "^1.0.0",
     "@material-ui/core": "^4.9.13",
     "@material-ui/icons": "^4.9.1",
     "@material-ui/lab": "^4.0.0-alpha.61",

@@ -2,6 +2,8 @@
 
 This guide covers publishing `@archhypo/plugin-hypo-stage` and `@archhypo/plugin-hypo-stage-backend` to the NPM registry.
 
+**Current line:** The project uses **`1.x`** releases on npm from **v1.0.0** onward (first stable 1.x baseline). Document user-facing changes in the root [`CHANGELOG.md`](../CHANGELOG.md) when you cut a release.
+
 ---
 
 ## Version management (SemVer)
@@ -21,7 +23,7 @@ HypoStage follows **Semantic Versioning** (`X.Y.Z`), an industry standard for ve
 
 ### During initial development (0.y.z)
 
-Before `1.0.0`, treat the API as unstable. Increment MINOR for new features and PATCH for fixes. Release `1.0.0` when the API is stable and production-ready.
+Before `1.0.0`, treat the API as unstable. From **`1.0.0`**, follow SemVer for the public plugin API and published packages; increment **MAJOR** for incompatible changes (for example, required `app-config` shape or breaking REST contract changes).
 
 ### Pre-release (optional)
 

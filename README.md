@@ -12,6 +12,13 @@
   <sub>Architectural hypothesis management that fits right into your Backstage.</sub>
 </p>
 
+<p align="center">
+  <a href="https://www.npmjs.com/package/@archhypo/plugin-hypo-stage"><img src="https://img.shields.io/npm/v/@archhypo/plugin-hypo-stage?label=frontend" alt="npm: frontend package" /></a>
+  <a href="https://www.npmjs.com/package/@archhypo/plugin-hypo-stage-backend"><img src="https://img.shields.io/npm/v/@archhypo/plugin-hypo-stage-backend?label=backend" alt="npm: backend package" /></a>
+  <a href="https://github.com/ArchHypo/hypo-stage/actions/workflows/ci.yml"><img src="https://github.com/ArchHypo/hypo-stage/actions/workflows/ci.yml/badge.svg" alt="CI status" /></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-LGPL--3.0-blue.svg" alt="License LGPL-3.0" /></a>
+</p>
+
 ---
 
 HypoStage integrates architectural hypothesis management into your Backstage environment, enabling teams to document, track, and validate architectural decisions effectively. This plugin provides a comprehensive framework for managing architectural hypotheses with uncertainty assessment, quality attributes tracking, and technical planning capabilities.
@@ -19,6 +26,14 @@ HypoStage integrates architectural hypothesis management into your Backstage env
 The animated image at the top of this page is an **illustrative preview** of the plugin home and dashboard; it may not match the latest UI pixel-for-pixel.
 
 A **demo with seed data** is available for a quick overview: [https://hypo-stage-hypo-stage.vercel.app](https://hypo-stage-hypo-stage.vercel.app/). It is not for production—just an alternative way to see the plugin in action. See [Standalone demo deployment](docs/standalone-demo-deployment.md) for how we set it up.
+
+## 📌 Current release, Backstage, and community
+
+**Npm:** **`@archhypo/plugin-hypo-stage@1.0.0`** and **`@archhypo/plugin-hypo-stage-backend@1.0.0`** — the first **1.x** line. Treat this as the **stable baseline** for Backstage adopters: SemVer applies from `1.0.0` onward (breaking changes would bump **major**).
+
+**Backstage:** HypoStage is a normal Backstage **frontend + backend** plugin pair. Install both packages at the **same version**, wire routes and the backend module, and configure a database as in [Installation](#installation). Keep your app on a [maintained Backstage release](https://github.com/backstage/backstage/releases) and Node.js **20+** (see [Prerequisites](#-prerequisites)).
+
+**Open source:** [CHANGELOG.md](CHANGELOG.md) · [Security policy](SECURITY.md) · [Contributing](CONTRIBUTING.md) · [Issues](https://github.com/ArchHypo/hypo-stage/issues)
 
 ---
 
@@ -55,6 +70,7 @@ Then open **http://localhost:3000** and use the Hypo Stage UI (you’re signed i
 ## 📑 Table of contents
 
 **Get started**
+- [📌 Current release, Backstage, and community](#-current-release-backstage-and-community)
 - [📖 What is HypoStage?](#-what-is-hypostage)
 - [📁 Repository structure](#-repository-structure)
 - [✅ Prerequisites](#-prerequisites)
@@ -82,6 +98,9 @@ Then open **http://localhost:3000** and use the Hypo Stage UI (you’re signed i
 - [📄 License](#-license)
 - [📜 Backstage Plugin Directory](#-backstage-plugin-directory)
 - [📦 NPM publishing](#-npm-publishing)
+- [📜 Changelog](CHANGELOG.md)
+- [🔒 Security](SECURITY.md)
+- [🤝 Contributing](CONTRIBUTING.md)
 
 ---
 
@@ -91,7 +110,7 @@ HypoStage can be added to the [official Backstage Plugin Directory](https://back
 
 ## 📦 NPM publishing
 
-To publish a new version: (1) set `"version": "X.Y.Z"` (using [Semantic Versioning](https://semver.org/)) in both `hypo-stage/package.json` and `hypo-stage-backend/package.json`, (2) merge via PR (main is protected), (3) create a GitHub Release with tag `vX.Y.Z` from main. The [publish workflow](.github/workflows/publish-npm.yml) runs automatically and publishes both packages to NPM. See [docs/npm-publishing.md](docs/npm-publishing.md) for version guidelines, setup (NPM token), and release steps.
+To publish a new version: (1) set `"version": "X.Y.Z"` (using [Semantic Versioning](https://semver.org/)) in both `hypo-stage/package.json` and `hypo-stage-backend/package.json`, (2) merge via PR (main is protected), (3) create a GitHub Release with tag `vX.Y.Z` from main. The [publish workflow](.github/workflows/publish-npm.yml) runs automatically and publishes both packages to NPM. See [docs/npm-publishing.md](docs/npm-publishing.md) for version guidelines, setup (NPM token), and release steps. After publishing, update [CHANGELOG.md](CHANGELOG.md) and this README’s **Current release** section when you cut the next version.
 
 ---
 
@@ -118,6 +137,9 @@ Monorepo (Yarn workspaces):
 | `docs/images/` | — | Illustrative asset for the root README (`hypo-stage-demo.gif`). |
 | `docs/backstage-directory/` | — | Materials for [Backstage Plugin Directory](#-backstage-plugin-directory) submission |
 | `docs/npm-publishing.md` | — | [NPM publishing](#-npm-publishing) guide |
+| `CHANGELOG.md` | — | Version history ([Keep a Changelog](https://keepachangelog.com/)) |
+| `SECURITY.md` | — | How to report security issues |
+| `CONTRIBUTING.md` | — | How to contribute |
 
 From the repo root: `yarn build`, `yarn test`, `yarn lint` run for both packages. See [Makefile reference](#makefile-reference) for convenience targets.
 
@@ -174,15 +196,15 @@ Full step-by-step: [Installation](#installation). Package-specific setup guides:
 
 ## 📦 Installation
 
-Use these steps to add HypoStage to an existing Backstage application (v1.16.0+).
+Use these steps to add HypoStage to an existing Backstage application (Backstage **1.x** app layout; align plugin versions with your app’s Backstage packages).
 
 ### Step 0: Add the plugin packages
 
-**Option A — From NPM** (when published):
+**Option A — From NPM** (recommended; use **matching** versions, e.g. **1.0.0**):
 
 ```bash
-yarn --cwd packages/app add @archhypo/plugin-hypo-stage
-yarn --cwd packages/backend add @archhypo/plugin-hypo-stage-backend
+yarn --cwd packages/app add @archhypo/plugin-hypo-stage@^1.0.0
+yarn --cwd packages/backend add @archhypo/plugin-hypo-stage-backend@^1.0.0
 ```
 
 **Option B — From source** (clone and copy into your app’s `plugins/` directory):

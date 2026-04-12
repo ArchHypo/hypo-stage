@@ -1,8 +1,22 @@
 {
   "name": "@archhypo/plugin-hypo-stage-backend",
-  "version": "0.1.2",
+  "version": "1.0.0",
+  "description": "Backstage backend plugin for HypoStage: REST API, database migrations, and hypothesis services.",
+  "keywords": [
+    "backstage",
+    "backstage-plugin",
+    "hypothesis",
+    "architecture",
+    "backend-plugin",
+    "express",
+    "archhypo"
+  ],
   "license": "Apache-2.0",
   "author": "ArchHypo (https://github.com/ArchHypo)",
+  "homepage": "https://github.com/ArchHypo/hypo-stage#readme",
+  "bugs": {
+    "url": "https://github.com/ArchHypo/hypo-stage/issues"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/ArchHypo/hypo-stage",
