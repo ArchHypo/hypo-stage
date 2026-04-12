@@ -13,8 +13,8 @@ This guide walks through submitting HypoStage to the [Backstage Plugin Directory
 | **npm v1.0.0** | Both `@archhypo/plugin-hypo-stage` and `@archhypo/plugin-hypo-stage-backend` published publicly; install docs and README updated on `main`. |
 | **Directory YAML** | [hypo-stage.yaml](./hypo-stage.yaml) updated for current Backstage validation: required **`status: active`**, **`documentation`** → README at Git tag **`v1.0.0`** (stable `blob/v1.0.0/README.md` URL; bump tag in YAML when you cut a new directory-relevant release), **`iconUrl`** → stable `raw.githubusercontent.com` URL for [icon/hypo-stage.png](./icon/hypo-stage.png) on **`main`** (merge this branch before the directory URL resolves), **`npmPackageName`** → frontend package, **`addedDate`** set for the prepared listing (change if upstream wants the merge date). |
 | **Docs refresh** | This guide and [README.md](./README.md) updated with checklists, upstream PR steps, and suggested PR body for `backstage/backstage`. |
-| **HypoStage PR** | Example tracking PR: [ArchHypo/hypo-stage#36](https://github.com/ArchHypo/hypo-stage/pull/36) — merge so `docs/backstage-directory/` on `main` is the source of truth before copying YAML upstream. |
-| **Backstage fork + PR** | Fork: [ArchHypo/backstage](https://github.com/ArchHypo/backstage). Branch `add-hypo-stage-plugin-directory` pushed from `BACKSTAGE_ROOT=~/devs/backstage` (remotes: `origin` → fork, `upstream` → `backstage/backstage`). Upstream directory PR: [backstage/backstage#33853](https://github.com/backstage/backstage/pull/33853). Follow-up: `iconUrl` switched to HypoStage `main` raw PNG after [icon/hypo-stage.png](./icon/hypo-stage.png) is merged (addresses Copilot feedback on hotlinked avatar query params). |
+| **HypoStage PR** | Directory docs branch: [ArchHypo/hypo-stage#37](https://github.com/ArchHypo/hypo-stage/pull/37) — merge so `docs/backstage-directory/` on `main` matches what you copy into Backstage. |
+| **Backstage fork + PR** | Fork: [ArchHypo/backstage](https://github.com/ArchHypo/backstage). Branch `add-hypo-stage-plugin-directory` (remotes: `origin` → fork, `upstream` → `backstage/backstage`). Upstream: [backstage/backstage#33853](https://github.com/backstage/backstage/pull/33853). **Copilot / review:** `documentation` → tagged README (`blob/v1.0.0/README.md`); `iconUrl` → `raw.githubusercontent.com/.../main/docs/backstage-directory/icon/hypo-stage.png` (requires icon merged on HypoStage `main` first). **CI:** DCO failed until commits were rewritten with `Signed-off-by` (see [DCO sign-off](#dco-developer-certificate-of-origin) below); fixed with `git rebase -i HEAD~3 --signoff` + `git push --force-with-lease`. |
 
 **Still to do (outside this repo)**
 
@@ -123,13 +123,17 @@ node ./scripts/verify-plugin-directory.js
 
 The verify script only needs `fs-extra`, `js-yaml`, and `zod` from the repo’s dependencies. If `yarn install` fails on **optional native builds** (for example `isolated-vm` on some macOS setups) but those packages are already present under `node_modules`, you can still run `node ./scripts/verify-plugin-directory.js` and fix any **schema** errors it prints. The PR’s CI is the final gate; resolve install issues if reviewers or CI require a clean install.
 
-### 4. Commit
+### 4. Commit (DCO sign-off required)
+
+`backstage/backstage` enforces the [Developer Certificate of Origin (DCO)](https://developercertificate.org/): every commit must end with a **`Signed-off-by: ...`** line matching the author. Use **`git commit -s`** (short for **`--signoff`**) so Git adds that trailer from your `user.name` and `user.email`.
 
 ```bash
 cd "$BACKSTAGE_ROOT"
 git add microsite/data/plugins/hypo-stage.yaml
-git commit -m "Add HypoStage plugin to plugin directory"
+git commit -s -m "Add HypoStage plugin to plugin directory"
 ```
+
+Use **`-s` on every follow-up commit** in the same PR (e.g. `git commit -s -m "..."`, or `git commit -s --amend --no-edit` after an amend).
 
 ### 5. Push and open the PR
 
@@ -151,6 +155,30 @@ gh pr create --repo backstage/backstage --base master --head <you>:add-hypo-stag
 ```
 
 Put the markdown from the next subsection into `pr-body.md` (or paste it in the web form).
+
+### DCO (Developer Certificate of Origin)
+
+If the **DCO** check fails (e.g. *“commits incorrectly signed off”*), add **`Signed-off-by`** to the affected commits. **Only** do this if **you** wrote every commit on that branch and nobody else has based work on those SHAs (rewriting history changes commit hashes).
+
+1. Check out your fork branch (e.g. `add-hypo-stage-plugin-directory`) and ensure `origin` is the fork.
+2. Rebase the last **N** commits with sign-off (**N** = number the CI message gives, e.g. `3`):
+
+```bash
+cd "$BACKSTAGE_ROOT"
+git checkout add-hypo-stage-plugin-directory
+git fetch origin
+GIT_SEQUENCE_EDITOR=true git rebase -i "HEAD~N" --signoff
+```
+
+Replace **`N`** with the reported count. `GIT_SEQUENCE_EDITOR=true` accepts the default todo list so each replayed commit gets **`Signed-off-by`** appended.
+
+3. Update the remote branch safely:
+
+```bash
+git push --force-with-lease origin add-hypo-stage-plugin-directory
+```
+
+The open PR will pick up the new commits and DCO should pass on the next run.
 
 ### 6. Suggested PR title and description
 
@@ -183,6 +211,11 @@ Both packages are public at **v1.0.0**; install the same version of frontend + b
 
 Sync this repo’s [hypo-stage.yaml](./hypo-stage.yaml) with any edits reviewers requested (e.g. `addedDate`, `documentation` tag, `iconUrl` path, wording).
 
+### Keeping `hypo-stage.yaml` in sync with the Backstage PR
+
+- **While the PR is open:** treat **`microsite/data/plugins/hypo-stage.yaml` on your fork branch** as the live copy. After you edit HypoStage’s [hypo-stage.yaml](./hypo-stage.yaml), copy again into `$BACKSTAGE_ROOT` and commit with **`-s`**. If maintainers change the file on the PR, copy **from** the fork back into HypoStage (or diff the two paths locally).
+- **After merge:** copy from **`backstage/backstage`** default branch ([`microsite/data/plugins/hypo-stage.yaml`](https://github.com/backstage/backstage/blob/master/microsite/data/plugins/hypo-stage.yaml)) into `docs/backstage-directory/hypo-stage.yaml` here and commit.
+
 ---
 
 ## Submission tips (Backstage docs)
@@ -195,6 +228,7 @@ Sync this repo’s [hypo-stage.yaml](./hypo-stage.yaml) with any edits reviewers
 | Repo link on npm | ✅ `repository` in package.json |
 | Public packages | ✅ |
 | Icon | ✅ `iconUrl` in YAML (repo-hosted PNG on `main`) |
+| DCO | ✅ Every Backstage commit uses **`git commit -s`** (or rebase `--signoff` if fixing retroactively) |
 
 ---
 
