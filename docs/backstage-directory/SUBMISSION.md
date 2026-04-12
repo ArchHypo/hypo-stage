@@ -14,11 +14,12 @@ This guide walks through submitting HypoStage to the [Backstage Plugin Directory
 | **Directory YAML** | [hypo-stage.yaml](./hypo-stage.yaml) updated for current Backstage validation: required **`status: active`**, **`documentation`** → README on **main** (GitHub URL), **`iconUrl`** → ArchHypo org GitHub avatar (rights: org branding), **`npmPackageName`** → frontend package, **`addedDate`** set for the prepared listing (change if upstream wants the merge date). |
 | **Docs refresh** | This guide and [README.md](./README.md) updated with checklists, upstream PR steps, and suggested PR body for `backstage/backstage`. |
 | **HypoStage PR** | Example tracking PR: [ArchHypo/hypo-stage#36](https://github.com/ArchHypo/hypo-stage/pull/36) — merge so `docs/backstage-directory/` on `main` is the source of truth before copying YAML upstream. |
+| **Backstage clone (local)** | Example layout: `HYPOSTAGE_ROOT=~/devs/hypo-stage`, `BACKSTAGE_ROOT=~/devs/backstage`. Branch `add-hypo-stage-plugin-directory`, `microsite/data/plugins/hypo-stage.yaml` added and committed; `node ./scripts/verify-plugin-directory.js` passes (Node 20). **Push the branch to your fork** and open the PR to `backstage/backstage` (see below). |
 
 **Still to do (outside this repo)**
 
-1. Fork [backstage/backstage](https://github.com/backstage/backstage), copy `hypo-stage.yaml` to `microsite/data/plugins/`, run `node ./scripts/verify-plugin-directory.js`.
-2. Open the directory PR; address review (e.g. host icon under `microsite/static/img/` if requested).
+1. **Push** the Backstage branch to **your GitHub fork** (not the upstream remote) and open the directory PR to `backstage/backstage`.
+2. Address review (e.g. host icon under `microsite/static/img/` if requested).
 3. After merge, **sync** the final YAML (and this log) back here.
 
 ---
@@ -68,52 +69,95 @@ The file in this folder matches current [verify-plugin-directory.js](https://git
 
 ## Submitting the PR to `backstage/backstage`
 
-### 1. Fork and clone
-
-Fork [backstage/backstage](https://github.com/backstage/backstage), clone your fork, add `upstream` if you like:
+Use a **separate clone** of Backstage (not inside the HypoStage tree). Example paths used in practice:
 
 ```bash
-git clone https://github.com/<your-user>/backstage.git
-cd backstage
+export HYPOSTAGE_ROOT="$HOME/devs/hypo-stage"
+export BACKSTAGE_ROOT="$HOME/devs/backstage"
+```
+
+Adjust if your directories differ.
+
+### 1. Fork, clone, and remotes
+
+1. Fork [backstage/backstage](https://github.com/backstage/backstage) on GitHub (your account or org).
+2. Clone **the fork** (replace `<you>`):
+
+```bash
+git clone https://github.com/<you>/backstage.git "$BACKSTAGE_ROOT"
+cd "$BACKSTAGE_ROOT"
 git remote add upstream https://github.com/backstage/backstage.git
-git fetch upstream && git checkout -b add-hypo-stage-plugin upstream/master
+git fetch upstream
+git checkout -b add-hypo-stage-plugin-directory upstream/master
 ```
 
-### 2. Copy the YAML
-
-From your **hypo-stage** clone:
+If you already cloned **upstream** by mistake, point `origin` at your fork before pushing (do **not** push a contributor branch directly to `backstage/backstage`):
 
 ```bash
-cp /path/to/hypo-stage/docs/backstage-directory/hypo-stage.yaml microsite/data/plugins/hypo-stage.yaml
+cd "$BACKSTAGE_ROOT"
+git remote rename origin upstream
+git remote add origin https://github.com/<you>/backstage.git
+git fetch upstream && git checkout -b add-hypo-stage-plugin-directory upstream/master
 ```
 
-Or copy the contents of [hypo-stage.yaml](./hypo-stage.yaml) into `microsite/data/plugins/hypo-stage.yaml` in the Backstage repo.
+### 2. Copy the directory YAML
 
-### 3. Validate locally (required)
+From the HypoStage repo (source of truth on `main`):
 
 ```bash
-cd /path/to/backstage
+cp "$HYPOSTAGE_ROOT/docs/backstage-directory/hypo-stage.yaml" \
+  "$BACKSTAGE_ROOT/microsite/data/plugins/hypo-stage.yaml"
+```
+
+Alternatively, paste the contents of [hypo-stage.yaml](./hypo-stage.yaml) into that path in the Backstage repo.
+
+### 3. Node and validate locally
+
+Backstage’s Yarn 4 install expects **Node ≥ 18.12** (use **Node 20 LTS** if unsure):
+
+```bash
+cd "$BACKSTAGE_ROOT"
+node -v   # e.g. v20.x
 yarn install
 node ./scripts/verify-plugin-directory.js
 ```
 
-Fix any reported errors before opening the PR.
+The verify script only needs `fs-extra`, `js-yaml`, and `zod` from the repo’s dependencies. If `yarn install` fails on **optional native builds** (for example `isolated-vm` on some macOS setups) but those packages are already present under `node_modules`, you can still run `node ./scripts/verify-plugin-directory.js` and fix any **schema** errors it prints. The PR’s CI is the final gate; resolve install issues if reviewers or CI require a clean install.
 
-### 4. Commit and push
+### 4. Commit
 
 ```bash
+cd "$BACKSTAGE_ROOT"
 git add microsite/data/plugins/hypo-stage.yaml
-git commit -m "Add HypoStage plugin to directory"
-git push origin add-hypo-stage-plugin
+git commit -m "Add HypoStage plugin to plugin directory"
 ```
 
-### 5. Open the PR
+### 5. Push and open the PR
 
-Target **`backstage/backstage`** `master` (or default branch). Suggested **title**:
+Push to **`origin`** on **your fork**, then open a PR against **`backstage/backstage`** default branch (`master` at time of writing):
 
-`Add HypoStage plugin to plugin directory`
+```bash
+git push -u origin add-hypo-stage-plugin-directory
+```
 
-Suggested **description** (edit links if needed):
+Or open the PR in the browser from your fork’s branch page (**Compare & pull request** → base repository **backstage/backstage**, base branch **`master`**).
+
+With [GitHub CLI](https://cli.github.com/), after `gh auth login`:
+
+```bash
+cd "$BACKSTAGE_ROOT"
+gh pr create --repo backstage/backstage --base master --head <you>:add-hypo-stage-plugin-directory \
+  --title "Add HypoStage plugin to plugin directory" \
+  --body-file /path/to/pr-body.md
+```
+
+Put the markdown from the next subsection into `pr-body.md` (or paste it in the web form).
+
+### 6. Suggested PR title and description
+
+**Title:** `Add HypoStage plugin to plugin directory`
+
+**Description** (edit links if needed):
 
 ```markdown
 ## Plugin
@@ -134,7 +178,7 @@ Both packages are public at **v1.0.0**; install the same version of frontend + b
 - [x] `iconUrl` points to permitted branding (org avatar); happy to switch to `/img/...` in this repo if preferred
 ```
 
-### 6. After the Backstage PR merges
+### 7. After the Backstage PR merges
 
 Sync this repo’s [hypo-stage.yaml](./hypo-stage.yaml) with any edits reviewers requested (e.g. `addedDate`, `iconUrl` path, wording).
 
