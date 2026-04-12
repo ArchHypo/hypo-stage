@@ -69,6 +69,7 @@ export const createHypothesisSchema = z.object({
 
 export const updateHypothesisSchema = z.object({
   entityRefs: z.array(z.string()), // Backstage entity reference pattern
+  statement: z.string().min(20).max(500),
   status: statusSchema,
   sourceType: sourceTypeSchema,
   relatedArtefacts: z.array(z.string().url()),

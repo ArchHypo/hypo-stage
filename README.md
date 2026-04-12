@@ -266,7 +266,7 @@ createApiFactory({
 
 - **Open the plugin**: Sidebar → “Hypo Stage” or go to `/hypo-stage`.
 - **Create a hypothesis**: “Create New Hypothesis” → statement, context, uncertainty/impact, quality attributes, optional related-artefact links → save.
-- **Manage**: View, edit, and track evolution from the list and detail pages. **Delete** a hypothesis from the list (row icon) or from the detail page; both require typing the hypothesis statement to confirm. The detail view shows clearly labeled assessment chips (Status, Uncertainty, Impact, Focus).
+- **Manage**: View, edit, and track evolution from the list and detail pages. On **Edit**, you can change the hypothesis statement, status, source type, entity references, quality attributes, optional links, and notes (uncertainty and impact are still adjusted only via technical planning). **Delete** a hypothesis from the list (row icon) or from the detail page; both require typing the current hypothesis statement to confirm. The detail view shows clearly labeled assessment chips (Status, Uncertainty, Impact, Focus).
 - **Technical planning**: On a hypothesis detail page, add, edit, and delete technical planning items (documentation URLs are optional on create and can be added or updated later when editing a plan). When creating or editing a plan, you can optionally reassess uncertainty and impact — these are the only way to change those values after initial creation. Changes are recorded as events and displayed in the evolution chart with distinct markers.
 
 ---

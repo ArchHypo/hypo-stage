@@ -532,6 +532,7 @@ describe('HypoStage Router', () => {
       const hypothesisId = 'hyp-1';
       const input = {
         entityRefs: ['component:default/foo'],
+        statement: 'Updated hypothesis statement with at least twenty characters.',
         status: 'In Review' as const,
         sourceType: 'Requirements' as const,
         relatedArtefacts: [],
@@ -569,6 +570,7 @@ describe('HypoStage Router', () => {
       const hypothesisId = 'hyp-1';
       const input = {
         entityRefs: ['component:default/foo'],
+        statement: 'Another valid hypothesis statement for the router update test.',
         status: 'In Review' as const,
         sourceType: 'Requirements' as const,
         relatedArtefacts: [],
@@ -589,6 +591,38 @@ describe('HypoStage Router', () => {
         .put(`/api/hypo-stage/hypotheses/${hypothesisId}`)
         .send(input)
         .expect(200);
+
+      expect(mockHypothesisService.update).toHaveBeenCalled();
+      const payload = mockHypothesisService.update.mock.calls[0][1] as Record<string, unknown>;
+      expect(payload).not.toHaveProperty('uncertainty');
+      expect(payload).not.toHaveProperty('impact');
+    });
+
+    it('should not update hypothesis when statement is too short', async () => {
+      const hypothesisId = 'hyp-1';
+      const input = {
+        entityRefs: ['component:default/foo'],
+        statement: 'Too short',
+        status: 'In Review' as const,
+        sourceType: 'Requirements' as const,
+        relatedArtefacts: [],
+        qualityAttributes: ['Performance' as const],
+        notes: null,
+      };
+
+      const router = await createRouter({
+        httpAuth: mockHttpAuth,
+        hypothesisService: mockHypothesisService,
+        catalogService: mockCatalogService,
+      });
+      app.use('/api/hypo-stage', router);
+
+      const response = await request(app)
+        .put(`/api/hypo-stage/hypotheses/${hypothesisId}`)
+        .send(input);
+
+      expect(response.status).toBeGreaterThanOrEqual(400);
+      expect(mockHypothesisService.update).not.toHaveBeenCalled();
     });
   });
 });

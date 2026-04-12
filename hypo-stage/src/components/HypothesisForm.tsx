@@ -48,9 +48,7 @@ export const HypothesisForm: React.FC<CreateHypothesisFormProps | EditHypothesis
     onSubmit?.();
   };
 
-  const statementValidation = isCreateMode && formData.statement
-    ? validateHypothesisStatement(formData.statement)
-    : { isValid: true, message: '' };
+  const statementValidation = validateHypothesisStatement(formData.statement);
 
   return (
     <Paper className={classes.formContainer} elevation={0}>
@@ -83,15 +81,14 @@ export const HypothesisForm: React.FC<CreateHypothesisFormProps | EditHypothesis
           <Grid item xs={12}>
             <CustomTextField
                 label="Hypothesis Statement"
-                value={isCreateMode ? formData.statement : props.hypothesis.statement}
-                onChange={isCreateMode ? (value) => onFieldChange('statement', value) : () => {}}
+                value={formData.statement}
+                onChange={(value) => onFieldChange('statement', value)}
                 required
-                disabled={isEditMode}
                 rows={4}
                 placeholder="e.g., The current access control library is compatible with the organization's Single Sign-On protocol."
-                helperText={`${isCreateMode ? formData.statement.length : props.hypothesis.statement.length}/500 characters`}
+                helperText={`${formData.statement.length}/500 characters`}
               />
-              {isCreateMode && !statementValidation.isValid && formData.statement.length > 0 && (
+              {!statementValidation.isValid && formData.statement.length > 0 && (
                 <Typography variant="body2" color="error" className={classes.validationMessage}>
                   ⚠️ {statementValidation.message}
                 </Typography>

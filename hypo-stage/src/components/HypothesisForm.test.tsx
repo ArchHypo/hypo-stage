@@ -40,11 +40,15 @@ const createFormData = (overrides = {}): any => ({
   ...overrides,
 });
 
+const EDIT_MODE_STATEMENT =
+  'Existing hypothesis statement used in HypothesisForm edit mode unit tests.';
+
 const editFormData = (overrides = {}): any => ({
   entityRefs: [],
+  statement: EDIT_MODE_STATEMENT,
   status: 'Open',
   sourceType: 'Requirements',
-  qualityAttributes: [],
+  qualityAttributes: ['Performance'],
   relatedArtefacts: [],
   notes: '',
   ...overrides,
@@ -140,12 +144,12 @@ describe('HypothesisForm', () => {
   describe('edit mode', () => {
     const mockHypothesis = {
       id: 'hyp-1',
-      statement: 'Existing statement',
+      statement: EDIT_MODE_STATEMENT,
       status: 'Open' as const,
       sourceType: 'Requirements' as const,
       entityRefs: ['component:default/foo'],
       relatedArtefacts: [],
-      qualityAttributes: [],
+      qualityAttributes: ['Performance' as const],
       uncertainty: 'Medium' as const,
       impact: 'High' as const,
       technicalPlannings: [],
@@ -202,6 +206,61 @@ describe('HypothesisForm', () => {
 
       expect(screen.queryByText('Uncertainty Level')).not.toBeInTheDocument();
       expect(screen.queryByText('Impact Level')).not.toBeInTheDocument();
+    });
+
+    it('should keep hypothesis statement editable in edit mode', () => {
+      const formData = editFormData();
+      renderWithTheme(
+        <HypothesisForm
+          mode="edit"
+          hypothesis={mockHypothesis}
+          formData={formData}
+          onFieldChange={jest.fn()}
+          isFormValid
+          loading={false}
+        />,
+      );
+
+      const statementField = screen.getByDisplayValue(EDIT_MODE_STATEMENT);
+      expect(statementField).not.toBeDisabled();
+      expect((statementField as HTMLTextAreaElement).value).toContain('Existing hypothesis statement');
+    });
+
+    it('should call onFieldChange for statement when user edits text in edit mode', async () => {
+      const user = userEvent.setup();
+      const onFieldChange = jest.fn();
+      const formData = editFormData();
+      renderWithTheme(
+        <HypothesisForm
+          mode="edit"
+          hypothesis={mockHypothesis}
+          formData={formData}
+          onFieldChange={onFieldChange}
+          isFormValid
+          loading={false}
+        />,
+      );
+
+      const statementField = screen.getByDisplayValue(EDIT_MODE_STATEMENT);
+      await user.clear(statementField);
+      await user.type(statementField, 'x');
+      expect(onFieldChange).toHaveBeenCalledWith('statement', expect.any(String));
+    });
+
+    it('should show statement validation error in edit mode when text is too short', () => {
+      const formData = editFormData({ statement: 'short' });
+      renderWithTheme(
+        <HypothesisForm
+          mode="edit"
+          hypothesis={mockHypothesis}
+          formData={formData}
+          onFieldChange={jest.fn()}
+          isFormValid={false}
+          loading={false}
+        />,
+      );
+
+      expect(screen.getByText(/at least 20 characters/i)).toBeInTheDocument();
     });
   });
 });
