@@ -1,14 +1,16 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useApi } from '@backstage/core-plugin-api';
 import { HypoStageApiRef } from '../../api/HypoStageApi';
 import { useFormState } from '../useFormState';
 import { useApiCall } from '../useApiCall';
 import { useNotifications } from '../../providers/NotificationProvider';
 import { UpdateHypothesisInput, Status, SourceType, QualityAttribute, Hypothesis } from '@archhypo/plugin-hypo-stage-backend';
+import { validateHypothesisStatement } from '../../utils/validators';
 
 /** Form data shape for the Edit Hypothesis form */
 export interface EditHypothesisFormData {
   entityRefs: string[];
+  statement: string;
   status: Status;
   sourceType: SourceType;
   relatedArtefacts: string[];
@@ -25,8 +27,12 @@ export const useEditHypothesis = (hypothesisId: string | undefined) => {
   const api = useApi(HypoStageApiRef);
   const { loading, execute } = useApiCall();
   const { showSuccess, showError } = useNotifications();
+  const showErrorRef = useRef(showError);
+  showErrorRef.current = showError;
+
   const { formData, updateField, updateFields } = useFormState<EditHypothesisFormData>({
     entityRefs: [],
+    statement: '',
     status: 'Open',
     sourceType: 'Other',
     relatedArtefacts: [],
@@ -34,9 +40,14 @@ export const useEditHypothesis = (hypothesisId: string | undefined) => {
     notes: '',
   });
 
-  const isFormValid = formData.status &&
+  const statementOk = validateHypothesisStatement(formData.statement).isValid;
+
+  const isFormValid = Boolean(
+    formData.status &&
     formData.sourceType &&
-    formData.qualityAttributes.length > 0;
+    formData.qualityAttributes.length > 0 &&
+    statementOk,
+  );
 
   const loadHypothesis = useCallback(async () => {
     if (!hypothesisId) return;
@@ -50,6 +61,7 @@ export const useEditHypothesis = (hypothesisId: string | undefined) => {
         // Populate form with existing data
         updateFields({
           entityRefs: found.entityRefs,
+          statement: found.statement,
           status: found.status,
           sourceType: found.sourceType,
           relatedArtefacts: found.relatedArtefacts,
@@ -60,9 +72,11 @@ export const useEditHypothesis = (hypothesisId: string | undefined) => {
         throw new Error('Hypothesis not found');
       }
     } catch (error) {
-      showError(error instanceof Error ? error.message : 'Failed to load hypothesis');
+      showErrorRef.current(
+        error instanceof Error ? error.message : 'Failed to load hypothesis',
+      );
     }
-  }, [hypothesisId, api, updateFields, showError]);
+  }, [hypothesisId, api, updateFields]);
 
   const handleSubmit = useCallback(async (onSuccess?: () => void) => {
     if (!isFormValid || !hypothesisId) return;
@@ -70,6 +84,7 @@ export const useEditHypothesis = (hypothesisId: string | undefined) => {
     try {
       const hypothesisData: UpdateHypothesisInput = {
         entityRefs: formData.entityRefs,
+        statement: formData.statement.trim(),
         status: formData.status,
         sourceType: formData.sourceType,
         relatedArtefacts: formData.relatedArtefacts,

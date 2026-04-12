@@ -68,7 +68,6 @@ export const useCreateTechnicalPlanning = (
     formData.description.trim().length <= 500 &&
     formData.expectedOutcome.trim().length > 0 &&
     formData.expectedOutcome.trim().length <= 500 &&
-    formData.documentations.length > 0 &&
     formData.targetDate !== '';
 
   const handleSubmit = useCallback(async (onSuccess?: () => void | Promise<void>) => {

@@ -32,7 +32,7 @@ This ensures NPM displays the correct repository link.
 
 ### 4. Documentation Checklist
 
-- [x] **README** includes screenshots (you have walkthrough GIFs in [real-usage-walkthrough.md](../real-usage-walkthrough.md)).
+- [x] **README** includes a screenshot or illustrative GIF (see hero image in [README.md](../../README.md)).
 - [x] **Backend requirement** is clearly mentioned — the main README states that the backend plugin must be installed.
 - [ ] **Icon** (optional): If you add a custom icon, ensure you have rights to use it. Otherwise, the directory will use the default Backstage logo.
 
@@ -67,7 +67,7 @@ This ensures NPM displays the correct repository link.
 
 | Tip | Status |
 |-----|--------|
-| Include screenshots in documentation | ✅ [Real usage walkthrough](../real-usage-walkthrough.md) has multiple GIFs |
+| Include screenshots in documentation | ✅ Root [README.md](../../README.md) includes an illustrative GIF |
 | Link docs to frontend, mention backend requirement | ✅ README covers both |
 | Use NPM scope matching org/user | 🔲 Publish as `@archhypo/plugin-hypo-stage` |
 | NPM package links back to repo | 🔲 Verify in package.json `repository` |

@@ -188,13 +188,17 @@ export const TechnicalPlanningItem: React.FC<TechnicalPlanningItemProps> = ({
                 Documentation
               </Typography>
               <Typography variant="body2" paragraph>
-                {technicalPlanning.documentations.map((doc, docIndex) => (
-                  <div key={docIndex} className={classes.marginBottom}>
-                    <a href={doc} target="_blank" rel="noopener noreferrer">
-                      {doc}
-                    </a>
-                  </div>
-                ))}
+                {technicalPlanning.documentations.length > 0 ? (
+                  technicalPlanning.documentations.map((doc, docIndex) => (
+                    <div key={docIndex} className={classes.marginBottom}>
+                      <a href={doc} target="_blank" rel="noopener noreferrer">
+                        {doc}
+                      </a>
+                    </div>
+                  ))
+                ) : (
+                  <span className={classes.secondaryText}>No documentation links yet. Use Edit to add URLs later.</span>
+                )}
               </Typography>
             </Grid>
           </Grid>

@@ -156,4 +156,4 @@ import { EntityHypothesesTab } from '@archhypo/plugin-hypo-stage';
 
 ## Documentation
 
-Full documentation, run standalone, Docker, and E2E tests: [github.com/ArchHypo/hypo-stage](https://github.com/ArchHypo/hypo-stage)
+Full documentation, run standalone, and Docker: [github.com/ArchHypo/hypo-stage](https://github.com/ArchHypo/hypo-stage)

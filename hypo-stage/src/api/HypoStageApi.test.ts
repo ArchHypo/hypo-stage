@@ -251,15 +251,14 @@ describe('HypoStageApiClient', () => {
       const id = 'test-id';
       const input = {
         entityRefs: [],
+        statement: 'Updated hypothesis statement with sufficient length for validation.',
         status: 'Open' as const,
         sourceType: 'Requirements' as const,
         relatedArtefacts: [],
-        qualityAttributes: [],
-        uncertainty: 'Medium' as const,
-        impact: 'High' as const,
+        qualityAttributes: ['Performance' as const],
         notes: null,
       };
-      const mockHypothesis = { id, statement: 'Updated hypothesis', ...input };
+      const mockHypothesis = { id, ...input };
       mockFetchApi.fetch!.mockResolvedValue({
         ok: true,
         json: jest.fn().mockResolvedValue(mockHypothesis),

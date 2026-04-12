@@ -48,9 +48,7 @@ export const HypothesisForm: React.FC<CreateHypothesisFormProps | EditHypothesis
     onSubmit?.();
   };
 
-  const statementValidation = isCreateMode && formData.statement
-    ? validateHypothesisStatement(formData.statement)
-    : { isValid: true, message: '' };
+  const statementValidation = validateHypothesisStatement(formData.statement);
 
   return (
     <Paper className={classes.formContainer} elevation={0}>
@@ -83,15 +81,14 @@ export const HypothesisForm: React.FC<CreateHypothesisFormProps | EditHypothesis
           <Grid item xs={12}>
             <CustomTextField
                 label="Hypothesis Statement"
-                value={isCreateMode ? formData.statement : props.hypothesis.statement}
-                onChange={isCreateMode ? (value) => onFieldChange('statement', value) : () => {}}
+                value={formData.statement}
+                onChange={(value) => onFieldChange('statement', value)}
                 required
-                disabled={isEditMode}
                 rows={4}
                 placeholder="e.g., The current access control library is compatible with the organization's Single Sign-On protocol."
-                helperText={`${isCreateMode ? formData.statement.length : props.hypothesis.statement.length}/500 characters`}
+                helperText={`${formData.statement.length}/500 characters`}
               />
-              {isCreateMode && !statementValidation.isValid && formData.statement.length > 0 && (
+              {!statementValidation.isValid && formData.statement.length > 0 && (
                 <Typography variant="body2" color="error" className={classes.validationMessage}>
                   ⚠️ {statementValidation.message}
                 </Typography>
@@ -168,14 +165,17 @@ export const HypothesisForm: React.FC<CreateHypothesisFormProps | EditHypothesis
           {/* Related artefacts */}
           <Grid item xs={12}>
             <Typography variant="h6" gutterBottom>
-              Related Artefacts
+              Related artefacts (optional)
+            </Typography>
+            <Typography variant="body2" color="textSecondary" paragraph style={{ marginTop: 0 }}>
+              Links to specs, ADRs, tickets, or other evidence are optional. You can skip them when creating a hypothesis and add or change them later on the edit screen.
             </Typography>
             <UrlListField
-              label="Related Artefacts / Links"
+              label="Related artefacts / links"
               urls={formData.relatedArtefacts}
               onUrlsChange={(value) => onFieldChange('relatedArtefacts', value)}
               placeholder="https://example.com/artefact"
-              helperText="No related artefacts or links added yet. Add links to relevant documentation, code repositories, or other resources."
+              helperText="No links yet. Add valid URLs when you have them, or leave this empty and return here from Edit Hypothesis later."
             />
           </Grid>
 
