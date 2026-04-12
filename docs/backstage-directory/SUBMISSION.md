@@ -2,92 +2,151 @@
 
 This guide walks through submitting HypoStage to the [Backstage Plugin Directory](https://backstage.io/plugins/) and includes pre-submission checks based on the [official documentation](https://backstage.io/docs/plugins/add-to-directory).
 
-## Prerequisites
+## Prerequisites (HypoStage repo — status)
 
 Before submitting a PR to the Backstage repository, ensure the following are complete:
 
 ### 1. Publish to NPM (Required)
 
-- [ ] **Create NPM scope**: Create an [NPM organization](https://www.npmjs.com/org/create) named `archhypo` (or use your preferred scope that matches your GitHub org).
-- [ ] **Publish both packages** as public:
-  - `@archhypo/plugin-hypo-stage` (frontend)
-  - `@archhypo/plugin-hypo-stage-backend` (backend)
-- [ ] **Repository link on NPM**: Ensure each package's NPM page has a link back to https://github.com/ArchHypo/hypo-stage (set via `repository` in `package.json`).
-- [x] **Remove `private: true`** — Done; packages are ready for publishing.
+- [x] **NPM scope** `@archhypo` with public packages.
+- [x] **Publish both packages** as public (current line: **1.0.0**):
+  - [@archhypo/plugin-hypo-stage](https://www.npmjs.com/package/@archhypo/plugin-hypo-stage) (frontend)
+  - [@archhypo/plugin-hypo-stage-backend](https://www.npmjs.com/package/@archhypo/plugin-hypo-stage-backend) (backend)
+- [x] **Repository link on NPM** — each `package.json` has `repository.url` → `https://github.com/ArchHypo/hypo-stage` and correct `directory`.
+- [x] **`private: true` removed** — packages publish with `"access": "public"`.
 
-> **Tip**: Use an NPM scope that matches your organization name (`@archhypo`) — this builds trust per Backstage's submission guidelines.
+> **Tip**: Keep frontend and backend versions **aligned** on npm (same semver).
 
-### 2. Package Name Migration
+### 2. Package name and Backstage metadata
 
-✅ Complete. Packages use `@archhypo/plugin-hypo-stage` and `@archhypo/plugin-hypo-stage-backend`. `backstage.pluginId` and `backstage.pluginPackages` are set (via `backstage-cli repo fix --publish`). A root `tsconfig.json` exists for prepack.
+✅ Packages use `@archhypo/plugin-hypo-stage` and `@archhypo/plugin-hypo-stage-backend`. `backstage.pluginId` and `backstage.pluginPackages` are set. Root `tsconfig.json` supports `backstage-cli package prepack`.
 
-### 3. Fix `repository.directory` in package.json
+### 3. `repository.directory` in package.json
 
-The `repository` field in `package.json` should point to the correct subdirectory in the monorepo:
+- **hypo-stage/package.json**: `"directory": "hypo-stage"`
+- **hypo-stage-backend/package.json**: `"directory": "hypo-stage-backend"`
 
-- **hypo-stage/package.json**: `"directory": "hypo-stage"` (not `plugins/hypo-stage`)
-- **hypo-stage-backend/package.json**: `"directory": "hypo-stage-backend"` (not `plugins/hypo-stage-backend`)
+### 4. Documentation and icon
 
-This ensures NPM displays the correct repository link.
+- [x] **README** — illustrative GIF and install/usage docs ([README.md](../../README.md)).
+- [x] **Backend requirement** — README states both frontend and backend packages must be installed.
+- [x] **Icon** — [hypo-stage.yaml](./hypo-stage.yaml) sets `iconUrl` to the ArchHypo org avatar (GitHub-hosted). *If* upstream maintainers ask for a file under their repo instead, add `microsite/static/img/hypo-stage.png` (or `.svg`) in the **Backstage** PR and switch `iconUrl` to `/img/hypo-stage.png`.
 
-### 4. Documentation Checklist
+### 5. Directory YAML (`hypo-stage.yaml`)
 
-- [x] **README** includes a screenshot or illustrative GIF (see hero image in [README.md](../../README.md)).
-- [x] **Backend requirement** is clearly mentioned — the main README states that the backend plugin must be installed.
-- [ ] **Icon** (optional): If you add a custom icon, ensure you have rights to use it. Otherwise, the directory will use the default Backstage logo.
+The file in this folder matches current [verify-plugin-directory.js](https://github.com/backstage/backstage/blob/master/scripts/verify-plugin-directory.js) expectations:
 
----
-
-## Submitting the PR to Backstage
-
-1. **Fork and clone** the [Backstage repository](https://github.com/backstage/backstage).
-
-2. **Copy the YAML file** from this repo into the Backstage microsite:
-   ```bash
-   cp docs/backstage-directory/hypo-stage.yaml /path/to/backstage/microsite/data/plugins/
-   ```
-
-3. **Update the YAML** in your PR:
-   - Ensure `npmPackageName` matches your published NPM package exactly (e.g. `'@archhypo/plugin-hypo-stage'`).
-   - If you published with a different scope, update accordingly.
-   - Add `iconUrl` if you contributed an icon to Backstage's `microsite/static/img/` (e.g. `iconUrl: /img/hypo-stage.svg`).
-
-4. **Validate the YAML** from the Backstage repo root:
-   ```bash
-   cd /path/to/backstage
-   yarn install
-   node ./scripts/verify-plugin-directory.js
-   ```
-
-5. **Create a PR** against `backstage/backstage` with the new `microsite/data/plugins/hypo-stage.yaml` file. Use a descriptive title such as: "Add HypoStage plugin to directory".
+| Field | HypoStage value |
+|-------|-----------------|
+| `status` | **`active`** (required upstream) |
+| `addedDate` | Date of the directory PR (update if yours differs) |
+| `documentation` | README on `main` |
+| `iconUrl` | Optional; set to org avatar URL |
 
 ---
 
-## Submission Tips (from Backstage docs)
+## Submitting the PR to `backstage/backstage`
+
+### 1. Fork and clone
+
+Fork [backstage/backstage](https://github.com/backstage/backstage), clone your fork, add `upstream` if you like:
+
+```bash
+git clone https://github.com/<your-user>/backstage.git
+cd backstage
+git remote add upstream https://github.com/backstage/backstage.git
+git fetch upstream && git checkout -b add-hypo-stage-plugin upstream/master
+```
+
+### 2. Copy the YAML
+
+From your **hypo-stage** clone:
+
+```bash
+cp /path/to/hypo-stage/docs/backstage-directory/hypo-stage.yaml microsite/data/plugins/hypo-stage.yaml
+```
+
+Or copy the contents of [hypo-stage.yaml](./hypo-stage.yaml) into `microsite/data/plugins/hypo-stage.yaml` in the Backstage repo.
+
+### 3. Validate locally (required)
+
+```bash
+cd /path/to/backstage
+yarn install
+node ./scripts/verify-plugin-directory.js
+```
+
+Fix any reported errors before opening the PR.
+
+### 4. Commit and push
+
+```bash
+git add microsite/data/plugins/hypo-stage.yaml
+git commit -m "Add HypoStage plugin to directory"
+git push origin add-hypo-stage-plugin
+```
+
+### 5. Open the PR
+
+Target **`backstage/backstage`** `master` (or default branch). Suggested **title**:
+
+`Add HypoStage plugin to plugin directory`
+
+Suggested **description** (edit links if needed):
+
+```markdown
+## Plugin
+
+**HypoStage** — architectural hypothesis management for Backstage: uncertainty/impact, quality attributes, technical planning, catalog integration.
+
+- **NPM (frontend):** https://www.npmjs.com/package/@archhypo/plugin-hypo-stage  
+- **NPM (backend):** https://www.npmjs.com/package/@archhypo/plugin-hypo-stage-backend  
+- **Docs / repo:** https://github.com/ArchHypo/hypo-stage  
+
+Both packages are public at **v1.0.0**; install the same version of frontend + backend.
+
+## Checklist
+
+- [x] `microsite/data/plugins/hypo-stage.yaml` added
+- [x] `node ./scripts/verify-plugin-directory.js` passes
+- [x] `npmPackageName` matches published package `@archhypo/plugin-hypo-stage`
+- [x] `iconUrl` points to permitted branding (org avatar); happy to switch to `/img/...` in this repo if preferred
+```
+
+### 6. After the Backstage PR merges
+
+Sync this repo’s [hypo-stage.yaml](./hypo-stage.yaml) with any edits reviewers requested (e.g. `addedDate`, `iconUrl` path, wording).
+
+---
+
+## Submission tips (Backstage docs)
 
 | Tip | Status |
 |-----|--------|
-| Include screenshots in documentation | ✅ Root [README.md](../../README.md) includes an illustrative GIF |
-| Link docs to frontend, mention backend requirement | ✅ README covers both |
-| Use NPM scope matching org/user | 🔲 Publish as `@archhypo/plugin-hypo-stage` |
-| NPM package links back to repo | 🔲 Verify in package.json `repository` |
-| Package is public on NPM | 🔲 Publish with `"access": "public"` |
-| Icon rights (if custom) | ✅ Omitting iconUrl uses default |
+| Screenshots / visual in docs | ✅ README hero GIF |
+| Frontend + backend documented | ✅ README installation |
+| NPM scope | ✅ `@archhypo` |
+| Repo link on npm | ✅ `repository` in package.json |
+| Public packages | ✅ |
+| Icon | ✅ `iconUrl` in YAML (avatar URL) |
 
 ---
 
-## YAML Field Reference
+## YAML field reference
 
-The plugin directory entry requires these fields (see [verify-plugin-directory.js](https://github.com/backstage/backstage/blob/master/scripts/verify-plugin-directory.js) for validation):
+Upstream validation (see `scripts/verify-plugin-directory.js`):
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `title` | string | Display name of the plugin |
-| `author` | string | Author or organization name |
-| `authorUrl` | string | URL (e.g. GitHub profile, company site) |
-| `category` | string | Single category (e.g. Discovery, CI, Monitoring) |
-| `description` | string | Max 170 characters |
-| `documentation` | string | URL to documentation (e.g. GitHub README) |
-| `iconUrl` | string (optional) | Logo URL; omit for default |
-| `npmPackageName` | string | Frontend NPM package name (quoted) |
-| `addedDate` | string | Date in `'YYYY-MM-DD'` format |
+| Field | Type | Notes |
+|-------|------|--------|
+| `title` | string | Display name |
+| `author` | string | |
+| `authorUrl` | string (URL) | |
+| `category` | string | Single category |
+| `description` | string | **Max ~170 characters** on the site |
+| `documentation` | string (URL) | e.g. README on GitHub |
+| `iconUrl` | string (optional) | Relative `/img/...` on microsite or absolute URL |
+| `npmPackageName` | string | **Frontend** package (quoted) |
+| `addedDate` | `'YYYY-MM-DD'` | |
+| `status` | `active` \| `inactive` \| `archived` | **Required** |
+| `order` | number (optional) | |
+| `staleSince` | date (optional) | |

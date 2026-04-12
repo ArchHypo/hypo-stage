@@ -1,8 +1,12 @@
 # Backstage Plugin Directory
 
-This folder contains materials for adding HypoStage to the [official Backstage Plugin Directory](https://backstage.io/plugins/).
+Materials for listing **HypoStage** on the [official Backstage Plugin Directory](https://backstage.io/plugins/).
 
-- **hypo-stage.yaml** — The YAML file to submit in a PR to [backstage/backstage](https://github.com/backstage/backstage) at `microsite/data/plugins/hypo-stage.yaml`
-- **SUBMISSION.md** — Full checklist and instructions for submission (NPM publishing, validation, PR steps)
+| File | Purpose |
+|------|---------|
+| [hypo-stage.yaml](./hypo-stage.yaml) | Copy into **Backstage** at `microsite/data/plugins/hypo-stage.yaml` when you open the directory PR. Includes `status: active`, `npmPackageName`, and `iconUrl` (org avatar). |
+| [SUBMISSION.md](./SUBMISSION.md) | Full checklist, validation command, and suggested PR text for `backstage/backstage`. |
 
-The project is prepared for publishing: packages use `@archhypo/plugin-hypo-stage` and `@archhypo/plugin-hypo-stage-backend`, include `backstage.pluginId` and `backstage.pluginPackages`, and the root `tsconfig.json` enables `backstage-cli package prepack`.
+**NPM (v1.0.0):** [@archhypo/plugin-hypo-stage](https://www.npmjs.com/package/@archhypo/plugin-hypo-stage) · [@archhypo/plugin-hypo-stage-backend](https://www.npmjs.com/package/@archhypo/plugin-hypo-stage-backend)
+
+After your PR merges into Backstage, update `hypo-stage.yaml` here if maintainers change `addedDate`, `iconUrl`, or copy.
