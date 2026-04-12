@@ -1,7 +1,7 @@
 <h1 align="center">💡 HypoStage</h1>
 
 <p align="center">
-  <img src="docs/walkthrough-videos/walkthrough-1-home.gif" alt="Home and dashboard" />
+  <img src="docs/images/hypo-stage-demo.gif" alt="HypoStage plugin: home and dashboard (illustrative preview)" />
 </p>
 
 <p align="center">
@@ -15,6 +15,8 @@
 ---
 
 HypoStage integrates architectural hypothesis management into your Backstage environment, enabling teams to document, track, and validate architectural decisions effectively. This plugin provides a comprehensive framework for managing architectural hypotheses with uncertainty assessment, quality attributes tracking, and technical planning capabilities.
+
+The animated image at the top of this page is an **illustrative preview** of the plugin home and dashboard; it may not match the latest UI pixel-for-pixel.
 
 A **demo with seed data** is available for a quick overview: [https://hypo-stage-hypo-stage.vercel.app](https://hypo-stage-hypo-stage.vercel.app/). It is not for production—just an alternative way to see the plugin in action. See [Standalone demo deployment](docs/standalone-demo-deployment.md) for how we set it up.
 
@@ -62,7 +64,6 @@ Then open **http://localhost:3000** and use the Hypo Stage UI (you’re signed i
 **Install & use**
 - [📦 Installation](#-installation) (step-by-step for Backstage)
 - [🎯 Usage](#-usage)
-- [🎬 Real usage walkthrough](#-real-usage-walkthrough)
 
 **Develop & validate**
 - [🔨 Building the project](#-building-the-project)
@@ -73,7 +74,6 @@ Then open **http://localhost:3000** and use the Hypo Stage UI (you’re signed i
 
 **Reference**
 - [🖥️ Running plugins standalone](#-running-plugins-standalone) (full details)
-- [🎬 Real usage walkthrough](docs/real-usage-walkthrough.md) (step-by-step guide and demo video)
 - [🌐 Standalone demo deployment](#-standalone-demo-deployment)
 - [🐳 Running with Docker](#-running-with-docker)
 - [🔌 Compatibility with generic Backstage](#-compatibility-with-generic-backstage)
@@ -115,7 +115,7 @@ Monorepo (Yarn workspaces):
 | `hypo-stage/` | `@archhypo/plugin-hypo-stage` | Frontend: UI, pages, catalog tab, API client |
 | `hypo-stage-backend/` | `@archhypo/plugin-hypo-stage-backend` | Backend: REST API, database, HypothesisService |
 | `tsconfig.json` | — | Root TypeScript config (required for prepack / NPM publishing) |
-| `docs/walkthrough-videos/` | — | Short clips (WebM + GIF) for [Real usage walkthrough](docs/real-usage-walkthrough.md). To refresh GIFs from WebM: `yarn walkthrough:gif` (requires [ffmpeg](https://ffmpeg.org/)). See [docs/walkthrough-videos/README.md](docs/walkthrough-videos/README.md). |
+| `docs/images/` | — | Illustrative asset for the root README (`hypo-stage-demo.gif`). |
 | `docs/backstage-directory/` | — | Materials for [Backstage Plugin Directory](#-backstage-plugin-directory) submission |
 | `docs/npm-publishing.md` | — | [NPM publishing](#-npm-publishing) guide |
 
@@ -268,14 +268,6 @@ createApiFactory({
 - **Create a hypothesis**: “Create New Hypothesis” → statement, context, uncertainty/impact, quality attributes, optional related-artefact links → save.
 - **Manage**: View, edit, and track evolution from the list and detail pages. **Delete** a hypothesis from the list (row icon) or from the detail page; both require typing the hypothesis statement to confirm. The detail view shows clearly labeled assessment chips (Status, Uncertainty, Impact, Focus).
 - **Technical planning**: On a hypothesis detail page, add, edit, and delete technical planning items (documentation URLs are optional on create and can be added or updated later when editing a plan). When creating or editing a plan, you can optionally reassess uncertainty and impact — these are the only way to change those values after initial creation. Changes are recorded as events and displayed in the evolution chart with distinct markers.
-
----
-
-## 🎬 Real usage walkthrough
-
-A **visual demonstration** of HypoStage’s capabilities (home and dashboard, create, view detail, edit, technical planning, delete, catalog tab) is in **[Real usage walkthrough](docs/real-usage-walkthrough.md)**. That page has one short clip per capability (committed WebM and GIF files under `docs/walkthrough-videos/`).
-
-**Refreshing GIFs for GitHub:** From the repo root, run **`yarn walkthrough:gif`** (requires [ffmpeg](https://ffmpeg.org/) on your PATH). See [docs/walkthrough-videos/README.md](docs/walkthrough-videos/README.md).
 
 ---
 

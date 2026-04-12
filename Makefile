@@ -67,12 +67,6 @@ check: ## Build, test, and lint in one go (non-interactive)
 	if [ $$failed -eq 0 ]; then echo "All steps passed."; else echo "One or more steps failed."; fi; \
 	rm -rf "$$tmpdir"; [ $$failed -eq 0 ] || exit 1
 
-##@ Walkthrough media
-
-.PHONY: walkthrough-gif
-walkthrough-gif: ## Generate GIFs from WebM walkthrough clips (for GitHub); requires ffmpeg
-	yarn walkthrough:gif
-
 ##@ Docker (generic Backstage)
 
 .PHONY: start-dependencies

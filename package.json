@@ -13,7 +13,6 @@
     "lint": "NODE_PATH=\"$(pwd)/node_modules/@backstage/cli/node_modules\" yarn workspaces run lint && yarn lint:root",
     "lint:root": "eslint scripts",
     "test": "yarn workspaces run test",
-    "walkthrough:gif": "node scripts/webm-to-gif.js",
     "build": "yarn build:types && yarn workspaces run build",
     "build:types": "tsc -p hypo-stage/tsconfig.build.json && tsc -p hypo-stage-backend/tsconfig.build.json",
     "vercel-build": "node scripts/vercel-build.js"
