@@ -14,13 +14,12 @@ This guide walks through submitting HypoStage to the [Backstage Plugin Directory
 | **Directory YAML** | [hypo-stage.yaml](./hypo-stage.yaml) updated for current Backstage validation: required **`status: active`**, **`documentation`** → README on **main** (GitHub URL), **`iconUrl`** → ArchHypo org GitHub avatar (rights: org branding), **`npmPackageName`** → frontend package, **`addedDate`** set for the prepared listing (change if upstream wants the merge date). |
 | **Docs refresh** | This guide and [README.md](./README.md) updated with checklists, upstream PR steps, and suggested PR body for `backstage/backstage`. |
 | **HypoStage PR** | Example tracking PR: [ArchHypo/hypo-stage#36](https://github.com/ArchHypo/hypo-stage/pull/36) — merge so `docs/backstage-directory/` on `main` is the source of truth before copying YAML upstream. |
-| **Backstage clone (local)** | Example layout: `HYPOSTAGE_ROOT=~/devs/hypo-stage`, `BACKSTAGE_ROOT=~/devs/backstage`. Branch `add-hypo-stage-plugin-directory`, `microsite/data/plugins/hypo-stage.yaml` added and committed; `node ./scripts/verify-plugin-directory.js` passes (Node 20). **Push the branch to your fork** and open the PR to `backstage/backstage` (see below). |
+| **Backstage fork + PR** | Fork: [ArchHypo/backstage](https://github.com/ArchHypo/backstage). Branch `add-hypo-stage-plugin-directory` pushed from `BACKSTAGE_ROOT=~/devs/backstage` (remotes: `origin` → fork, `upstream` → `backstage/backstage`). Upstream directory PR: [backstage/backstage#33853](https://github.com/backstage/backstage/pull/33853). |
 
 **Still to do (outside this repo)**
 
-1. **Push** the Backstage branch to **your GitHub fork** (not the upstream remote) and open the directory PR to `backstage/backstage`.
-2. Address review (e.g. host icon under `microsite/static/img/` if requested).
-3. After merge, **sync** the final YAML (and this log) back here.
+1. Address review on [backstage/backstage#33853](https://github.com/backstage/backstage/pull/33853) (e.g. host icon under `microsite/static/img/` if requested).
+2. After merge, **sync** the final YAML (and this log) back here.
 
 ---
 
