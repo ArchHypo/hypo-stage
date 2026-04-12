@@ -4,7 +4,8 @@ author: ArchHypo
 authorUrl: https://github.com/ArchHypo
 category: Discovery
 description: Document architectural assumptions, track uncertainty, and validate decisions with hypothesis management, quality attributes, and technical planning.
-documentation: https://github.com/ArchHypo/hypo-stage
-# Omit iconUrl to use default Backstage logo; or add iconUrl: '/img/your-logo.svg' after contributing logo to backstage/microsite/static/img/
+documentation: https://github.com/ArchHypo/hypo-stage/blob/main/README.md
+iconUrl: 'https://avatars.githubusercontent.com/u/241217195?s=400&u=de66fa64fcad1d10f09f7bd2ebacdc9dd12ec9b2&v=4'
 npmPackageName: '@archhypo/plugin-hypo-stage'
-addedDate: '2025-02-18'
+addedDate: '2026-04-14'
+status: active
