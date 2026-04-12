@@ -11,14 +11,14 @@ This guide walks through submitting HypoStage to the [Backstage Plugin Directory
 | When | What |
 |------|------|
 | **npm v1.0.0** | Both `@archhypo/plugin-hypo-stage` and `@archhypo/plugin-hypo-stage-backend` published publicly; install docs and README updated on `main`. |
-| **Directory YAML** | [hypo-stage.yaml](./hypo-stage.yaml) updated for current Backstage validation: required **`status: active`**, **`documentation`** → README on **main** (GitHub URL), **`iconUrl`** → ArchHypo org GitHub avatar (rights: org branding), **`npmPackageName`** → frontend package, **`addedDate`** set for the prepared listing (change if upstream wants the merge date). |
+| **Directory YAML** | [hypo-stage.yaml](./hypo-stage.yaml) updated for current Backstage validation: required **`status: active`**, **`documentation`** → README on **main** (GitHub URL), **`iconUrl`** → stable `raw.githubusercontent.com` URL for [icon/hypo-stage.png](./icon/hypo-stage.png) on **`main`** (merge this branch before the directory URL resolves), **`npmPackageName`** → frontend package, **`addedDate`** set for the prepared listing (change if upstream wants the merge date). |
 | **Docs refresh** | This guide and [README.md](./README.md) updated with checklists, upstream PR steps, and suggested PR body for `backstage/backstage`. |
 | **HypoStage PR** | Example tracking PR: [ArchHypo/hypo-stage#36](https://github.com/ArchHypo/hypo-stage/pull/36) — merge so `docs/backstage-directory/` on `main` is the source of truth before copying YAML upstream. |
 | **Backstage fork + PR** | Fork: [ArchHypo/backstage](https://github.com/ArchHypo/backstage). Branch `add-hypo-stage-plugin-directory` pushed from `BACKSTAGE_ROOT=~/devs/backstage` (remotes: `origin` → fork, `upstream` → `backstage/backstage`). Upstream directory PR: [backstage/backstage#33853](https://github.com/backstage/backstage/pull/33853). |
 
 **Still to do (outside this repo)**
 
-1. Address review on [backstage/backstage#33853](https://github.com/backstage/backstage/pull/33853) (e.g. host icon under `microsite/static/img/` if requested).
+1. Address review on [backstage/backstage#33853](https://github.com/backstage/backstage/pull/33853) (e.g. further `iconUrl` tweaks if requested).
 2. After merge, **sync** the final YAML (and this log) back here.
 
 ---
@@ -51,7 +51,7 @@ Before submitting a PR to the Backstage repository, ensure the following are com
 
 - [x] **README** — illustrative GIF and install/usage docs ([README.md](../../README.md)).
 - [x] **Backend requirement** — README states both frontend and backend packages must be installed.
-- [x] **Icon** — [hypo-stage.yaml](./hypo-stage.yaml) sets `iconUrl` to the ArchHypo org avatar (GitHub-hosted). *If* upstream maintainers ask for a file under their repo instead, add `microsite/static/img/hypo-stage.png` (or `.svg`) in the **Backstage** PR and switch `iconUrl` to `/img/hypo-stage.png`.
+- [x] **Icon** — [icon/hypo-stage.png](./icon/hypo-stage.png) lives in this repo; [hypo-stage.yaml](./hypo-stage.yaml) sets `iconUrl` to its **`main`** raw URL (no transient avatar query strings). *If* upstream prefers an asset inside Backstage, add `microsite/static/img/hypo-stage.png` there and switch `iconUrl` to `/img/hypo-stage.png`.
 
 ### 5. Directory YAML (`hypo-stage.yaml`)
 
@@ -62,7 +62,7 @@ The file in this folder matches current [verify-plugin-directory.js](https://git
 | `status` | **`active`** (required upstream) |
 | `addedDate` | Date of the directory PR (update if yours differs) |
 | `documentation` | README on `main` |
-| `iconUrl` | Optional; set to org avatar URL |
+| `iconUrl` | Optional; stable absolute URL (e.g. raw file on default branch) or `/img/...` on microsite |
 
 ---
 
@@ -174,7 +174,7 @@ Both packages are public at **v1.0.0**; install the same version of frontend + b
 - [x] `microsite/data/plugins/hypo-stage.yaml` added
 - [x] `node ./scripts/verify-plugin-directory.js` passes
 - [x] `npmPackageName` matches published package `@archhypo/plugin-hypo-stage`
-- [x] `iconUrl` points to permitted branding (org avatar); happy to switch to `/img/...` in this repo if preferred
+- [x] `iconUrl` points to repo-hosted branding on HypoStage `main` (raw.githubusercontent.com); happy to switch to `/img/...` in Backstage if preferred
 ```
 
 ### 7. After the Backstage PR merges
@@ -192,7 +192,7 @@ Sync this repo’s [hypo-stage.yaml](./hypo-stage.yaml) with any edits reviewers
 | NPM scope | ✅ `@archhypo` |
 | Repo link on npm | ✅ `repository` in package.json |
 | Public packages | ✅ |
-| Icon | ✅ `iconUrl` in YAML (avatar URL) |
+| Icon | ✅ `iconUrl` in YAML (repo-hosted PNG on `main`) |
 
 ---
 
