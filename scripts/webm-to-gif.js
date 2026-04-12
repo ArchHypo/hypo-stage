@@ -11,7 +11,7 @@ const fs = require('fs');
 const path = require('path');
 const { execFileSync } = require('child_process');
 
-const WALKTHROUGH_VIDEOS_DIR = path.join(__dirname, '..', 'docs', 'e2e', 'walkthrough-videos');
+const WALKTHROUGH_VIDEOS_DIR = path.join(__dirname, '..', 'docs', 'walkthrough-videos');
 
 // ffmpeg options: 640px width, 10 fps, palette for smaller/sharper GIF
 function webmToGif(webmPath, gifPath) {
@@ -26,7 +26,7 @@ function webmToGif(webmPath, gifPath) {
 
 function main() {
   if (!fs.existsSync(WALKTHROUGH_VIDEOS_DIR)) {
-    console.error('No docs/e2e/walkthrough-videos directory. Run copy-walkthrough-videos.js first.');
+    console.error('No docs/walkthrough-videos directory.');
     process.exit(1);
   }
 
@@ -34,7 +34,7 @@ function main() {
   const webmFiles = files.filter((f) => f.endsWith('.webm'));
 
   if (webmFiles.length === 0) {
-    console.error('No .webm files in docs/e2e/walkthrough-videos. Run copy-walkthrough-videos.js first.');
+    console.error('No .webm files in docs/walkthrough-videos.');
     process.exit(1);
   }
 

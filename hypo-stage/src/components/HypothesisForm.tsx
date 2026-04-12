@@ -168,14 +168,17 @@ export const HypothesisForm: React.FC<CreateHypothesisFormProps | EditHypothesis
           {/* Related artefacts */}
           <Grid item xs={12}>
             <Typography variant="h6" gutterBottom>
-              Related Artefacts
+              Related artefacts (optional)
+            </Typography>
+            <Typography variant="body2" color="textSecondary" paragraph style={{ marginTop: 0 }}>
+              Links to specs, ADRs, tickets, or other evidence are optional. You can skip them when creating a hypothesis and add or change them later on the edit screen.
             </Typography>
             <UrlListField
-              label="Related Artefacts / Links"
+              label="Related artefacts / links"
               urls={formData.relatedArtefacts}
               onUrlsChange={(value) => onFieldChange('relatedArtefacts', value)}
               placeholder="https://example.com/artefact"
-              helperText="No related artefacts or links added yet. Add links to relevant documentation, code repositories, or other resources."
+              helperText="No links yet. Add valid URLs when you have them, or leave this empty and return here from Edit Hypothesis later."
             />
           </Grid>
 

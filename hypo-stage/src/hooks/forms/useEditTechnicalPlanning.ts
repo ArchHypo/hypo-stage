@@ -55,8 +55,7 @@ export const useEditTechnicalPlanning = (
   }, [currentUncertainty, currentImpact, updateFields]);
 
   const isFormValid = formData.expectedOutcome.trim().length > 0 &&
-    formData.expectedOutcome.trim().length <= 500 &&
-    formData.documentations.length > 0;
+    formData.expectedOutcome.trim().length <= 500;
 
   const handleSubmit = useCallback(async (
     planningId: string,

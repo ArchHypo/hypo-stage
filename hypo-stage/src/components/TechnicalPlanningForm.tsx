@@ -138,12 +138,18 @@ export const TechnicalPlanningForm: React.FC<CreateTechnicalPlanningFormProps | 
 
           {/* Documentation links */}
           <Grid item xs={12}>
+            <Typography variant="h6" gutterBottom>
+              Documentation links (optional)
+            </Typography>
+            <Typography variant="body2" color="textSecondary" paragraph style={{ marginTop: 0 }}>
+              Design docs, tickets, or other references are optional. You can create a plan without links and add or update them later from the technical planning edit form.
+            </Typography>
             <UrlListField
-              label="Documentation Links"
+              label="Documentation links"
               urls={formData.documentations}
               onUrlsChange={(value) => onFieldChange('documentations', value)}
               placeholder="https://example.com/docs"
-              helperText="No documentation links added yet. Add links to relevant documentation, design docs, or planning materials."
+              helperText="No links yet. Add valid URLs when you have them, or leave this empty and edit this planning item later."
             />
           </Grid>
 

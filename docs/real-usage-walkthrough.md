@@ -2,7 +2,7 @@
 
 This page shows what HypoStage can do, with a short video for each capability. After [installing](../README.md#installation), open **Hypo Stage** in your Backstage app (sidebar or `/hypo-stage`) to try it yourself.
 
-Clips are shown as **animated GIFs** so they play inline on GitHub; **WebM links** are provided for full-quality playback (e.g. in a new tab or when viewing the repo locally). Video files live in `docs/e2e/walkthrough-videos/`. To (re)generate GIFs from the WebM files, run `node scripts/webm-to-gif.js` (requires [ffmpeg](https://ffmpeg.org/) on PATH). The table at the bottom links capabilities to the E2E specs.
+Clips are shown as **animated GIFs** so they play inline on GitHub; **WebM links** are provided for full-quality playback (e.g. in a new tab or when viewing the repo locally). Media files live in [`docs/walkthrough-videos/`](walkthrough-videos/README.md). To regenerate GIFs from the WebM files, run **`yarn walkthrough:gif`** from the repo root (requires [ffmpeg](https://ffmpeg.org/) on PATH).
 
 ---
 
@@ -10,19 +10,19 @@ Clips are shown as **animated GIFs** so they play inline on GitHub; **WebM links
 
 See the landing page: welcome message, **Create New Hypothesis** button, dashboard (totals by status, "Where to focus", uncertainty & impact), filters (Team, Component, Focus), and the hypotheses list.
 
-![Home and dashboard](e2e/walkthrough-videos/walkthrough-1-home.gif)
+![Home and dashboard](walkthrough-videos/walkthrough-1-home.gif)
 
-*[Full video (WebM)](e2e/walkthrough-videos/walkthrough-1-home.webm)*
+*[Full video (WebM)](walkthrough-videos/walkthrough-1-home.webm)*
 
 ---
 
 ## 2. 📝 Create a hypothesis
 
-Create a new hypothesis: pick entity references, write the statement, set source type, uncertainty, impact, quality attributes, related artefacts and notes, then submit. You are redirected to the list and can open the new hypothesis.
+Create a new hypothesis: pick entity references, write the statement, set source type, uncertainty, impact, quality attributes, optional related-artefact links and notes, then submit. You are redirected to the list and can open the new hypothesis. Related-artefact URLs are optional at creation and can be added later from **Edit Hypothesis**.
 
-![Create a hypothesis](e2e/walkthrough-videos/walkthrough-2-create.gif)
+![Create a hypothesis](walkthrough-videos/walkthrough-2-create.gif)
 
-*[Full video (WebM)](e2e/walkthrough-videos/walkthrough-2-create.webm)*
+*[Full video (WebM)](walkthrough-videos/walkthrough-2-create.webm)*
 
 ---
 
@@ -30,9 +30,9 @@ Create a new hypothesis: pick entity references, write the statement, set source
 
 Open a hypothesis from the list to see its statement, status, assessment (uncertainty/impact), linked components, quality attributes, related artefacts, evolution chart, and technical planning. From here you can edit, add or manage technical planning, or delete (with confirmation).
 
-![View hypothesis detail](e2e/walkthrough-videos/walkthrough-3-view-detail.gif)
+![View hypothesis detail](walkthrough-videos/walkthrough-3-view-detail.gif)
 
-*[Full video (WebM)](e2e/walkthrough-videos/walkthrough-3-view-detail.webm)*
+*[Full video (WebM)](walkthrough-videos/walkthrough-3-view-detail.webm)*
 
 ---
 
@@ -40,19 +40,19 @@ Open a hypothesis from the list to see its statement, status, assessment (uncert
 
 From the detail page, open **Edit** to change status, source type, quality attributes, related artefacts, and notes (statement and entity refs stay read-only). Uncertainty and impact can no longer be changed from the edit form — use technical planning to reassess those values. Submit with **Update Hypothesis** to return to the detail view.
 
-![Edit a hypothesis](e2e/walkthrough-videos/walkthrough-4-edit.gif)
+![Edit a hypothesis](walkthrough-videos/walkthrough-4-edit.gif)
 
-*[Full video (WebM)](e2e/walkthrough-videos/walkthrough-4-edit.webm)*
+*[Full video (WebM)](walkthrough-videos/walkthrough-4-edit.webm)*
 
 ---
 
 ## 5. 📅 Technical planning
 
-On a hypothesis detail page, use **Add Technical Planning** to add items: owner, action type, target date, description, expected outcome, and documentation links. When creating or editing a plan, you can optionally reassess uncertainty and impact (pre-filled with current values). These changes are recorded as events and shown in the evolution chart with distinct square markers and tooltips displaying the technical planning number and short ID. You can edit or delete each item; delete requires confirmation.
+On a hypothesis detail page, use **Add Technical Planning** to add items: owner, action type, target date, description, expected outcome, and optional documentation links (you can add links later when editing a plan). When creating or editing a plan, you can optionally reassess uncertainty and impact (pre-filled with current values). These changes are recorded as events and shown in the evolution chart with distinct square markers and tooltips displaying the technical planning number and short ID. You can edit or delete each item; delete requires confirmation.
 
-![Technical planning](e2e/walkthrough-videos/walkthrough-5-technical-planning.gif)
+![Technical planning](walkthrough-videos/walkthrough-5-technical-planning.gif)
 
-*[Full video (WebM)](e2e/walkthrough-videos/walkthrough-5-technical-planning.webm)*
+*[Full video (WebM)](walkthrough-videos/walkthrough-5-technical-planning.webm)*
 
 ---
 
@@ -60,29 +60,19 @@ On a hypothesis detail page, use **Add Technical Planning** to add items: owner,
 
 Remove a hypothesis from the **list** (row delete icon) or from the **detail** page (**Delete** in the action bar). In both cases you must type the full hypothesis statement to confirm; then the list refreshes or you are redirected to the list.
 
-![Delete a hypothesis](e2e/walkthrough-videos/walkthrough-6-delete.gif)
+![Delete a hypothesis](walkthrough-videos/walkthrough-6-delete.gif)
 
-*[Full video (WebM)](e2e/walkthrough-videos/walkthrough-6-delete.webm)*
+*[Full video (WebM)](walkthrough-videos/walkthrough-6-delete.webm)*
 
 ---
 
-## 📋 Capabilities ↔ E2E specs
+## 📋 Capabilities covered
 
-| # | Capability              | E2E spec                          |
-|---|--------------------------|------------------------------------|
-| 1 | Home and dashboard       | `e2e/home-dashboard.spec.js`      |
-| 2 | Create a hypothesis      | `e2e/create-hypothesis.spec.js`   |
-| 3 | View hypothesis detail   | `e2e/view-hypothesis-detail.spec.js` |
-| 4 | Edit a hypothesis        | `e2e/edit-hypothesis.spec.js`     |
-| 5 | Technical planning       | `e2e/technical-planning.spec.js`   |
-| 6 | Delete a hypothesis      | `e2e/delete-hypothesis.spec.js`   |
-
-To regenerate the clips: run the E2E suite, copy videos to the stable names, then (optionally) convert to GIF so they display on GitHub:
-
-```bash
-yarn test:e2e
-node scripts/copy-walkthrough-videos.js
-node scripts/webm-to-gif.js    # requires ffmpeg; produces GIFs for GitHub
-```
-
-Or use `yarn test:e2e:walkthrough` to run tests and copy in one go (then run `webm-to-gif.js` if you need to refresh the GIFs).
+| # | Capability |
+|---|------------|
+| 1 | Home and dashboard |
+| 2 | Create a hypothesis |
+| 3 | View hypothesis detail |
+| 4 | Edit a hypothesis |
+| 5 | Technical planning |
+| 6 | Delete a hypothesis |

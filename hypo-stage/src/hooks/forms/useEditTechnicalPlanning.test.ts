@@ -166,6 +166,25 @@ describe('useEditTechnicalPlanning', () => {
     );
   });
 
+  it('is valid and submits when documentation links are empty', async () => {
+    const planningNoDocs = { ...basePlanning, documentations: [] };
+    const { result } = renderHook(
+      () => useEditTechnicalPlanning(planningNoDocs, 'High', 'Medium'),
+      { wrapper },
+    );
+
+    expect(result.current.isFormValid).toBe(true);
+
+    await act(async () => {
+      await result.current.handleSubmit('tp-1');
+    });
+
+    expect(mockApi.updateTechnicalPlanning).toHaveBeenCalledWith(
+      'tp-1',
+      expect.objectContaining({ documentations: [] }),
+    );
+  });
+
   it('uses the planning ID passed at call time, not from closure', async () => {
     const planningA = { ...basePlanning, id: 'planning-a-id' };
     const { result } = renderHook(

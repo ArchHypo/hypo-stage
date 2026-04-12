@@ -117,6 +117,24 @@ describe('HypothesisForm', () => {
       expect(screen.getByText('Uncertainty Level')).toBeInTheDocument();
       expect(screen.getByText('Impact Level')).toBeInTheDocument();
     });
+
+    it('should explain that related artefact links are optional and can be added later', () => {
+      const formData = createFormData();
+      renderWithTheme(
+        <HypothesisForm
+          mode="create"
+          formData={formData}
+          onFieldChange={jest.fn()}
+          isFormValid={false}
+          loading={false}
+        />,
+      );
+
+      expect(screen.getByText(/related artefacts \(optional\)/i)).toBeInTheDocument();
+      expect(
+        screen.getByText(/Links to specs, ADRs, tickets, or other evidence are optional/i),
+      ).toBeInTheDocument();
+    });
   });
 
   describe('edit mode', () => {
@@ -150,6 +168,7 @@ describe('HypothesisForm', () => {
       );
 
       expect(screen.getAllByText('Update Hypothesis').length).toBeGreaterThan(0);
+      expect(screen.getByText(/related artefacts \(optional\)/i)).toBeInTheDocument();
     });
 
     it('should render submit button with update label', () => {

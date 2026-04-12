@@ -82,6 +82,32 @@ describe('useCreateTechnicalPlanning', () => {
     expect(result.current.formData.impact).toBe('High');
   });
 
+  it('is valid and submits without documentation links', async () => {
+    const { result } = renderHook(
+      () => useCreateTechnicalPlanning('hyp-1', 'High', 'Medium'),
+      { wrapper },
+    );
+
+    act(() => {
+      result.current.updateField('entityRef', 'component:default/svc');
+      result.current.updateField('actionType', 'Spike');
+      result.current.updateField('description', 'Test description');
+      result.current.updateField('expectedOutcome', 'Test outcome');
+      result.current.updateField('targetDate', '2026-06-01');
+    });
+
+    expect(result.current.isFormValid).toBe(true);
+
+    await act(async () => {
+      await result.current.handleSubmit();
+    });
+
+    expect(mockApi.createTechnicalPlanning).toHaveBeenCalledWith(
+      'hyp-1',
+      expect.objectContaining({ documentations: [] }),
+    );
+  });
+
   it('compares against latest hypothesis values at submit time', async () => {
     let uncertainty = 'High' as any;
     const impact = 'Medium' as any;

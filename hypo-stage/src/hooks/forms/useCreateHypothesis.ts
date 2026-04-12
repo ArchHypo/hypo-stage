@@ -21,6 +21,7 @@ export interface CreateHypothesisFormData {
 /**
  * Hook for create-hypothesis form state, validation, and submit.
  * Entity references are loaded on demand via catalog search (EntityReferencesAutocomplete).
+ * Related-artefact URLs are optional at creation and can be added later from the edit form.
  */
 export const useCreateHypothesis = () => {
   const api = useApi(HypoStageApiRef);
