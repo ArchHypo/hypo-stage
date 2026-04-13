@@ -81,6 +81,22 @@ backend:
 
 Migrations run automatically when the backend starts. No manual step required.
 
+### 4. CORS (cross-origin requests)
+
+The plugin **does not** hardcode allowed browser origins. When the frontend is served from a different origin than the backend (typical in local dev: app on port **3000**, backend on **7007**), set **`backend.cors`** in your Backstage **`app-config.yaml`** (or `app-config.local.yaml`). Backstage’s backend applies these settings globally.
+
+Minimal example (matches the default app template style):
+
+```yaml
+backend:
+  cors:
+    origin: http://localhost:3000
+    methods: [GET, HEAD, PATCH, POST, PUT, DELETE]
+    credentials: true
+```
+
+For more options (`allowedHeaders`, `OPTIONS`, multiple origins), see the [HypoStage repo `app-config.example.yaml`](https://github.com/ArchHypo/hypo-stage/blob/main/app-config.example.yaml) and [Backstage configuration docs](https://backstage.io/docs/conf/).
+
 ---
 
 ## REST API

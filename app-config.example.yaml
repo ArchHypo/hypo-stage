@@ -8,7 +8,11 @@ backend:
   baseUrl: http://localhost:7007
   listen:
     port: 7007
-  # CORS for standalone dev (must be at backend level, not under listen)
+  # CORS: configure here only — the HypoStage backend plugin does not hardcode origins.
+  # Must live under `backend`, not under `backend.listen` (same shape as Backstage’s create-app template:
+  # `backstage/packages/create-app/templates/default-app/app-config.yaml.hbs`).
+  # For a full Backstage app, use `app-config.yaml` or `app-config.local.yaml` and set `origin` to your
+  # frontend URL (e.g. http://localhost:3000). Multiple origins: see Backstage docs for `backend.cors`.
   cors:
     origin: http://localhost:3000
     methods: [GET, HEAD, PATCH, POST, PUT, DELETE, OPTIONS]
