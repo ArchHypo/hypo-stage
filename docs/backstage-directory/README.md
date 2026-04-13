@@ -8,7 +8,7 @@ Materials for listing **HypoStage** on the [official Backstage Plugin Directory]
 |-------|--------|
 | **NPM** | **v1.0.0** published for both [`@archhypo/plugin-hypo-stage`](https://www.npmjs.com/package/@archhypo/plugin-hypo-stage) and [`@archhypo/plugin-hypo-stage-backend`](https://www.npmjs.com/package/@archhypo/plugin-hypo-stage-backend). |
 | **HypoStage repo (this folder)** | Directory YAML and submission guide updated for upstream `verify-plugin-directory.js` (includes `status: active`, `iconUrl`, README `documentation` URL). |
-| **Upstream `backstage/backstage`** | Directory PR opened from [ArchHypo/backstage](https://github.com/ArchHypo/backstage); track [backstage/backstage#33853](https://github.com/backstage/backstage/pull/33853). See [SUBMISSION.md](./SUBMISSION.md). |
+| **Upstream `backstage/backstage`** | ✅ Merged: [backstage/backstage#33853](https://github.com/backstage/backstage/pull/33853). Listing should appear on the directory after the microsite rebuilds/caches refresh. |
 
 ## Activities performed (HypoStage repo)
 

@@ -16,10 +16,11 @@ This guide walks through submitting HypoStage to the [Backstage Plugin Directory
 | **HypoStage PR** | Directory docs branch: [ArchHypo/hypo-stage#37](https://github.com/ArchHypo/hypo-stage/pull/37) — merge so `docs/backstage-directory/` on `main` matches what you copy into Backstage. |
 | **Backstage fork + PR** | Fork: [ArchHypo/backstage](https://github.com/ArchHypo/backstage). Branch `add-hypo-stage-plugin-directory` (remotes: `origin` → fork, `upstream` → `backstage/backstage`). Upstream: [backstage/backstage#33853](https://github.com/backstage/backstage/pull/33853). **Copilot / review:** `documentation` → tagged README (`blob/v1.0.0/README.md`); `iconUrl` → `raw.githubusercontent.com/.../main/docs/backstage-directory/icon/hypo-stage.png` (requires icon merged on HypoStage `main` first). **CI:** DCO failed until commits were rewritten with `Signed-off-by` (see [DCO sign-off](#dco-developer-certificate-of-origin) below); fixed with `git rebase -i HEAD~3 --signoff` + `git push --force-with-lease`. |
 
-**Still to do (outside this repo)**
+**Status**
 
-1. Address review on [backstage/backstage#33853](https://github.com/backstage/backstage/pull/33853) (e.g. further `iconUrl` tweaks if requested).
-2. After merge, **sync** the final YAML (and this log) back here.
+- [x] Backstage directory PR merged: [backstage/backstage#33853](https://github.com/backstage/backstage/pull/33853)
+- [x] Local HypoStage directory YAML kept in sync with the merged file at `microsite/data/plugins/hypo-stage.yaml`
+- [x] (Optional) Verified the listing appears on the [Backstage Plugin Directory](https://backstage.io/plugins/)
 
 ---
 
