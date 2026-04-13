@@ -20,7 +20,7 @@ This guide walks through submitting HypoStage to the [Backstage Plugin Directory
 
 - [x] Backstage directory PR merged: [backstage/backstage#33853](https://github.com/backstage/backstage/pull/33853)
 - [x] Local HypoStage directory YAML kept in sync with the merged file at `microsite/data/plugins/hypo-stage.yaml`
-- [ ] (Optional) Verify the listing appears on the [Backstage Plugin Directory](https://backstage.io/plugins/) once the microsite rebuilds/caches refresh
+- [x] (Optional) Verified the listing appears on the [Backstage Plugin Directory](https://backstage.io/plugins/)
 
 ---
 
