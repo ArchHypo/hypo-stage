@@ -282,6 +282,20 @@ createApiFactory({
 
 **Database** — Ensure your backend has a database configured in `app-config.yaml`. For a dedicated plugin database (recommended), add `backend.database.plugin.hypo-stage`. See the [backend package README](https://www.npmjs.com/package/@archhypo/plugin-hypo-stage-backend) or [Running the backend plugin standalone](#running-the-backend-plugin-standalone) for a full example.
 
+**CORS** — If the browser loads the app from a different origin than the backend (e.g. Vite dev server on port **3000** and backend on **7007**), configure **`backend.cors`** in your app’s YAML (`app-config.yaml`, `app-config.local.yaml`, or env-specific files). Backstage applies this at the backend level; the HypoStage plugin **does not** ship hardcoded allowlists.
+
+Example (local dev, aligned with the default Backstage app template):
+
+```yaml
+backend:
+  cors:
+    origin: http://localhost:3000
+    methods: [GET, HEAD, PATCH, POST, PUT, DELETE]
+    credentials: true
+```
+
+For standalone development in this repo, copy [app-config.example.yaml](app-config.example.yaml) to `app-config.yaml` — it already includes a fuller `backend.cors` block (`methods`, `allowedHeaders`, `credentials`). Production-style sample: [app-config.production.yaml](app-config.production.yaml).
+
 ---
 
 ## 🎯 Usage
@@ -369,6 +383,11 @@ yarn start
      baseUrl: http://localhost:7007
      listen:
        port: 7007
+     cors:
+       origin: http://localhost:3000
+       methods: [GET, HEAD, PATCH, POST, PUT, DELETE, OPTIONS]
+       allowedHeaders: [Content-Type, Authorization, X-Requested-With, Accept]
+       credentials: true
      database:
        client: pg
        connection:
@@ -383,7 +402,7 @@ yarn start
              database: backstage_plugin_hypo_stage
    ```
 
-   For SQLite: `client: better-sqlite3`, `connection: ':memory:'`.
+   **CORS** is required when the frontend runs on another origin (e.g. `hypo-stage` on port 3000). Omitting `backend.cors` here will cause browser “Failed to fetch” / missing `Access-Control-Allow-Origin` errors. For SQLite: `client: better-sqlite3`, `connection: ':memory:'`.
 3. **Start**: `cd hypo-stage-backend && yarn install && yarn start` (http://localhost:7007).
 4. **Demo seeds**: On first start, migrations seed the database with example hypotheses (see [Demo seed data](#demo-seed-data-standalone) below).
 
@@ -427,7 +446,7 @@ Use the same sequence as [Run standalone](#run-standalone-no-backstage-app-requi
 
 Open http://localhost:3000. Routes use `hypothesisId` (e.g. `/hypo-stage/hypothesis/:hypothesisId`).
 
-**If you see "Failed to fetch" or CORS errors** (e.g. "No 'Access-Control-Allow-Origin' header") when the frontend calls the backend, the backend must load `app-config.yaml` so `backend.cors` is applied. The `yarn start` script in `hypo-stage-backend` runs `scripts/ensure-config-path.js`, which sets `BACKSTAGE_CONFIG_PATH` to `app-config.yaml` (repo root or current dir) before starting the backend so CORS is applied. Ensure `app-config.yaml` exists in the repo root (or in `hypo-stage-backend`) and contains the `backend.cors` block (see `app-config.example.yaml`). If problems persist, set it explicitly: `BACKSTAGE_CONFIG_PATH=/absolute/path/to/app-config.yaml cd hypo-stage-backend && yarn start`.
+**If you see "Failed to fetch" or CORS errors** (e.g. "No 'Access-Control-Allow-Origin' header") when the frontend calls the backend, the backend must load `app-config.yaml` so **`backend.cors`** is applied (the plugin router no longer sets CORS headers itself). The `yarn start` script in `hypo-stage-backend` runs `scripts/ensure-config-path.js`, which sets `BACKSTAGE_CONFIG_PATH` to `app-config.yaml` (repo root or current dir) before starting the backend. Ensure `app-config.yaml` exists in the repo root (or in `hypo-stage-backend`) and contains a `backend.cors` block (see [app-config.example.yaml](app-config.example.yaml)). If problems persist, set it explicitly: `BACKSTAGE_CONFIG_PATH=/absolute/path/to/app-config.yaml cd hypo-stage-backend && yarn start`.
 
 ---
 
