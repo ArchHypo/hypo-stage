@@ -80,7 +80,7 @@ Then open **http://localhost:3000** and use the Hypo Stage UI (you’re signed i
 **Install & use**
 - [📦 Installation](#-installation) (step-by-step for Backstage)
 - [🎯 Usage](#-usage)
-- [🤖 AI agents: pull request analysis](#-ai-agents-pull-request-analysis)
+- [🤖 AI agents](#-ai-agents)
 
 **Develop & validate**
 - [🔨 Building the project](#-building-the-project)
