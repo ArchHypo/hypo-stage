@@ -32,7 +32,7 @@ if (configPath && fs.existsSync(configPath)) {
 
 import { createBackend } from '@backstage/backend-defaults';
 import { hypoStagePlugin } from '../src/plugin';
-import hypoStageAgentsModule from '../../hypo-stage-backend-agents/src';
+import hypoStageAgentsModule from '@archhypo/plugin-hypo-stage-backend-agents';
 import { catalogServiceRef } from '@backstage/plugin-catalog-node';
 import { CatalogService } from '@backstage/plugin-catalog-node';
 import {
