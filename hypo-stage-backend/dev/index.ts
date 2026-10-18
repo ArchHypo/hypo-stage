@@ -32,6 +32,7 @@ if (configPath && fs.existsSync(configPath)) {
 
 import { createBackend } from '@backstage/backend-defaults';
 import { hypoStagePlugin } from '../src/plugin';
+import hypoStageAgentsModule from '@archhypo/plugin-hypo-stage-backend-agents';
 import { catalogServiceRef } from '@backstage/plugin-catalog-node';
 import { CatalogService } from '@backstage/plugin-catalog-node';
 import {
@@ -205,5 +206,6 @@ backend.add(mockCatalogServiceFactory);
 
 // Add HypoStage plugin
 backend.add(hypoStagePlugin);
+backend.add(hypoStageAgentsModule);
 
 backend.start();

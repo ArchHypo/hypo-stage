@@ -14,6 +14,7 @@ import {
 import { HypothesisForm } from '../components/HypothesisForm';
 import { EntityRefLinks } from '../components/EntityRefLinks';
 import { useStyles } from '../hooks/useStyles';
+import { useHypothesisCoach } from '../hooks/useHypothesisCoach';
 import { getHypothesisFocusTag } from '../utils/hypothesisFocus';
 import type { HypothesisFocusTag } from '../utils/hypothesisFocus';
 
@@ -58,6 +59,7 @@ const EditHypothesisPageContent = () => {
   const navigate = useNavigate();
   const classes = useStyles();
   const { hypothesis, formData, updateField, loading, isFormValid, handleSubmit } = useEditHypothesis(hypothesisId);
+  const coach = useHypothesisCoach({ hypothesisId });
 
   if (loading) {
     return <Progress />;
@@ -107,6 +109,7 @@ const EditHypothesisPageContent = () => {
           isFormValid={isFormValid}
           loading={loading}
           onSubmit={onSubmit}
+          coach={coach}
         />
       </Content>
     </Page>

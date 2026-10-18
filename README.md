@@ -80,6 +80,7 @@ Then open **http://localhost:3000** and use the Hypo Stage UI (you’re signed i
 **Install & use**
 - [📦 Installation](#-installation) (step-by-step for Backstage)
 - [🎯 Usage](#-usage)
+- [🤖 AI agents: pull request analysis](#-ai-agents-pull-request-analysis)
 
 **Develop & validate**
 - [🔨 Building the project](#-building-the-project)
@@ -133,6 +134,7 @@ Monorepo (Yarn workspaces):
 |------|-------------------|-------------|
 | `hypo-stage/` | `@archhypo/plugin-hypo-stage` | Frontend: UI, pages, catalog tab, API client |
 | `hypo-stage-backend/` | `@archhypo/plugin-hypo-stage-backend` | Backend: REST API, database, HypothesisService |
+| `hypo-stage-backend-agents/` | `@archhypo/plugin-hypo-stage-backend-agents` | Backend module: GitHub PR webhook, pg-boss queue, AI analysis that proposes hypothesis changes |
 | `tsconfig.json` | — | Root TypeScript config (required for prepack / NPM publishing) |
 | `docs/images/` | — | Illustrative asset for the root README (`hypo-stage-demo.gif`). |
 | `docs/backstage-directory/` | — | Materials for [Backstage Plugin Directory](#-backstage-plugin-directory) submission |
@@ -304,6 +306,68 @@ For standalone development in this repo, copy [app-config.example.yaml](app-conf
 - **Create a hypothesis**: “Create New Hypothesis” → statement, context, uncertainty/impact, quality attributes, optional related-artefact links → save.
 - **Manage**: View, edit, and track evolution from the list and detail pages. On **Edit**, you can change the hypothesis statement, status, source type, entity references, quality attributes, optional links, and notes (uncertainty and impact are still adjusted only via technical planning). **Delete** a hypothesis from the list (row icon) or from the detail page; both require typing the current hypothesis statement to confirm. The detail view shows clearly labeled assessment chips (Status, Uncertainty, Impact, Focus).
 - **Technical planning**: On a hypothesis detail page, add, edit, and delete technical planning items (documentation URLs are optional on create and can be added or updated later when editing a plan). When creating or editing a plan, you can optionally reassess uncertainty and impact — these are the only way to change those values after initial creation. Changes are recorded as events and displayed in the evolution chart with distinct markers.
+
+---
+
+## 🤖 AI agents
+
+**Pull request analysis.** The optional backend module `@archhypo/plugin-hypo-stage-backend-agents` receives GitHub pull request webhooks and asks an LLM how the change affects your hypotheses and their technical plannings. It never edits hypotheses: it stores **suggestions** that appear in the **Agent Suggestions** card of the hypothesis page, where a reviewer accepts or rejects each one. Accepting applies the change through the regular HypoStage API, so it is validated and recorded in the evolution chart like a manual edit.
+
+| Suggestion | Applied on accept |
+|------------|-------------------|
+| Related artefact | PR URL added to the hypothesis related artefacts |
+| Planning progress | PR URL added to the planning documentations, expected outcome optionally updated |
+| Reassessment | New uncertainty/impact recorded on the technical planning the PR executes |
+| New technical planning | Planning created with the PR as documentation (may carry a reassessment) |
+| Status change | Hypothesis status updated (only proposed for merged PRs) |
+
+**Pipeline** (one [pg-boss](https://github.com/timgit/pg-boss) job per PR commit, [Vercel AI SDK](https://ai-sdk.dev) structured outputs):
+
+1. **Context:** PR metadata and per-file patches (lockfiles/binaries dropped, size-bounded per model); open hypotheses scoped to the catalog components whose `github.com/project-slug` annotation matches the repository (falls back to all open hypotheses), with their technical plannings and recent evolution.
+2. **Triage:** one call selects the hypotheses the PR may affect.
+3. **Assess:** one call per selected hypothesis proposes links, reassessments, planning progress, new plannings and status changes.
+4. **Guardrails:** deterministic checks drop low-confidence output, invented ids, no-op changes, and anything the backend would reject.
+5. **Persist:** suggestions replace earlier pending ones for the same PR; each run is logged in `agent_runs` with a step trace and token usage.
+
+**Setup**
+
+1. Requires PostgreSQL (pg-boss). Add the module next to the backend plugin: `backend.add(import('@archhypo/plugin-hypo-stage-backend-agents'));`
+2. Configure `hypoStage.github` and `hypoStage.agents` (see [app-config.example.yaml](app-config.example.yaml)). Supported providers: `anthropic`, `openai`, `google` and `ollama` (any OpenAI-compatible local endpoint). Each repository picks a model key.
+3. On GitHub, add a webhook to `https://<backend>/api/hypo-stage/webhooks/github` with content type `application/json`, the configured secret, and the **Pull requests** event. For local testing use `gh webhook forward` or [smee.io](https://smee.io).
+
+Handled actions: `opened`, `reopened`, `synchronize`, `ready_for_review`, `edited` (title/body), and `closed` (merged → final analysis; not merged → pending suggestions superseded). Drafts are ignored.
+
+**Hypothesis coach.** Independent of GitHub, the coach (`hypoStage.agents.coach`) helps write better hypotheses, the part of ArchHypo teams find hardest to learn. It classifies a statement as a hypothesis, requirement, risk or decision, checks whether it is falsifiable, explains each issue with the ArchHypo concept behind it, and proposes rewrites, splits, a source type and quality attributes. It never assesses uncertainty or impact, which remain the team's own reflection.
+
+- **While writing:** a **Review with AI** button under the statement in the create and edit forms; "Use this" copies a rewrite into the field.
+- **At save** (`checkOnSave`): an unreviewed statement is reviewed before saving; if it needs work a dialog offers **Back to edit** or **Save anyway**. It never blocks saving, and editing a hypothesis without changing its statement skips the check.
+- **After creation** (`fallback`): a scheduled job reviews recent hypotheses that never went through the coach (e.g. created through the API) and proposes a **Statement rewrite** in the Agent Suggestions card of the hypothesis page. Reviews are stored in `agent_hypothesis_reviews`.
+
+**Technical plan designer.** The **Suggest plan with AI** button in the Technical Planning card of a hypothesis (`hypoStage.agents.planner`) proposes 2–4 plan actions from the ArchHypo catalogue (Experiment, Analytics, Spike, Tracer Bullet, Modularization, Trigger, Guideline). The strategy is derived deterministically from the hypothesis assessment, following the ArchHypo paper:
+
+| Uncertainty / Impact | Strategy |
+|---|---|
+| high / high | Act in the first iteration: accept/refute or reduce uncertainty now, optionally reduce impact in parallel |
+| high / medium | Investigate early, plus a trigger that says when to decide |
+| high or medium / low | Postpone with criteria (architectural trigger, landing zone) |
+| low / high | Reduce the impact (modularization, anti-corruption layer) or settle it with a tracer bullet |
+| low / low–medium | Monitor with a guideline or trigger |
+| medium / medium–high | Balance uncertainty and impact reduction |
+
+Each action states its goal and the evidence to look for in its expected outcome (`Goal: Reduce uncertainty. Evidence: … Expected effect: uncertainty High → Low.`), and gets a target date from its iteration (`iterationDays`). Reviewers **Add** an action, **Edit before adding** (opens the pre-filled create form) or **Dismiss** it; decisions are stored in `agent_plan_proposal_actions`. The designer never changes uncertainty or impact. The PR agent uses the stated evidence to recognize when a pull request executes a planning, and keeps the `Goal:` prefix when it proposes progress updates.
+
+**GitHub issue flows.** With `repositories[].issues` enabled and the webhook subscribed to **Issues** and **Issue comments**, HypoStage treats issues the way the ArchHypo authors analysed support reports after release, and brings technical plans into the backlog:
+
+| Flow | What it does |
+|---|---|
+| Issue triage (`issues.triage`) | Classifies human issues (bug, improvement, quality attributes), links them to hypotheses, proposes **Trigger-Fired** when an issue meets a Trigger planning's condition, and raises an **evidence alert** once `alertThreshold` issues support or contradict the same hypothesis. It never reassesses: a report is a claim, and the assessment stays with the team. |
+| Plans as issues (`issues.planIssues`) | **Open as issue** on a technical planning creates a labelled issue (`archhypo:plan`, action type, hypothesis). Closing it as completed proposes the planning as done; reopening withdraws that; comments reporting results are assessed against the planning's `Goal:`/`Evidence:`. A PR saying `Fixes #N` is matched to the planning without the model, and merges with the issue-closed suggestion. |
+| Coverage (`coverage.enabled`) | Groups recent unrelated issues by component and quality attribute; recurring themes that were costly (slow to close, reopened, discussed) become draft hypotheses, reviewed by the coach. Quick fixes are skipped as low impact. |
+| Issues report | A home page tab (and Markdown export) with issues by type and quality attribute, related vs unrelated, resolution time, plan activities by action type and month, and uncovered themes. |
+
+Loops are prevented by construction: issues HypoStage created are recognised by their link record or a hidden body marker and are only synced, never triaged; only human-originated artifacts count as evidence; and each handler may emit only specific suggestion kinds. Set `hypoStage.github.botLogin` only for a dedicated bot account.
+
+**Agent runs tab.** When the agents module is installed, the HypoStage home page shows an **Agent runs** tab (`/hypo-stage?tab=agent-runs`) that lists every run with its repository, PR, model, status and suggestion count. Click a row to see its trace: which hypotheses triage selected or dropped (and why), what the model proposed for each one, which suggestions were kept or filtered out by the guardrails, token usage, and errors of failed runs. Without the module (e.g. the read-only demo) the tab is hidden.
 
 ---
 
@@ -503,6 +567,7 @@ No organization-specific code is required.
 | `make create-db` | Create HypoStage plugin database `backstage_plugin_hypo_stage` (if missing) |
 | `make seed-standalone` | Create plugin DB (if needed) and run migrations + seed (one command) |
 | `make stop-dependencies` | Stop PostgreSQL and remove volumes |
+| `make reset-agents-db` | Drop the agents tables and pg-boss schema (re-created on next backend start) |
 
 ---
 
