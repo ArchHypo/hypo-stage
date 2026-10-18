@@ -73,6 +73,10 @@ check: ## Build, test, and lint in one go (non-interactive)
 start-dependencies: ## Start Docker dependencies (PostgreSQL for HypoStage backend)
 	docker-compose up -d
 
+.PHONY: reset-agents-db
+reset-agents-db: ## Drop HypoStage agents tables and migration history (re-created on next backend start)
+	@docker exec hypo-stage-postgres psql -U postgres -d backstage_plugin_hypo_stage -c 'DROP TABLE IF EXISTS agent_suggestions, suggested_links, agent_runs, agent_config, model_policy, mcp_connections, user_credentials CASCADE; DROP TABLE IF EXISTS knex_migrations_hypo_stage_agents, knex_migrations_hypo_stage_agents_lock; DROP SCHEMA IF EXISTS pgboss CASCADE;'
+
 .PHONY: create-db
 create-db: ## Create the HypoStage plugin database in hypo-stage-postgres (backstage_plugin_hypo_stage)
 	@docker exec hypo-stage-postgres psql -U postgres -d backstage_plugin_hypo_stage -c 'SELECT 1' >/dev/null 2>&1 && \

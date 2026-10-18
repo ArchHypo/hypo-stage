@@ -26,6 +26,7 @@ import { QualityAttributesCard } from './HypothesisPage/components/QualityAttrib
 import { RelatedArtefactsCard } from './HypothesisPage/components/RelatedArtefactsCard';
 import { TechnicalPlanningList } from '../components/TechnicalPlanningList';
 import { EvolutionChart } from './HypothesisPage/components/EvolutionChart';
+import { AgentSuggestionsCard } from './HypothesisPage/components/AgentSuggestionsCard';
 import { NotificationProvider } from '../providers/NotificationProvider';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useStyles } from '../hooks/useStyles';
@@ -128,6 +129,10 @@ const HypothesisPageContent = ({
 
             <Grid item xs={12}>
               <RelatedArtefactsCard hypothesis={hypothesis} />
+            </Grid>
+
+            <Grid item xs={12}>
+              <AgentSuggestionsCard hypothesis={hypothesis} onReviewed={refreshHypothesis} />
             </Grid>
 
             {/* Evolution Chart Section */}
