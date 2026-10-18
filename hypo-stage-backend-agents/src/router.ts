@@ -26,7 +26,7 @@ import { AUTOMATED_MARKER, GitHubIssueWebhook, routeIssueEvent } from './github/
 import type { GitHubClient } from './github/client';
 import { GitHubRequestError } from './github/client';
 import { findLinkByIssue, findLinkByPlanning, listLinksForHypothesis, updateLinkState } from './store/issues';
-import { listFindings } from './coverage/run';
+import { listFindings } from './uncovered/run';
 import { buildIssuesReport, reportToMarkdown } from './reports/issues';
 import {
   openPlanIssue,

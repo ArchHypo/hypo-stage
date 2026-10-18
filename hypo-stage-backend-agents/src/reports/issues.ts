@@ -1,5 +1,5 @@
 import type { Knex } from 'knex';
-import { listFindings, CoverageFinding } from '../coverage/run';
+import { listFindings, CoverageFinding } from '../uncovered/run';
 import { listLinks, listObservations } from '../store/issues';
 
 const DAY = 86_400_000;
