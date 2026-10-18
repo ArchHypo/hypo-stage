@@ -1,4 +1,4 @@
-import { default as React } from 'react';
+import { default as React, useState } from 'react';
 import { Typography, Button, Paper, CircularProgress, Grid, Box } from '@material-ui/core';
 import Add from '@material-ui/icons/Add';
 import Save from '@material-ui/icons/Save';
@@ -14,11 +14,17 @@ import { QualityAttributesField } from './forms/QualityAttributesField';
 import { LikertScaleField } from './forms/LikertScaleField';
 import { UrlListField } from './forms/UrlListField';
 import { useStyles } from '../hooks/useStyles';
+import type { HypothesisReview } from '../api/HypoStageApi';
+import type { HypothesisCoach } from '../hooks/useHypothesisCoach';
+import { HypothesisCoachPanel } from './coach/HypothesisCoachPanel';
+import { CoachSaveDialog } from './coach/CoachSaveDialog';
 
 interface BaseHypothesisFormProps {
   isFormValid: boolean;
   loading: boolean;
   onSubmit?: () => void;
+  /** Optional AI coach (hypo-stage-backend-agents); without it the form works as before. */
+  coach?: HypothesisCoach;
 }
 
 interface CreateHypothesisFormProps extends BaseHypothesisFormProps {
@@ -36,7 +42,11 @@ interface EditHypothesisFormProps extends BaseHypothesisFormProps {
 
 export const HypothesisForm: React.FC<CreateHypothesisFormProps | EditHypothesisFormProps> = (props) => {
   const classes = useStyles();
-  const { mode, formData, onFieldChange, isFormValid, loading, onSubmit } = props;
+  const { mode, formData, onFieldChange, isFormValid, loading, onSubmit, coach } = props;
+  const [checking, setChecking] = useState(false);
+  const [pendingReview, setPendingReview] = useState<HypothesisReview | null>(null);
+  // The field names are shared by both form modes.
+  const setField = onFieldChange as (field: string, value: unknown) => void;
 
   const isCreateMode = mode === 'create';
   const isEditMode = mode === 'edit';
@@ -44,7 +54,32 @@ export const HypothesisForm: React.FC<CreateHypothesisFormProps | EditHypothesis
   const title = isCreateMode ? 'Create New Hypothesis' : 'Update Hypothesis';
   const subtitle = isCreateMode ? 'Define your hypothesis and assess its uncertainty and potential impact' : 'Update your hypothesis details';
 
-  const handleSubmit = () => {
+  const coachInput = {
+    statement: formData.statement,
+    sourceType: formData.sourceType || null,
+    qualityAttributes: formData.qualityAttributes,
+    entityRefs: formData.entityRefs,
+    notes: formData.notes || null,
+  };
+  const coachEnabled = Boolean(coach?.enabled);
+  let submitLabel = title;
+  if (loading) {
+    submitLabel = 'Submitting...';
+  } else if (checking) {
+    submitLabel = 'Checking with coach...';
+  }
+
+  const handleSubmit = async () => {
+    if (coach && coachEnabled) {
+      setChecking(true);
+      const result = await coach
+        .checkBeforeSave(coachInput, props.mode === 'edit' ? props.hypothesis.statement : undefined)
+        .finally(() => setChecking(false));
+      if (result.action === 'confirm') {
+        setPendingReview(result.review);
+        return;
+      }
+    }
     onSubmit?.();
   };
 
@@ -92,6 +127,16 @@ export const HypothesisForm: React.FC<CreateHypothesisFormProps | EditHypothesis
                 <Typography variant="body2" color="error" className={classes.validationMessage}>
                   ⚠️ {statementValidation.message}
                 </Typography>
+              )}
+              {coach && coachEnabled && (
+                <HypothesisCoachPanel
+                  coach={coach}
+                  input={coachInput}
+                  qualityAttributes={formData.qualityAttributes}
+                  onStatementChange={value => setField('statement', value)}
+                  onSourceTypeChange={value => setField('sourceType', value)}
+                  onQualityAttributesChange={value => setField('qualityAttributes', value)}
+                />
               )}
           </Grid>
 
@@ -197,13 +242,21 @@ export const HypothesisForm: React.FC<CreateHypothesisFormProps | EditHypothesis
             variant="contained"
             size="large"
             onClick={handleSubmit}
-            disabled={!isFormValid || loading}
+            disabled={!isFormValid || loading || checking}
             className={classes.submitButton}
-            startIcon={loading ? <CircularProgress size={20} color="inherit" /> : startIcon}
+            startIcon={loading || checking ? <CircularProgress size={20} color="inherit" /> : startIcon}
           >
-            {loading ? 'Submitting...' : title}
+            {submitLabel}
           </Button>
         </Box>
+        <CoachSaveDialog
+          review={pendingReview}
+          onBack={() => setPendingReview(null)}
+          onSaveAnyway={() => {
+            setPendingReview(null);
+            onSubmit?.();
+          }}
+        />
       </div>
     </Paper>
   );

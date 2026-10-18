@@ -263,4 +263,76 @@ describe('HypothesisForm', () => {
       expect(screen.getByText(/at least 20 characters/i)).toBeInTheDocument();
     });
   });
+
+  describe('with the hypothesis coach', () => {
+    const needsWork = {
+      reviewId: 'r1',
+      verdict: 'needs_work' as const,
+      classification: 'requirement' as const,
+      classificationReason: 'It states a target the system must meet.',
+      falsifiable: false,
+      refutingEvidence: null,
+      issues: [{ type: 'not_a_hypothesis' as const, severity: 'warning' as const, message: 'Target, not a belief', concept: 'c' }],
+      rewrites: [],
+      splitInto: [],
+      suggestedSourceType: null,
+      suggestedQualityAttributes: [],
+    };
+
+    const coach = (checkBeforeSave: jest.Mock) => ({
+      enabled: true,
+      checkOnSave: true,
+      review: null,
+      loading: false,
+      error: null,
+      isStale: () => true,
+      requestReview: jest.fn(),
+      checkBeforeSave,
+    });
+
+    const renderForm = (checkBeforeSave: jest.Mock, onSubmit = jest.fn()) => {
+      renderWithTheme(
+        <HypothesisForm
+          mode="create"
+          formData={createFormData({ statement: 'The system must process 1000 requests per second' })}
+          onFieldChange={jest.fn()}
+          isFormValid
+          loading={false}
+          onSubmit={onSubmit}
+          coach={coach(checkBeforeSave)}
+        />,
+      );
+      return onSubmit;
+    };
+
+    it('shows the review button', () => {
+      renderForm(jest.fn());
+      expect(screen.getByRole('button', { name: /Review with AI/ })).toBeInTheDocument();
+    });
+
+    it('submits directly when the save check proceeds', async () => {
+      const onSubmit = renderForm(jest.fn().mockResolvedValue({ action: 'proceed' }));
+      await userEvent.click(screen.getByRole('button', { name: /Create New Hypothesis/i }));
+      expect(onSubmit).toHaveBeenCalled();
+    });
+
+    it('asks for confirmation when the statement needs work, and "Save anyway" submits', async () => {
+      const onSubmit = renderForm(jest.fn().mockResolvedValue({ action: 'confirm', review: needsWork }));
+      await userEvent.click(screen.getByRole('button', { name: /Create New Hypothesis/i }));
+
+      expect(await screen.findByText('The coach found issues in this statement')).toBeInTheDocument();
+      expect(screen.getByText(/Target, not a belief/)).toBeInTheDocument();
+      expect(onSubmit).not.toHaveBeenCalled();
+
+      await userEvent.click(screen.getByRole('button', { name: 'Save anyway' }));
+      expect(onSubmit).toHaveBeenCalledTimes(1);
+    });
+
+    it('"Back to edit" keeps the form open without submitting', async () => {
+      const onSubmit = renderForm(jest.fn().mockResolvedValue({ action: 'confirm', review: needsWork }));
+      await userEvent.click(screen.getByRole('button', { name: /Create New Hypothesis/i }));
+      await userEvent.click(await screen.findByRole('button', { name: 'Back to edit' }));
+      expect(onSubmit).not.toHaveBeenCalled();
+    });
+  });
 });

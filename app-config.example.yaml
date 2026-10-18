@@ -36,3 +36,80 @@ backend:
     # Alternative: SQLite configuration (simpler for local testing)
     # client: better-sqlite3
     # connection: ':memory:'
+
+hypoStage:
+  github:
+    # Token with read access to pull requests of the repositories below
+    apiToken: myGitHubApiToken
+    # Same secret configured on the GitHub webhook (content type: application/json)
+    webhookSecret: hypo-stage-local-webhook
+    # Optional: login of a dedicated bot account behind apiToken, to ignore its own events.
+    # Leave unset with a personal token (your own issues would be ignored otherwise).
+    # botLogin: hypostage-bot
+  agents:
+    enabled: true
+    # Model key used by repositories that do not set `model`
+    defaultModel: gemini-flash
+    # Suggestions below this confidence ([0, 1]) are discarded
+    confidenceThreshold: 0.7
+    # Max hypotheses assessed per pull request after triage
+    maxCandidates: 5
+    providers:
+      anthropic:
+        apiKey: myAnthropicApiKey
+      openai:
+        apiKey: myOpenAiApiKey
+      google:
+        apiKey: myGoogleApiKey
+      ollama:
+        baseUrl: http://localhost:11434/v1
+    models:
+      - key: claude-sonnet
+        provider: anthropic
+        modelId: claude-sonnet-5
+      - key: gpt
+        provider: openai
+        modelId: gpt-5-mini
+      - key: gemini-flash
+        provider: google
+        modelId: gemini-2.5-flash-lite
+      - key: local-qwen
+        provider: ollama
+        modelId: qwen2.5:7b
+        maxInputChars: 12000
+    # GitHub issue flows (subscribe the webhook to Issues and Issue comments as well)
+    issues:
+      debounceSeconds: 120
+      alertThreshold: 3
+    coverage:
+      enabled: false
+      frequencyHours: 24
+      windowDays: 30
+      minIssues: 3
+      minOpenDays: 2
+    repositories:
+      - repository: my-org/my-service
+        model: gemini-flash
+        issues:
+          triage: true        # analyze human issues against hypotheses
+          planIssues: true    # allow "Open as issue" on technical plannings (token needs issues: write)
+          ignoreLabels: [question, duplicate, invalid]
+    # Technical plan designer: proposes plan actions for a hypothesis (no GitHub needed)
+    planner:
+      enabled: true
+      model: gemini-flash
+      # Iteration length, used to turn "iteration N" into a target date
+      iterationDays: 14
+      maxActions: 4
+    # Hypothesis coach: reviews statements in the create/edit form (no GitHub needed)
+    coach:
+      enabled: true
+      model: gemini-flash
+      # Review unreviewed statements when saving (never blocks the save)
+      checkOnSave: true
+      # Background review of hypotheses created without the form (e.g. via the API)
+      fallback:
+        enabled: true
+        frequencyMinutes: 10
+        maxPerRun: 5
+        sinceDays: 7
