@@ -27,7 +27,7 @@ export const useCreateHypothesis = () => {
   const api = useApi(HypoStageApiRef);
   const { loading, execute } = useApiCall();
   const { showSuccess, showError } = useNotifications();
-  const { formData, updateField, resetForm } = useFormState<CreateHypothesisFormData>({
+  const { formData, updateField, updateFields, resetForm } = useFormState<CreateHypothesisFormData>({
     entityRefs: [],
     statement: '',
     sourceType: '',
@@ -77,6 +77,8 @@ export const useCreateHypothesis = () => {
     loading,
     isFormValid,
     handleSubmit,
-    resetForm
+    resetForm,
+    /** Pre-fills several fields at once, e.g. from a coverage finding. */
+    updateFields,
   };
 };

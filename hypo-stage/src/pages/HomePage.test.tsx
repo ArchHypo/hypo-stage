@@ -1,5 +1,5 @@
 import { default as React } from 'react';
-import { screen } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 import { TestApiProvider, renderInTestApp } from '@backstage/test-utils';
@@ -52,19 +52,34 @@ const mockHypoStageApi = {
   createTechnicalPlanning: jest.fn(),
   updateTechnicalPlanning: jest.fn(),
   deleteTechnicalPlanning: jest.fn(),
+  getAgentsStatus: jest.fn(),
+  getAgentRuns: jest.fn().mockResolvedValue({ items: [], total: 0, repositories: [] }),
+  getAgentRun: jest.fn(),
+  getIssuesReport: jest.fn().mockResolvedValue({
+    period: { from: '', to: '' },
+    repository: null,
+    reported: {
+      total: 0, byClassification: {}, byQualityAttribute: {}, related: 0, unrelated: 0, byHypothesis: [],
+      resolution: { closed: 0, open: 0, medianDaysToClose: null, sameDayPercent: null },
+    },
+    planIssues: { total: 0, byActionType: {}, byMonth: {}, open: 0, completed: 0, notPlanned: 0, medianDaysToClose: null },
+    uncovered: [],
+  }),
 };
 
-const renderWithProviders = async () => {
+const renderWithProviders = async (route = '/') => {
   return renderInTestApp(
     <TestApiProvider apis={[[HypoStageApiRef, mockHypoStageApi]]}>
       <HomePage />
     </TestApiProvider>,
+    { routeEntries: [route] },
   );
 };
 
 describe('HomePage', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockHypoStageApi.getAgentsStatus.mockResolvedValue({ available: false, enabled: false, coach: { enabled: false, checkOnSave: false }, planner: { enabled: false }, issues: { triage: false, planIssues: false }, coverage: { enabled: false } });
     mockUseAsync.mockImplementation((fn: () => Promise<unknown>) => {
       const fnStr = fn.toString();
       if (fnStr.includes('getTeams')) {
@@ -112,5 +127,52 @@ describe('HomePage', () => {
     const createButton = screen.getByRole('button', { name: /Create New Hypothesis/i });
     // MUI fullWidth adds width: 100% via class; we verify the button exists in a Grid
     expect(createButton).toBeInTheDocument();
+  });
+
+  describe('agent runs tab', () => {
+    it('is hidden when the agents module is not installed, even with ?tab=agent-runs', async () => {
+      await renderWithProviders('/?tab=agent-runs');
+
+      await waitFor(() => expect(mockHypoStageApi.getAgentsStatus).toHaveBeenCalled());
+      expect(screen.queryByRole('tab', { name: 'Agent runs' })).not.toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Create New Hypothesis/i })).toBeInTheDocument();
+      expect(mockHypoStageApi.getAgentRuns).not.toHaveBeenCalled();
+    });
+
+    it('switches between hypotheses and agent runs when the module is available', async () => {
+      mockHypoStageApi.getAgentsStatus.mockResolvedValue({ available: true, enabled: true, coach: { enabled: false, checkOnSave: false }, planner: { enabled: false }, issues: { triage: false, planIssues: false }, coverage: { enabled: false } });
+      const user = userEvent.setup();
+      await renderWithProviders();
+
+      const tab = await screen.findByRole('tab', { name: 'Agent runs' });
+      expect(screen.getByRole('button', { name: /Create New Hypothesis/i })).toBeInTheDocument();
+
+      await user.click(tab);
+
+      expect(await screen.findByText(/No agent runs yet/)).toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: /Create New Hypothesis/i })).not.toBeInTheDocument();
+
+      await user.click(screen.getByRole('tab', { name: 'Hypotheses' }));
+      expect(await screen.findByRole('button', { name: /Create New Hypothesis/i })).toBeInTheDocument();
+    });
+
+    it('opens the agent runs tab from the URL', async () => {
+      mockHypoStageApi.getAgentsStatus.mockResolvedValue({ available: true, enabled: false, coach: { enabled: false, checkOnSave: false }, planner: { enabled: false }, issues: { triage: false, planIssues: false }, coverage: { enabled: false } });
+      await renderWithProviders('/?tab=agent-runs');
+
+      expect(await screen.findByText(/Agents are disabled in config/)).toBeInTheDocument();
+      expect(mockHypoStageApi.getAgentRuns).toHaveBeenCalledWith(expect.objectContaining({ offset: 0 }));
+    });
+  });
+
+  it('shows the Issues report tab only when an issue flow is enabled', async () => {
+    mockHypoStageApi.getAgentsStatus.mockResolvedValue({
+      available: true, enabled: true, coach: { enabled: false, checkOnSave: false }, planner: { enabled: false },
+      issues: { triage: true, planIssues: false }, coverage: { enabled: false },
+    });
+    await renderWithProviders('/?tab=issues-report');
+    expect(await screen.findByRole('tab', { name: 'Issues report' })).toBeInTheDocument();
+    expect(await screen.findByText('Reported issues')).toBeInTheDocument();
+    expect(mockHypoStageApi.getIssuesReport).toHaveBeenCalled();
   });
 });

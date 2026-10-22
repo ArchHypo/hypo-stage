@@ -69,6 +69,16 @@ const mockHypoStageApi = {
   createTechnicalPlanning: jest.fn(),
   updateTechnicalPlanning: jest.fn(),
   deleteTechnicalPlanning: jest.fn(),
+  getAgentSuggestions: jest.fn().mockResolvedValue([]),
+  reviewAgentSuggestion: jest.fn(),
+  getAgentsStatus: jest.fn().mockResolvedValue({
+    available: false,
+    enabled: false,
+    coach: { enabled: false, checkOnSave: false },
+    planner: { enabled: false },
+    issues: { triage: false, planIssues: false },
+    coverage: { enabled: false },
+  }),
 };
 
 const renderWithProviders = async (ui: React.ReactElement) => {
@@ -123,6 +133,15 @@ describe('HypothesisPage', () => {
     expect(screen.getByRole('button', { name: /Back to List/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Edit Hypothesis/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Delete/i })).toBeInTheDocument();
+  });
+
+  it('should render the agent suggestions review section', async () => {
+    await renderWithProviders(<HypothesisPage />);
+
+    expect(screen.getByText('Agent Suggestions')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText(/No pending agent suggestions/i)).toBeInTheDocument();
+    });
   });
 
   it('should show loading state', async () => {

@@ -59,6 +59,7 @@
     "zod": "^3.22.4"
   },
   "devDependencies": {
+    "@archhypo/plugin-hypo-stage-backend-agents": "^1.0.0",
     "@backstage/backend-test-utils": "^1.4.0",
     "@backstage/cli": "^0.32.0",
     "@backstage/config-loader": "^1.10.0",

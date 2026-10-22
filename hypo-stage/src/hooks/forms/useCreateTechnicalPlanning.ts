@@ -107,6 +107,8 @@ export const useCreateTechnicalPlanning = (
     loading,
     isFormValid,
     handleSubmit,
-    resetForm: wrappedResetForm
+    resetForm: wrappedResetForm,
+    /** Pre-fills several fields at once, e.g. from a plan designer proposal. */
+    updateFields,
   };
 };

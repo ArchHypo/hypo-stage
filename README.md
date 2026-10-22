@@ -80,6 +80,7 @@ Then open **http://localhost:3000** and use the Hypo Stage UI (you’re signed i
 **Install & use**
 - [📦 Installation](#-installation) (step-by-step for Backstage)
 - [🎯 Usage](#-usage)
+- [🤖 AI agents](#-ai-agents)
 
 **Develop & validate**
 - [🔨 Building the project](#-building-the-project)
@@ -133,6 +134,8 @@ Monorepo (Yarn workspaces):
 |------|-------------------|-------------|
 | `hypo-stage/` | `@archhypo/plugin-hypo-stage` | Frontend: UI, pages, catalog tab, API client |
 | `hypo-stage-backend/` | `@archhypo/plugin-hypo-stage-backend` | Backend: REST API, database, HypothesisService |
+| `hypo-stage-backend-agents/` | `@archhypo/plugin-hypo-stage-backend-agents` | Backend module: AI agents (PR and issue analysis, coach, plan designer, coverage, report) — see [docs/agents](docs/agents/) |
+| `docs/agents/` | — | [User guide](docs/agents/user-guide.md) and [developer guide](docs/agents/developer-guide.md) for the AI agents |
 | `tsconfig.json` | — | Root TypeScript config (required for prepack / NPM publishing) |
 | `docs/images/` | — | Illustrative asset for the root README (`hypo-stage-demo.gif`). |
 | `docs/backstage-directory/` | — | Materials for [Backstage Plugin Directory](#-backstage-plugin-directory) submission |
@@ -304,6 +307,39 @@ For standalone development in this repo, copy [app-config.example.yaml](app-conf
 - **Create a hypothesis**: “Create New Hypothesis” → statement, context, uncertainty/impact, quality attributes, optional related-artefact links → save.
 - **Manage**: View, edit, and track evolution from the list and detail pages. On **Edit**, you can change the hypothesis statement, status, source type, entity references, quality attributes, optional links, and notes (uncertainty and impact are still adjusted only via technical planning). **Delete** a hypothesis from the list (row icon) or from the detail page; both require typing the current hypothesis statement to confirm. The detail view shows clearly labeled assessment chips (Status, Uncertainty, Impact, Focus).
 - **Technical planning**: On a hypothesis detail page, add, edit, and delete technical planning items (documentation URLs are optional on create and can be added or updated later when editing a plan). When creating or editing a plan, you can optionally reassess uncertainty and impact — these are the only way to change those values after initial creation. Changes are recorded as events and displayed in the evolution chart with distinct markers.
+
+---
+
+## 🤖 AI agents
+
+The optional backend module [`@archhypo/plugin-hypo-stage-backend-agents`](hypo-stage-backend-agents/README.md) adds AI agents that support the ArchHypo workflow. Agents only **suggest**: every change is reviewed in HypoStage and applied through the regular API, so it is validated and recorded in the hypothesis evolution like a manual edit.
+
+| Feature | What it does |
+|---|---|
+| PR analysis | Reads pull requests as evidence: links, planning progress, reassessments, new plannings, status changes |
+| Hypothesis coach | Reviews statements while writing, at save, or in the background, and proposes rewrites |
+| Technical plan designer | Proposes plan actions from the ArchHypo catalogue based on uncertainty and impact |
+| Issue triage | Links issues to hypotheses, flags fired triggers, raises evidence alerts |
+| Plans as issues | Opens technical plannings as GitHub issues and keeps both in sync |
+| Coverage | Turns recurring, costly issue themes no hypothesis covers into draft hypotheses |
+| Issues report & Agent runs | Maintenance report of issues and plans; traces of every agent run |
+
+Every feature is off by default. The quickest start (no GitHub needed) enables the coach and the plan designer:
+
+```yaml
+hypoStage:
+  agents:
+    defaultModel: gemini-flash
+    providers:
+      google: { apiKey: ${GOOGLE_API_KEY} }
+    models:
+      - { key: gemini-flash, provider: google, modelId: gemini-3.5-flash }
+    coach: { enabled: true }
+    planner: { enabled: true }
+```
+
+- **[User guide](docs/agents/user-guide.md)** — every feature: what it does, setup (models, GitHub token and webhook, repositories), how to try it, possible outcomes, troubleshooting and the full configuration reference.
+- **[Developer guide](docs/agents/developer-guide.md)** — architecture, building blocks, design rules and recipes for new agentic features (new suggestion kinds, events, recurring jobs, other Backstage plugins, codebase access, MCP, providers).
 
 ---
 
@@ -503,6 +539,7 @@ No organization-specific code is required.
 | `make create-db` | Create HypoStage plugin database `backstage_plugin_hypo_stage` (if missing) |
 | `make seed-standalone` | Create plugin DB (if needed) and run migrations + seed (one command) |
 | `make stop-dependencies` | Stop PostgreSQL and remove volumes |
+| `make reset-agents-db` | Drop the agents tables and pg-boss schema (re-created on next backend start) |
 
 ---
 

@@ -17,6 +17,23 @@ import type {
   TechnicalPlanning,
   UpdateTechnicalPlanningInput,
 } from '@archhypo/plugin-hypo-stage-backend';
+import type {
+  AgentRunDetail,
+  AgentRunsPage,
+  AgentsStatus,
+  AgentSuggestion,
+  AgentSuggestionReview,
+  AgentSuggestionStatus,
+  GetAgentRunsOptions,
+  HypothesisReview,
+  HypothesisReviewInput,
+  PlanActionDecision,
+  PlanProposal,
+  CoverageFinding,
+  IssuesReport,
+  IssuesReportQuery,
+  PlanningIssueLink,
+} from './HypoStageApi';
 import { seedHypotheses, getSeedEvents } from '../seedData';
 
 const DEMO_READ_ONLY = 'This is a read-only demo. Use a local backend to create or edit data.';
@@ -139,6 +156,74 @@ export class HypoStageMockApi implements HypoStageApi {
   }
 
   async deleteTechnicalPlanning(_technicalPlanningId: string): Promise<void> {
+    throw new Error(DEMO_READ_ONLY);
+  }
+
+  async getAgentSuggestions(_hypothesisId: string, _status?: AgentSuggestionStatus): Promise<AgentSuggestion[]> {
+    return [];
+  }
+
+  async reviewAgentSuggestion(_suggestionId: string, _status: 'accepted' | 'rejected'): Promise<AgentSuggestionReview> {
+    throw new Error(DEMO_READ_ONLY);
+  }
+
+  async getAgentsStatus(): Promise<AgentsStatus> {
+    return {
+      available: false,
+      enabled: false,
+      coach: { enabled: false, checkOnSave: false },
+      planner: { enabled: false },
+      issues: { triage: false, planIssues: false },
+      coverage: { enabled: false },
+    };
+  }
+
+  async getAgentRuns(_options?: GetAgentRunsOptions): Promise<AgentRunsPage> {
+    return { items: [], total: 0, repositories: [] };
+  }
+
+  async getAgentRun(_runId: string): Promise<AgentRunDetail> {
+    throw new Error(DEMO_READ_ONLY);
+  }
+
+  async reviewHypothesisDraft(_input: HypothesisReviewInput, _trigger: 'on_demand' | 'save'): Promise<HypothesisReview> {
+    throw new Error(DEMO_READ_ONLY);
+  }
+
+  async proposeTechnicalPlan(_hypothesisId: string): Promise<PlanProposal> {
+    throw new Error(DEMO_READ_ONLY);
+  }
+
+  async decidePlanAction(
+    _proposalId: string,
+    _index: number,
+    _decision: PlanActionDecision,
+    _technicalPlanningId?: string,
+  ): Promise<void> {
+    throw new Error(DEMO_READ_ONLY);
+  }
+
+  async getPlanningIssues(_hypothesisId: string): Promise<PlanningIssueLink[]> {
+    return [];
+  }
+
+  async openPlanningIssue(_technicalPlanningId: string, _repository?: string): Promise<PlanningIssueLink> {
+    throw new Error(DEMO_READ_ONLY);
+  }
+
+  async getCoverageFindings(_status?: CoverageFinding['status']): Promise<CoverageFinding[]> {
+    return [];
+  }
+
+  async updateCoverageFinding(_id: string, _status: 'created' | 'dismissed'): Promise<void> {
+    throw new Error(DEMO_READ_ONLY);
+  }
+
+  async getIssuesReport(_query?: IssuesReportQuery): Promise<IssuesReport> {
+    throw new Error(DEMO_READ_ONLY);
+  }
+
+  async getIssuesReportMarkdown(_query?: IssuesReportQuery): Promise<string> {
     throw new Error(DEMO_READ_ONLY);
   }
 }
