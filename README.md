@@ -29,7 +29,7 @@ A **demo with seed data** is available for a quick overview: [https://hypo-stage
 
 ## 📌 Current release, Backstage, and community
 
-**Npm:** **`@archhypo/plugin-hypo-stage@1.0.0`** and **`@archhypo/plugin-hypo-stage-backend@1.0.0`** — the first **1.x** line. Treat this as the **stable baseline** for Backstage adopters: SemVer applies from `1.0.0` onward (breaking changes would bump **major**).
+**Npm:** **`@archhypo/plugin-hypo-stage@1.0.1`** and **`@archhypo/plugin-hypo-stage-backend@1.0.1`** — the **1.x** line (see [CHANGELOG.md](CHANGELOG.md)). Treat this as the **stable baseline** for Backstage adopters: SemVer applies from `1.0.0` onward (breaking changes would bump **major**).
 
 **Backstage:** HypoStage is a normal Backstage **frontend + backend** plugin pair. Install both packages at the **same version**, wire routes and the backend module, and configure a database as in [Installation](#installation). Keep your app on a [maintained Backstage release](https://github.com/backstage/backstage/releases) and Node.js **20+** (see [Prerequisites](#-prerequisites)).
 
@@ -200,11 +200,11 @@ Use these steps to add HypoStage to an existing Backstage application (Backstage
 
 ### Step 0: Add the plugin packages
 
-**Option A — From NPM** (recommended; use **matching** versions, e.g. **1.0.0**):
+**Option A — From NPM** (recommended; use **matching** versions, e.g. **1.0.1**):
 
 ```bash
-yarn --cwd packages/app add @archhypo/plugin-hypo-stage@^1.0.0
-yarn --cwd packages/backend add @archhypo/plugin-hypo-stage-backend@^1.0.0
+yarn --cwd packages/app add @archhypo/plugin-hypo-stage@^1.0.1
+yarn --cwd packages/backend add @archhypo/plugin-hypo-stage-backend@^1.0.1
 ```
 
 **Option B — From source** (clone and copy into your app’s `plugins/` directory):
