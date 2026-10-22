@@ -269,7 +269,6 @@ export const HypothesisList = ({ refreshKey = 0, entityRef }: HypothesisListProp
         selectedTeam={selectedTeam}
         selectedComponentRef={selectedComponentRef}
         refreshKey={refreshKey + refreshTrigger}
-        sinceDays={90}
       />
       <Box className={classes.filterBar} data-testid="hypothesis-filter-bar">
         {!entityRef && (

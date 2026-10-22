@@ -5,6 +5,12 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- **Dashboard counts:** the overview, "Where to focus", and uncertainty/impact panels now cover the same hypotheses as the list below them. Previously the dashboard requested stats with a fixed 90-day `updatedAt` window, so any hypothesis not updated in the last 90 days vanished from the counts (e.g. `Total 0` above a populated list). The "Created (30d)" card remains the only time-bounded figure. `sinceDays` is still accepted by `GET /hypotheses/stats` and by `HypothesisListDashboard` for callers that want a window.
+
 ## [1.0.0] - 2026-04-12
 
 First **1.x** release line: suitable for **production Backstage** deployments when you align with supported Backstage and Node.js versions (see the root [README](README.md) and package peer ranges).

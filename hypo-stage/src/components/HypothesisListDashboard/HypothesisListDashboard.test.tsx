@@ -82,6 +82,16 @@ describe('HypothesisListDashboard', () => {
     expect(screen.getByText(/Can postpone/)).toBeInTheDocument();
   });
 
+  it('should call getHypothesesStats without a time window by default', async () => {
+    await renderInTestApp(
+      <TestApiProvider apis={[[HypoStageApiRef, mockApi]]}>
+        <HypothesisListDashboard />
+      </TestApiProvider>,
+    );
+
+    expect(mockGetHypothesesStats).toHaveBeenCalledWith({});
+  });
+
   it('should call getHypothesesStats with sinceDays when provided', async () => {
     await renderInTestApp(
       <TestApiProvider apis={[[HypoStageApiRef, mockApi]]}>
