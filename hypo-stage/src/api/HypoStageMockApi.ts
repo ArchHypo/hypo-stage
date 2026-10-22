@@ -38,9 +38,14 @@ function filterHypotheses(
   return out;
 }
 
-function computeStats(list: Hypothesis[], sinceDays?: number): HypothesisStats {
+const toTime = (d: Date | string) => (d instanceof Date ? d.getTime() : new Date(d).getTime());
+
+/** Mirrors the backend: `sinceDays` (by updatedAt) bounds every figure; `inLast30Days` is always by createdAt. */
+function computeStats(all: Hypothesis[], sinceDays?: number): HypothesisStats {
   const now = Date.now();
   const since = sinceDays ? now - sinceDays * 24 * 60 * 60 * 1000 : 0;
+  const thirtyDaysAgo = now - 30 * 24 * 60 * 60 * 1000;
+  const list = since ? all.filter(h => toTime(h.updatedAt) >= since) : all;
   const byStatus: Record<string, number> = {};
   const byUncertainty: Record<string, number> = {};
   const byImpact: Record<string, number> = {};
@@ -52,8 +57,7 @@ function computeStats(list: Hypothesis[], sinceDays?: number): HypothesisStats {
     byStatus[h.status] = (byStatus[h.status] ?? 0) + 1;
     byUncertainty[h.uncertainty] = (byUncertainty[h.uncertainty] ?? 0) + 1;
     byImpact[h.impact] = (byImpact[h.impact] ?? 0) + 1;
-    const updated = h.updatedAt instanceof Date ? h.updatedAt.getTime() : new Date(h.updatedAt).getTime();
-    if (since && updated >= since) inLast30Days += 1;
+    if (toTime(h.createdAt) >= thirtyDaysAgo) inLast30Days += 1;
     if (h.uncertainty === 'High' || h.uncertainty === 'Very High') {
       if (h.impact === 'High' || h.impact === 'Very High') needAttention += 1;
     }
