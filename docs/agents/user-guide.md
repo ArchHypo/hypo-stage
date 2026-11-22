@@ -87,6 +87,7 @@ hypoStage:
 
 - `maxInputChars` limits how much PR content goes into a prompt (default 60 000; 12 000 for Ollama).
 - `concurrency` limits parallel calls per run (default 3; 1 for Ollama).
+- The `ollama` provider works with any OpenAI-compatible endpoint (set `baseUrl`, and `apiKey` if it needs one). For these endpoints HypoStage also puts the output schema in the system prompt, since many self-hosted servers enforce it without showing it to the model; this adds a few hundred input tokens per call.
 
 **Choosing a model.** A capable cloud model (Claude, GPT, Gemini Flash) gives the best results for every feature. Small local models (≤ 1B parameters) work for the coach but often miss or invent hypothesis ids in PR and issue analysis; prefer 7B+ local models if you must stay local.
 

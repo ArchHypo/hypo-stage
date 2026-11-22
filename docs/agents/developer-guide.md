@@ -122,7 +122,7 @@ const result = await generateStructured({
 });
 ```
 
-**Schema conventions** (see `pipeline/schemas.ts`): every key is required and optional values use `.nullable()`, never `.optional()`. This keeps schemas valid for OpenAI strict mode and easier for small local models. Use `.describe()` on fields — the descriptions reach the model.
+**Schema conventions** (see `pipeline/schemas.ts`): every key is required and optional values use `.nullable()`, never `.optional()`. This keeps schemas valid for OpenAI strict mode and easier for small local models. Use `.describe()` on fields — the descriptions reach the model. Anthropic, OpenAI and Google pass the schema to the model themselves; for the `ollama` provider (any OpenAI-compatible endpoint: Ollama, vLLM, OpenRouter), `providers/models.ts` also appends the schema to the system prompt (`schemaInPromptMiddleware`), because such servers may enforce `response_format` without showing the schema to the model.
 
 `ARCHHYPO_PRIMER` in `pipeline/prompts.ts` explains ArchHypo concepts in a few lines; start new system prompts from it so every agent shares the same vocabulary.
 
@@ -265,7 +265,7 @@ Event-driven features still need webhooks or polling: MCP is pull-based.
 1. Install the AI SDK provider package matching AI SDK v6 (same `@ai-sdk/provider` major).
 2. Add the name to `PROVIDERS` in `config.ts` and to the `provider` union in `config.d.ts`.
 3. Add a `case` to `createProvider` in `providers/models.ts`.
-4. Check that the provider supports structured output with `Output.object`; extend `providers/models.test.ts`.
+4. Check that the provider supports structured output with `Output.object`; if it enforces the schema without showing it to the model, wrap its models with `schemaInPromptMiddleware`. Extend `providers/models.test.ts`.
 
 ### 8. Add a frontend view
 
