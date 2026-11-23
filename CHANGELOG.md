@@ -5,6 +5,12 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Removed
+
+- **Dashboard time windows:** hypotheses stay open for a long time, so the dashboard no longer filters stats by `sinceDays` and no longer shows the "Created (30d)" card. `GET /hypotheses/stats` ignores `sinceDays` and no longer returns `inLast30Days`. Overview counts (Total, Validated, Open), Where to focus, and the uncertainty/impact panels cover the same hypotheses as the list.
+
 ## [1.0.1] - 2026-10-22
 
 ### Fixed

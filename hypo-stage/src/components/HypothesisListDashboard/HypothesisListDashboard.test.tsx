@@ -18,7 +18,6 @@ const mockStats = {
   byStatus: { Open: 2, 'In Review': 1, Validated: 2 },
   byUncertainty: { Medium: 2, High: 3 },
   byImpact: { High: 2, 'Very High': 1 },
-  inLast30Days: 3,
   needAttention: 1,
   canPostpone: 2,
 };
@@ -77,7 +76,7 @@ describe('HypothesisListDashboard', () => {
     expect(screen.getByText('Total')).toBeInTheDocument();
     expect(screen.getAllByText('Validated').length).toBeGreaterThan(0);
     expect(screen.getAllByText('Open').length).toBeGreaterThan(0);
-    expect(screen.getByText('Created (30d)')).toBeInTheDocument();
+    expect(screen.queryByText('Created (30d)')).not.toBeInTheDocument();
     expect(screen.getByText(/Need attention/)).toBeInTheDocument();
     expect(screen.getByText(/Can postpone/)).toBeInTheDocument();
   });
@@ -92,39 +91,27 @@ describe('HypothesisListDashboard', () => {
     expect(mockGetHypothesesStats).toHaveBeenCalledWith({});
   });
 
-  it('should call getHypothesesStats with sinceDays when provided', async () => {
-    await renderInTestApp(
-      <TestApiProvider apis={[[HypoStageApiRef, mockApi]]}>
-        <HypothesisListDashboard sinceDays={60} />
-      </TestApiProvider>,
-    );
-
-    expect(mockGetHypothesesStats).toHaveBeenCalledWith({ sinceDays: 60 });
-  });
-
   it('should call getHypothesesStats with entityRef when scoped to component', async () => {
     await renderInTestApp(
       <TestApiProvider apis={[[HypoStageApiRef, mockApi]]}>
-        <HypothesisListDashboard entityRef="component:default/my-service" sinceDays={90} />
+        <HypothesisListDashboard entityRef="component:default/my-service" />
       </TestApiProvider>,
     );
 
     expect(mockGetHypothesesStats).toHaveBeenCalledWith({
       entityRef: 'component:default/my-service',
-      sinceDays: 90,
     });
   });
 
   it('should call getHypothesesStats with team when selectedTeam is set', async () => {
     await renderInTestApp(
       <TestApiProvider apis={[[HypoStageApiRef, mockApi]]}>
-        <HypothesisListDashboard selectedTeam="TeamA" selectedComponentRef={null} sinceDays={90} />
+        <HypothesisListDashboard selectedTeam="TeamA" selectedComponentRef={null} />
       </TestApiProvider>,
     );
 
     expect(mockGetHypothesesStats).toHaveBeenCalledWith({
       team: 'TeamA',
-      sinceDays: 90,
     });
   });
 
@@ -134,14 +121,12 @@ describe('HypothesisListDashboard', () => {
         <HypothesisListDashboard
           selectedTeam={null}
           selectedComponentRef="component:default/other"
-          sinceDays={90}
         />
       </TestApiProvider>,
     );
 
     expect(mockGetHypothesesStats).toHaveBeenCalledWith({
       entityRef: 'component:default/other',
-      sinceDays: 90,
     });
   });
 

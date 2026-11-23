@@ -25,7 +25,6 @@ export interface HypothesisStats {
   byStatus: Record<string, number>;
   byUncertainty: Record<string, number>;
   byImpact: Record<string, number>;
-  inLast30Days: number;
   /** High uncertainty and high impact — consider technical plans (ArchHypo). */
   needAttention: number;
   /** Low impact — safe to postpone decisions (ArchHypo). */
@@ -35,8 +34,6 @@ export interface HypothesisStats {
 export interface GetHypothesesStatsOptions {
   entityRef?: string;
   team?: string;
-  /** If set, only hypotheses updated in the last N days are counted (reduces load). */
-  sinceDays?: number;
 }
 
 export interface HypoStageApi {
@@ -44,7 +41,7 @@ export interface HypoStageApi {
   getTeams: () => Promise<string[]>;
   /** Entity refs that appear in at least one hypothesis (for filter dropdown). */
   getReferencedEntityRefs: () => Promise<string[]>;
-  /** Dashboard stats with same filters as getHypotheses; optional sinceDays for time-bound. */
+  /** Dashboard stats with the same filters as getHypotheses. */
   getHypothesesStats: (options?: GetHypothesesStatsOptions) => Promise<HypothesisStats>;
   createHypothesis: (input: CreateHypothesisInput) => Promise<Hypothesis>;
   getHypotheses: (options?: GetHypothesesOptions) => Promise<Hypothesis[]>;
@@ -118,7 +115,6 @@ export class HypoStageApiClient implements HypoStageApi {
     const params = new URLSearchParams();
     if (options?.entityRef) params.set('entityRef', options.entityRef);
     if (options?.team) params.set('team', options.team);
-    if (options?.sinceDays !== undefined) params.set('sinceDays', String(options.sinceDays));
     const query = params.toString();
     const url = query ? `${baseUrl}/hypotheses/stats?${query}` : `${baseUrl}/hypotheses/stats`;
     const response = await this.fetchApi.fetch(url);
