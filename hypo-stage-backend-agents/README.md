@@ -26,6 +26,21 @@ Leaving the module unregistered, or leaving every feature flag false, does not c
 
 This package is versioned on its own (currently `1.0.0`). A core HypoStage npm release publishes it only when this version equals the git tag. See [npm publishing](https://github.com/ArchHypo/hypo-stage/blob/main/docs/npm-publishing.md).
 
+## Demo seed
+
+Starting the module seeds one sample, the same way the HypoStage backend seeds its demo hypotheses. After migrations, `module.ts` inserts a pending technical-planning suggestion and a completed agent run (`provider: fixture`) on the walkthrough hypothesis. Nothing calls a model. The row is skipped while `NODE_ENV=test`. Accepting the suggestion still goes through the normal technical-planning API.
+
+To apply it against the Docker Postgres from the repo root:
+
+```bash
+make start-dependencies
+make seed-standalone
+docker exec hypo-stage-postgres psql -U postgres -d backstage_plugin_hypo_stage -c \
+  "SELECT provider, status FROM agent_runs WHERE head_sha = 'demo-fixture';"
+```
+
+`make seed-standalone` runs the plugin migrations, the hypothesis seed, the agents migrations, and this fixture. The [root README](https://github.com/ArchHypo/hypo-stage/blob/main/README.md#-running-with-docker) has the queries that confirm both migration tables and what to change if port 5432 is already taken.
+
 ## Requirements
 
 - Node.js 22

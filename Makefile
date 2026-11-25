@@ -85,7 +85,7 @@ create-db: ## Create the HypoStage plugin database in hypo-stage-postgres (backs
 	(echo "Run 'make start-dependencies' first if Postgres is not running." && exit 1)
 
 .PHONY: seed-standalone
-seed-standalone: ## Create plugin DB (if using Docker) and run migrations + seed (one command, from repo root)
+seed-standalone: ## Create plugin DB (if using Docker) and run migrations + hypothesis and agents seeds (one command, from repo root)
 	@$(MAKE) create-db 2>/dev/null || true
 	@cd hypo-stage-backend && yarn seed
 

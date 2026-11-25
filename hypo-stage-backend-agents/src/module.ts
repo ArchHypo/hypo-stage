@@ -1,3 +1,4 @@
+import { createRequire } from 'node:module';
 import {
   coreServices,
   createBackendModule,
@@ -22,6 +23,7 @@ import { createRouter, WEBHOOK_PATH } from './router';
 import type { PipelineDeps } from './pipeline/run';
 
 const GITHUB_SLUG_ANNOTATION = 'github.com/project-slug';
+const require = createRequire(__filename);
 
 /**
  * Adds AI analysis of GitHub pull requests to the hypo-stage plugin. It shares the
@@ -70,6 +72,16 @@ export const hypoStageAgentsModule = createBackendModule({
             directory: resolvePackagePath('@archhypo/plugin-hypo-stage-backend-agents', 'migrations'),
             tableName: 'knex_migrations_hypo_stage_agents',
           });
+          // Same idea as the host plugin's demo seed: apply it on startup, not only
+          // the first time the migration file is seen. A previous run may have
+          // recorded the migration before the walkthrough hypothesis existed.
+          const agentsSeed = require(
+            resolvePackagePath(
+              '@archhypo/plugin-hypo-stage-backend-agents',
+              'migrations/20261125_000006_seed_demo_agent_fixture.js',
+            ),
+          );
+          await agentsSeed.up(knex);
         }
 
         const config = readAgentsConfig(rootConfig);

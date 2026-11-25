@@ -535,13 +535,13 @@ yarn start
 
 The HypoStage plugin has **its own database** (e.g. `backstage_plugin_hypo_stage` via `backend.database.plugin.hypo-stage`). Migrations create the plugin’s tables there, and the **seed creates hypothesis data in that plugin database** so you can try the UI without creating data yourself.
 
-**Seed runs transparently**: When you start the backend, migrations run automatically and the seed migration fills the plugin database if it’s empty (idempotent). You don’t need to run `yarn seed` unless you want to reseed or populate the DB without starting the backend.
+**Seed runs transparently**: When you start the backend, migrations run automatically and the seed migration fills the plugin database if it’s empty (idempotent). The agents module does the same for its own tables: on startup it inserts one pending suggestion and one fixture agent run (`provider: fixture`) on the walkthrough hypothesis. That row is sample data, not a model call. You don’t need to run `yarn seed` unless you want to reseed or populate the DB without starting the backend.
 
 **Command to populate the plugin database with seed**
 
 From the repo root, with `app-config.yaml` in place and Postgres running if using pg:
 
-- **Recommended (one command)**: **`make seed-standalone`** — creates the plugin database if needed (when using Docker Postgres), then runs migrations and the demo seed. Use this to get example hypotheses, technical planning, and evolution data for the “Evolução da Incerteza e Impacto” chart.
+- **Recommended (one command)**: **`make seed-standalone`** — creates the plugin database if needed (when using Docker Postgres), then runs migrations and the demo seed, including the agents fixture. Use this to get example hypotheses, technical planning, and evolution data for the “Evolução da Incerteza e Impacto” chart, plus one pending suggestion on the walkthrough hypothesis.
 - **Alternative**: `cd hypo-stage-backend && yarn seed` — same effect; use if you prefer not to use the Makefile.
 
 When you run the backend standalone, the plugin database is filled with **example hypotheses**:
@@ -552,7 +552,7 @@ When you run the backend standalone, the plugin database is filled with **exampl
 **How to run migrations with seed data**
 
 1. **Automatic**: Migrations (including the seed) run when the backend starts. Start the backend (and frontend) as in [Run standalone](#run-standalone-no-backstage-app-required). No extra step needed.
-2. **Manual**: From the repo root, with `app-config.yaml` present and the database reachable (e.g. Postgres via `make start-dependencies`, or SQLite), run **`make seed-standalone`** or `cd hypo-stage-backend && yarn seed`. This runs all pending migrations, then the demo seed migration (idempotent). To use a different config file: `BACKSTAGE_CONFIG_PATH=/path/to/app-config.yaml cd hypo-stage-backend && yarn seed`.
+2. **Manual**: From the repo root, with `app-config.yaml` present and the database reachable (e.g. Postgres via `make start-dependencies`, or SQLite), run **`make seed-standalone`** or `cd hypo-stage-backend && yarn seed`. This runs all pending plugin migrations, the demo hypothesis seed, the agents migrations, and the agents fixture seed (each idempotent). To use a different config file: `BACKSTAGE_CONFIG_PATH=/path/to/app-config.yaml cd hypo-stage-backend && yarn seed`.
 
 **Requirements for manual seed**: `app-config.yaml` at repo root (or path in `BACKSTAGE_CONFIG_PATH`) with `backend.database` (and optionally `backend.database.plugin.hypo-stage`) set. For Postgres, start it first with `make start-dependencies`.
 
@@ -592,6 +592,38 @@ make start-dependencies
 # or: docker-compose up -d
 ```
 
+**Migrations and seed.** From the repo root, with `app-config.yaml` pointing at this Postgres (`localhost:5432`, user `postgres`, password `postgres`, plugin database `backstage_plugin_hypo_stage`):
+
+```bash
+make seed-standalone
+```
+
+That creates the plugin database, runs the HypoStage migrations and demo hypothesis seed, then the agents migrations and the fixture seed. Run it again to confirm it is idempotent: hypothesis counts and the fixture row stay the same.
+
+Check the result inside the container:
+
+```bash
+docker exec hypo-stage-postgres psql -U postgres -d backstage_plugin_hypo_stage -c \
+  "SELECT name FROM knex_migrations ORDER BY id;"
+docker exec hypo-stage-postgres psql -U postgres -d backstage_plugin_hypo_stage -c \
+  "SELECT name FROM knex_migrations_hypo_stage_agents ORDER BY id;"
+docker exec hypo-stage-postgres psql -U postgres -d backstage_plugin_hypo_stage -c \
+  "SELECT provider, status, head_sha FROM agent_runs WHERE head_sha = 'demo-fixture';"
+docker exec hypo-stage-postgres psql -U postgres -d backstage_plugin_hypo_stage -c \
+  "SELECT kind, status FROM agent_suggestions WHERE head_sha = 'demo-fixture';"
+```
+
+You should see `20260216_000004_seed_demo_hypotheses.js` and `20261125_000005_seed_coach_example_hypothesis.js` in `knex_migrations`, `20261125_000006_seed_demo_agent_fixture.js` in `knex_migrations_hypo_stage_agents`, one `agent_runs` row with provider `fixture`, and one pending `new_planning` suggestion.
+
+To replay only the agents migrations, drop those tables and seed again:
+
+```bash
+make reset-agents-db
+make seed-standalone
+```
+
+If port 5432 is already in use, change the host port in `docker-compose.yaml` (for example `"5433:5432"`) and set `backend.database.connection.port` in `app-config.yaml` to that same port. `make create-db` talks to the container by name, so it does not use the host port.
+
 Use the plugin in a Backstage app: [Installation](#installation) (from NPM or copy from source). Point the app’s `app-config.yaml` at this Postgres and configure the plugin’s database (e.g. `backend.database.connection` and `backend.database.plugin.hypo-stage.connection.database: backstage_plugin_hypo_stage`). If you run the frontend separately (e.g. for standalone dev), ensure `backend.cors` in `app-config.yaml` allows the frontend origin (see `app-config.example.yaml`).
 
 **Stop**:
@@ -626,7 +658,7 @@ No organization-specific code is required.
 | `make check` | Build, unit test, and lint in one go |
 | `make start-dependencies` | Start PostgreSQL (Docker) |
 | `make create-db` | Create HypoStage plugin database `backstage_plugin_hypo_stage` (if missing) |
-| `make seed-standalone` | Create plugin DB (if needed) and run migrations + seed (one command) |
+| `make seed-standalone` | Create plugin DB (if needed) and run hypothesis and agents migrations + seeds |
 | `make stop-dependencies` | Stop PostgreSQL and remove volumes |
 | `make reset-agents-db` | Drop the agents tables and pg-boss schema (re-created on next backend start) |
 

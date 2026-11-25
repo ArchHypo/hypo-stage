@@ -2,7 +2,9 @@
 
 This guide is for developers who want to understand, change or extend the AI agents module (`hypo-stage-backend-agents`, published as `@archhypo/plugin-hypo-stage-backend-agents`). For how each feature behaves from a user's point of view, see the [user guide](./user-guide.md). The recorded coach and plan-designer session is [hypothesis-coach-and-plan-designer.mp4](./examples/hypothesis-coach-and-plan-designer.mp4).
 
-The public Render demo does not set a model provider. `migrations/20261125_000006_seed_demo_agent_fixture.js` inserts one pending suggestion and one agent run with provider `fixture`. That row is sample data. Do not treat it as the output of a model, and do not add provider keys to `app-config.production.yaml`. Both that migration and `hypo-stage-backend/migrations/20261125_000005_seed_coach_example_hypothesis.js` skip `NODE_ENV=test`, so unit tests keep an empty agents table.
+The public Render demo does not set a model provider. `migrations/20261125_000006_seed_demo_agent_fixture.js` inserts one pending suggestion and one agent run with provider `fixture`. That row is sample data. Do not treat it as the output of a model, and do not add provider keys to `app-config.production.yaml`.
+
+The seed is applied the same way as the host plugin's demo hypotheses. `module.ts` runs the host migrations, then the agents migrations, then calls that seed's `up()` again. `make seed-standalone` (and `yarn seed` in `hypo-stage-backend`) does the same pair of steps. The seed waits until the walkthrough hypothesis from `hypo-stage-backend/migrations/20261125_000005_seed_coach_example_hypothesis.js` exists, then inserts once. Calling it again does not add a second row. Both files skip `NODE_ENV=test`, so unit tests keep an empty agents table.
 
 ## Contents
 
@@ -47,6 +49,7 @@ The package follows the Backstage backend-module role and the same outer shape a
 | HTTP | `src/router.ts`, mounted on the shared `/api/hypo-stage` router | `src/router.ts` |
 | Logic | Feature folders next to the entry (`coach/`, `planner/`, `pipeline/`, `issues/`, `github/`, `store/`) | `src/services/` for the one hypothesis service |
 | Database | `migrations/` at the package root, separate knex table | `migrations/` at the package root |
+| Seed | `migrations/20261125_000006_seed_demo_agent_fixture.js`, applied again on module start | `migrations/20260216_000004_seed_demo_hypotheses.js`, applied again by `yarn seed` |
 | Config | `config.d.ts` at the package root | No config schema |
 | Tests | `*.test.ts` beside the file they cover | Same |
 
@@ -319,12 +322,22 @@ Backend (`hypo-stage-backend-agents`, `yarn backstage-cli package test`):
   - `insertHypothesis`, `insertPlanning`, `issueDetails` — data builders;
   - `scriptedModel((system, prompt) => output)` — a `MockLanguageModelV3` that answers each call with a JSON object chosen from the system prompt.
 - Router tests use `supertest` with `mockServices.httpAuth` and `mockCredentials` from `@backstage/backend-test-utils`.
-- `plugin.test.ts` boots the module with `startTestBackend`, including a boot where every flag is off and no provider key is set.
+- `module.test.ts` boots the module with `startTestBackend`, including a boot where every flag is off and no provider key is set.
+- `seed.test.ts` checks the fixture seed: it stays empty under `NODE_ENV=test`, inserts one pending suggestion once the walkthrough hypothesis exists, and does not insert a second row.
 - `hypo-stage-backend/src/plugin.test.ts` boots the HypoStage plugin **without** this module and lists hypotheses. That is the check that the core plugin still works when agents are not installed.
 
 Frontend (`hypo-stage`): components are tested with `renderInTestApp` and `TestApiProvider`, mocking only the API methods the component calls.
 
 Before opening a PR, run `make check` (build, tests and lint for every workspace).
+
+**Docker Postgres.** Unit tests use SQLite. To run the same migrations and seeds against PostgreSQL, start the Compose database and seed it from the repo root:
+
+```bash
+make start-dependencies
+make seed-standalone
+```
+
+`make seed-standalone` creates `backstage_plugin_hypo_stage`, migrates both packages, and applies both seeds. Confirm with the `docker exec` queries in the root README under [Running with Docker](../../README.md#-running-with-docker). `make reset-agents-db` drops only the agents tables so the next `make seed-standalone` replays those migrations. If something else already listens on port 5432, change the Compose host port and `backend.database.connection.port` together.
 
 ---
 

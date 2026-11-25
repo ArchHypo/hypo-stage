@@ -4,6 +4,10 @@
  * Provider is "fixture": nothing here calls a model. Accepting the suggestion
  * still goes through the normal technical-planning API.
  *
+ * Runs with the agents migrations, and again on every module start and from
+ * `yarn seed` / `make seed-standalone`. It waits until the walkthrough
+ * hypothesis from the backend seed exists, then inserts once.
+ *
  * @param {import('knex').Knex} knex
  * @returns {Promise<void>}
  */
@@ -12,8 +16,16 @@ const STATEMENT =
 const FIXTURE_SHA = 'demo-fixture';
 const ARTIFACT_URL = 'https://github.com/ArchHypo/hypo-stage/pull/40';
 
+/** Knex returns `{ id }` on Postgres and sometimes the bare id on SQLite. */
+function insertedId(row) {
+  if (row == null) return undefined;
+  if (typeof row === 'string' || typeof row === 'number') return row;
+  return row.id;
+}
+
 exports.up = async function up(knex) {
   // Unit tests migrate a fresh database and assert on the rows they insert.
+  // Module startup and `yarn seed` call this again; the head_sha check keeps it idempotent.
   if (process.env.NODE_ENV === 'test') return;
 
   const hypothesis = await knex('hypothesis').where('statement', STATEMENT).first('id');
@@ -21,27 +33,32 @@ exports.up = async function up(knex) {
   const existing = await knex('agent_suggestions').where('head_sha', FIXTURE_SHA).first('id');
   if (existing) return;
 
-  const [run] = await knex('agent_runs')
-    .insert({
-      repository: 'ArchHypo/hypo-stage',
-      pr_number: 40,
-      head_sha: FIXTURE_SHA,
-      pr_url: ARTIFACT_URL,
-      trigger_action: 'seed',
-      model_key: 'demo',
-      provider: 'fixture',
-      status: 'completed',
-      trace: JSON.stringify({
-        steps: [{ step: 'fixture', durationMs: 0, details: { note: 'Sample data, not a model call' } }],
-        suggestions: 1,
-      }),
-      started_at: knex.fn.now(),
-      completed_at: knex.fn.now(),
-      artifact_kind: 'pull_request',
-      handler: 'pr_analysis',
-      origin: 'human',
-    })
-    .returning('id');
+  let run = await knex('agent_runs').where('head_sha', FIXTURE_SHA).first('id');
+  if (!run) {
+    const inserted = await knex('agent_runs')
+      .insert({
+        repository: 'ArchHypo/hypo-stage',
+        pr_number: 40,
+        head_sha: FIXTURE_SHA,
+        pr_url: ARTIFACT_URL,
+        trigger_action: 'seed',
+        model_key: 'demo',
+        provider: 'fixture',
+        status: 'completed',
+        trace: JSON.stringify({
+          steps: [{ step: 'fixture', durationMs: 0, details: { note: 'Sample data, not a model call' } }],
+          suggestions: 1,
+        }),
+        started_at: knex.fn.now(),
+        completed_at: knex.fn.now(),
+        artifact_kind: 'pull_request',
+        handler: 'pr_analysis',
+        origin: 'human',
+      })
+      .returning('id');
+    const id = insertedId(Array.isArray(inserted) ? inserted[0] : inserted);
+    run = id ? { id } : await knex('agent_runs').where('head_sha', FIXTURE_SHA).first('id');
+  }
   if (!run?.id) return;
 
   await knex('agent_suggestions').insert({
