@@ -212,24 +212,50 @@ export interface GetAgentRunsOptions {
   offset?: number;
 }
 
-/** Whether the agents backend module is installed (available) and enabled in config. */
+/**
+ * Whether the agents module is installed, and which controls may be rendered.
+ * `enabled` mirrors the config flag. `ready` is true only when that flow can run
+ * (model credentials, and for GitHub flows a token, webhook secret, and queue).
+ */
 export interface AgentsStatus {
   available: boolean;
   enabled: boolean;
-  coach: { enabled: boolean; checkOnSave: boolean };
-  planner: { enabled: boolean };
-  issues: { triage: boolean; planIssues: boolean };
-  coverage: { enabled: boolean };
+  coach: { enabled: boolean; checkOnSave: boolean; ready: boolean };
+  planner: { enabled: boolean; ready: boolean };
+  issues: { triage: boolean; planIssues: boolean; triageReady: boolean; planIssuesReady: boolean };
+  coverage: { enabled: boolean; ready: boolean };
+  pullRequestsReady: boolean;
 }
 
 export const AGENTS_UNAVAILABLE: AgentsStatus = {
   available: false,
   enabled: false,
-  coach: { enabled: false, checkOnSave: false },
-  planner: { enabled: false },
-  issues: { triage: false, planIssues: false },
-  coverage: { enabled: false },
+  coach: { enabled: false, checkOnSave: false, ready: false },
+  planner: { enabled: false, ready: false },
+  issues: { triage: false, planIssues: false, triageReady: false, planIssuesReady: false },
+  coverage: { enabled: false, ready: false },
+  pullRequestsReady: false,
 };
+
+/** A home-page tab or button is shown only when its flow can run. */
+export function agentScreen(status: AgentsStatus) {
+  const coach = status.available && status.coach.ready;
+  const planner = status.available && status.planner.ready;
+  const pullRequests = status.available && status.pullRequestsReady;
+  const triage = status.available && status.issues.triageReady;
+  const planIssues = status.available && status.issues.planIssuesReady;
+  const coverage = status.available && status.coverage.ready;
+  return {
+    coach,
+    planner,
+    pullRequests,
+    triage,
+    planIssues,
+    coverage,
+    runs: coach || planner || pullRequests || triage || planIssues || coverage,
+    report: triage || planIssues || coverage,
+  };
+}
 
 /** A technical planning opened as a GitHub issue by HypoStage. */
 export interface PlanningIssueLink {
@@ -655,19 +681,24 @@ export class HypoStageApiClient implements HypoStageApi {
         return AGENTS_UNAVAILABLE;
       }
       const body = await response.json();
+      const ready = body?.ready ?? {};
       return {
         available: true,
         enabled: Boolean(body?.enabled),
         coach: {
           enabled: Boolean(body?.coach?.enabled),
           checkOnSave: Boolean(body?.coach?.checkOnSave),
+          ready: Boolean(ready.coach),
         },
-        planner: { enabled: Boolean(body?.planner?.enabled) },
+        planner: { enabled: Boolean(body?.planner?.enabled), ready: Boolean(ready.planner) },
         issues: {
           triage: Boolean(body?.issues?.triage),
           planIssues: Boolean(body?.issues?.planIssues),
+          triageReady: Boolean(ready.triage),
+          planIssuesReady: Boolean(ready.planIssues),
         },
-        coverage: { enabled: Boolean(body?.coverage?.enabled) },
+        coverage: { enabled: Boolean(body?.coverage?.enabled), ready: Boolean(ready.coverage) },
+        pullRequestsReady: Boolean(ready.pullRequests),
       };
     } catch {
       return AGENTS_UNAVAILABLE;

@@ -53,7 +53,7 @@ describe('AgentSuggestionsCard', () => {
       available: true,
       enabled: true,
       coach: { enabled: false, checkOnSave: false },
-      planner: { enabled: true },
+      planner: { enabled: true, ready: true },
       issues: { triage: true, planIssues: false },
       coverage: { enabled: false },
     }),
@@ -197,6 +197,25 @@ describe('AgentSuggestionsCard', () => {
     await waitFor(() => expect(api.getAgentsStatus).toHaveBeenCalled());
     expect(screen.queryByText('Agent Suggestions')).not.toBeInTheDocument();
     expect(api.getAgentSuggestions).not.toHaveBeenCalled();
+  });
+
+  it('hides Suggest plan with AI when the planner flag is on but the model cannot be called', async () => {
+    api.getAgentsStatus.mockResolvedValue({
+      available: true,
+      enabled: false,
+      coach: { enabled: false, checkOnSave: false, ready: false },
+      planner: { enabled: true, ready: false },
+      issues: { triage: false, planIssues: false, triageReady: false, planIssuesReady: false },
+      coverage: { enabled: false, ready: false },
+      pullRequestsReady: false,
+    });
+    api.getAgentSuggestions.mockReset();
+    api.getAgentSuggestions.mockResolvedValue([
+      { ...suggestion, payload: { status: 'Trigger-Fired', previous: 'Open' } },
+    ]);
+    await render();
+    expect(await screen.findByText('Agent Suggestions')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Suggest plan with AI' })).not.toBeInTheDocument();
   });
 
   it('hides the card when every feature is off and nothing is pending', async () => {

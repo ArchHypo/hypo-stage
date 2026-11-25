@@ -28,17 +28,31 @@ const wrapper = ({ children }: { children: ReactNode }) =>
 
 const input = { statement: 'The system must process 1000 requests per second' };
 
-async function renderCoach(coach = { enabled: true, checkOnSave: true }, options = {}) {
-  api.getAgentsStatus.mockResolvedValue({ available: true, enabled: false, coach });
+async function renderCoach(
+  coach: { enabled: boolean; checkOnSave: boolean; ready?: boolean } = { enabled: true, checkOnSave: true, ready: true },
+  options = {},
+) {
+  const ready = coach.ready ?? coach.enabled;
+  api.getAgentsStatus.mockResolvedValue({
+    available: true,
+    enabled: false,
+    coach: { ...coach, ready },
+  });
   const hook = renderHook(() => useHypothesisCoach(options), { wrapper });
   await waitFor(() => expect(api.getAgentsStatus).toHaveBeenCalled());
-  await waitFor(() => expect(hook.result.current.enabled).toBe(coach.enabled));
+  await waitFor(() => expect(hook.result.current.enabled).toBe(ready));
   return hook;
 }
 
 describe('useHypothesisCoach', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+  });
+
+  it('stays off when the coach flag is on but the model cannot be called', async () => {
+    const { result } = await renderCoach({ enabled: true, checkOnSave: true, ready: false });
+    expect(result.current.enabled).toBe(false);
+    expect(result.current.checkOnSave).toBe(false);
   });
 
   it('reviews on demand and detects stale results', async () => {

@@ -10,7 +10,7 @@ import {
 import Timeline from '@material-ui/icons/Timeline';
 import EmojiObjects from '@material-ui/icons/EmojiObjects';
 import { useApi } from '@backstage/core-plugin-api';
-import { HypoStageApiRef, PlannedAction, PlanningIssueLink } from '../api/HypoStageApi';
+import { agentScreen, HypoStageApiRef, PlannedAction, PlanningIssueLink } from '../api/HypoStageApi';
 import { useAgentsStatus } from '../hooks/useAgentsStatus';
 import { PlanDesignerDialog } from './planner/PlanDesignerDialog';
 import { useStyles } from '../hooks/useStyles';
@@ -31,6 +31,7 @@ export const TechnicalPlanningList: React.FC<TechnicalPlanningListProps> = ({
   const classes = useStyles();
   const api = useApi(HypoStageApiRef);
   const agents = useAgentsStatus();
+  const screenAgents = agentScreen(agents);
   const { formData, updateField, updateFields, loading, isFormValid, handleSubmit } = useCreateTechnicalPlanning(
     hypothesis.id,
     hypothesis.uncertainty,
@@ -51,12 +52,12 @@ export const TechnicalPlanningList: React.FC<TechnicalPlanningListProps> = ({
     }
   }, [api, hypothesis.id]);
   useEffect(() => {
-    if (agents.issues.planIssues) {
+    if (screenAgents.planIssues) {
       void loadIssueLinks();
     }
-  }, [agents.issues.planIssues, loadIssueLinks]);
+  }, [screenAgents.planIssues, loadIssueLinks]);
 
-  const suggestPlanButton = agents.planner.enabled ? (
+  const suggestPlanButton = screenAgents.planner ? (
     <Button
       variant="outlined"
       color="primary"
@@ -109,7 +110,7 @@ export const TechnicalPlanningList: React.FC<TechnicalPlanningListProps> = ({
                     onEditStart={() => setEditingPlanningId(techPlan.id)}
                     onEditEnd={() => setEditingPlanningId(null)}
                     planIssues={
-                      agents.issues.planIssues
+                      screenAgents.planIssues
                         ? {
                             link: issueLinks.find(l => l.technicalPlanningId === techPlan.id) ?? null,
                             onOpened: async () => {
@@ -189,7 +190,7 @@ export const TechnicalPlanningList: React.FC<TechnicalPlanningListProps> = ({
           )}
         </CardContent>
       </Card>
-      {agents.planner.enabled && (
+      {screenAgents.planner && (
         <PlanDesignerDialog
           open={showPlanDesigner}
           hypothesis={hypothesis}

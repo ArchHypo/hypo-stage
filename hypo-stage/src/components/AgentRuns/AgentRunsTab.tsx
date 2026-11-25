@@ -31,7 +31,7 @@ const HANDLER_LABELS: Record<string, string> = {
 const STATUSES: AgentRunStatus[] = ['running', 'completed', 'failed', 'skipped'];
 
 interface AgentRunsTabProps {
-  /** False when the module is installed but hypoStage.agents.enabled is off. */
+  /** False when pull-request analysis itself cannot run. Other ready flows may still list past runs. */
   enabled?: boolean;
 }
 
@@ -127,7 +127,7 @@ export const AgentRunsTab = ({ enabled = true }: AgentRunsTabProps) => {
       {!enabled && (
         <Box mb={2}>
           <Typography variant="body2" color="textSecondary">
-            Agents are disabled in config (hypoStage.agents.enabled); showing past runs.
+            Pull request analysis is not running. This list shows runs from the flows that are.
           </Typography>
         </Box>
       )}

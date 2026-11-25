@@ -9,7 +9,7 @@ import {
 } from '@backstage/core-components';
 import { useApi } from '@backstage/core-plugin-api';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { AGENTS_UNAVAILABLE, AgentsStatus, HypoStageApiRef } from '../api/HypoStageApi';
+import { agentScreen, AGENTS_UNAVAILABLE, AgentsStatus, HypoStageApiRef } from '../api/HypoStageApi';
 import { AgentRunsTab } from '../components/AgentRuns/AgentRunsTab';
 import { IssuesReportTab } from '../components/IssuesReport/IssuesReportTab';
 import { HypothesisList } from '../components/HypothesisList';
@@ -38,22 +38,13 @@ export const HomePage = () => {
     };
   }, [api]);
 
-  const featureOn =
-    agents.enabled ||
-    agents.coach.enabled ||
-    agents.planner.enabled ||
-    agents.issues.triage ||
-    agents.issues.planIssues ||
-    agents.coverage.enabled;
-  // Tabs for a feature appear only when that feature is on. An installed module with
-  // every flag off looks like HypoStage without agents.
+  const screenAgents = agentScreen(agents);
+  // Tabs appear only when that flow can run. A flag without a model, token, or queue stays hidden.
   const tabs = ALL_TABS.filter(
     t =>
       t.id === 'hypotheses' ||
-      (t.id === 'agent-runs' && agents.available && featureOn) ||
-      (t.id === 'issues-report' &&
-        agents.available &&
-        (agents.issues.triage || agents.issues.planIssues || agents.coverage.enabled)),
+      (t.id === 'agent-runs' && screenAgents.runs) ||
+      (t.id === 'issues-report' && screenAgents.report),
   );
   const requested = searchParams.get('tab');
   const selectedIndex = Math.max(0, tabs.findIndex(t => t.id === requested));
@@ -83,7 +74,7 @@ export const HomePage = () => {
         {tabs.length > 1 && <HeaderTabs tabs={tabs} selectedIndex={selectedIndex} onChange={selectTab} />}
 
         <Content>
-          {selectedTab === 'agent-runs' && <AgentRunsTab enabled={agents.enabled} />}
+          {selectedTab === 'agent-runs' && <AgentRunsTab enabled={screenAgents.pullRequests} />}
           {selectedTab === 'issues-report' && <IssuesReportTab />}
           {selectedTab === 'hypotheses' && (
             <Grid container spacing={3} direction="column">

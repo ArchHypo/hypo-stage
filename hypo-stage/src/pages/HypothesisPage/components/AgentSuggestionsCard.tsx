@@ -14,7 +14,7 @@ import {
 import EmojiObjects from '@material-ui/icons/EmojiObjects';
 import { useApi } from '@backstage/core-plugin-api';
 import { Hypothesis } from '@archhypo/plugin-hypo-stage-backend';
-import { AgentSuggestion, AgentSuggestionKind, HypoStageApiRef } from '../../../api/HypoStageApi';
+import { agentScreen, AgentSuggestion, AgentSuggestionKind, HypoStageApiRef } from '../../../api/HypoStageApi';
 import { useApplyAgentSuggestion } from '../../../hooks/useApplyAgentSuggestion';
 import { useAgentsStatus } from '../../../hooks/useAgentsStatus';
 import { PlanDesignerDialog } from '../../../components/planner/PlanDesignerDialog';
@@ -222,14 +222,10 @@ export const AgentSuggestionsCard: React.FC<AgentSuggestionsCardProps> = ({
     return Array.from(groups.entries());
   }, [suggestions]);
 
-  const featureOn =
-    agents.enabled ||
-    agents.coach.enabled ||
-    agents.planner.enabled ||
-    agents.issues.triage ||
-    agents.issues.planIssues ||
-    agents.coverage.enabled;
-  if (!agents.available || (!loading && suggestions.length === 0 && !featureOn)) {
+  const screenAgents = agentScreen(agents);
+  // Pending suggestions can be accepted without a model, so the card stays for those.
+  // An empty card, and the plan-designer button, appear only when that flow can run.
+  if (!agents.available || (!loading && suggestions.length === 0 && !screenAgents.runs)) {
     return null;
   }
 
@@ -308,7 +304,7 @@ export const AgentSuggestionsCard: React.FC<AgentSuggestionsCardProps> = ({
                       </Button>
                       {suggestion.kind === 'status_change' &&
                         suggestion.payload.status === 'Trigger-Fired' &&
-                        agents.planner.enabled && (
+                        screenAgents.planner && (
                           <Button size="small" onClick={() => setShowPlanDesigner(true)}>
                             Suggest plan with AI
                           </Button>
@@ -329,7 +325,7 @@ export const AgentSuggestionsCard: React.FC<AgentSuggestionsCardProps> = ({
             </Box>
           ))}
       </CardContent>
-      {agents.planner.enabled && (
+      {screenAgents.planner && (
         <PlanDesignerDialog
           open={showPlanDesigner}
           hypothesis={hypothesis}

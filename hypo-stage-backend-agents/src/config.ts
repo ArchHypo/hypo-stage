@@ -241,6 +241,43 @@ export function agentsQueueNeeded(config: AgentsConfig): boolean {
   return config.enabled || config.repositories.some(repo => repo.issues.triage || repo.issues.planIssues);
 }
 
+/**
+ * Which flows can actually run. A config flag alone is not enough: the UI hides a
+ * control until this is true for that flow.
+ */
+export interface AgentsReadiness {
+  coach: boolean;
+  planner: boolean;
+  pullRequests: boolean;
+  triage: boolean;
+  planIssues: boolean;
+  coverage: boolean;
+}
+
+function modelCanBeCalled(config: AgentsConfig, key: string | null | undefined): boolean {
+  if (!key) return false;
+  const model = config.models.find(item => item.key === key);
+  if (!model) return false;
+  if (model.provider === 'ollama') return true;
+  return Boolean(config.providers[model.provider]?.apiKey);
+}
+
+/** GitHub flows need a token and a webhook secret before the UI offers them. */
+function githubConnected(config: AgentsConfig): boolean {
+  return Boolean(config.github.apiToken && config.github.webhookSecret);
+}
+
+export function agentsReadiness(config: AgentsConfig, queue: boolean): AgentsReadiness {
+  const coach = config.coach.enabled && modelCanBeCalled(config, config.coach.model);
+  const planner = config.planner.enabled && modelCanBeCalled(config, config.planner.model);
+  const github = githubConnected(config);
+  const triage = queue && github && config.repositories.some(repo => repo.issues.triage && modelCanBeCalled(config, repo.model));
+  const planIssues = queue && github && config.repositories.some(repo => repo.issues.planIssues && modelCanBeCalled(config, repo.model));
+  const pullRequests = queue && github && config.enabled && config.repositories.some(repo => modelCanBeCalled(config, repo.model));
+  const coverage = config.coverage.enabled && triage && modelCanBeCalled(config, config.defaultModel);
+  return { coach, planner, pullRequests, triage, planIssues, coverage };
+}
+
 export function findRepository(
   config: AgentsConfig,
   repository: string,

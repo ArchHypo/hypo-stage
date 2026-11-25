@@ -46,13 +46,14 @@ const proposal: PlanProposal = {
   ],
 };
 
-const status = (plannerEnabled: boolean) => ({
+const status = (plannerReady: boolean, plannerEnabled = plannerReady) => ({
   available: true,
   enabled: false,
-  coach: { enabled: false, checkOnSave: false },
-  planner: { enabled: plannerEnabled },
-  issues: { triage: false, planIssues: false },
-  coverage: { enabled: false },
+  coach: { enabled: false, checkOnSave: false, ready: false },
+  planner: { enabled: plannerEnabled, ready: plannerReady },
+  issues: { triage: false, planIssues: false, triageReady: false, planIssuesReady: false },
+  coverage: { enabled: false, ready: false },
+  pullRequestsReady: false,
 });
 
 describe('TechnicalPlanningList with the plan designer', () => {
@@ -65,16 +66,49 @@ describe('TechnicalPlanningList with the plan designer', () => {
     getPlanningIssues: jest.fn().mockResolvedValue([]),
   };
 
-  const render = () =>
+  const render = (item = hypothesis) =>
     renderInTestApp(
       <TestApiProvider apis={[[HypoStageApiRef, api]]}>
         <NotificationProvider>
-          <TechnicalPlanningList hypothesis={hypothesis} onRefresh={jest.fn()} />
+          <TechnicalPlanningList hypothesis={item} onRefresh={jest.fn()} />
         </NotificationProvider>
       </TestApiProvider>,
     );
 
   beforeEach(() => jest.clearAllMocks());
+
+  it('hides the button when the planner is enabled but cannot call a model', async () => {
+    api.getAgentsStatus.mockResolvedValue(status(false, true));
+    await render();
+    await waitFor(() => expect(api.getAgentsStatus).toHaveBeenCalled());
+    expect(screen.queryByRole('button', { name: /Suggest plan with AI/ })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Add Technical Planning' })).toBeInTheDocument();
+  });
+
+  it('hides Open as issue when plan issues are enabled but GitHub is not connected', async () => {
+    api.getAgentsStatus.mockResolvedValue({
+      ...status(false),
+      issues: { triage: false, planIssues: true, triageReady: false, planIssuesReady: false },
+    });
+    const withPlanning = {
+      ...hypothesis,
+      technicalPlannings: [
+        {
+          id: 'tp1',
+          entityRef: 'component:default/batch',
+          actionType: 'Spike',
+          description: 'Load test',
+          expectedOutcome: 'Know the limit',
+          documentations: [],
+          targetDate: new Date('2026-10-12'),
+        },
+      ],
+    } as unknown as Hypothesis;
+    await render(withPlanning);
+    await waitFor(() => expect(api.getAgentsStatus).toHaveBeenCalled());
+    expect(screen.queryByRole('button', { name: /Open as issue/ })).not.toBeInTheDocument();
+    expect(api.getPlanningIssues).not.toHaveBeenCalled();
+  });
 
   it('hides the button when the planner is disabled', async () => {
     api.getAgentsStatus.mockResolvedValue(status(false));

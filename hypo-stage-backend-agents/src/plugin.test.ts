@@ -39,6 +39,14 @@ describe('hypoStageAgentsModule', () => {
       planner: { enabled: false },
       issues: { triage: false, planIssues: false },
       coverage: { enabled: false },
+      ready: {
+        coach: false,
+        planner: false,
+        pullRequests: false,
+        triage: false,
+        planIssues: false,
+        coverage: false,
+      },
     });
 
     const body = JSON.stringify({ zen: 'Keep it logically awesome.' });
@@ -80,6 +88,14 @@ describe('hypoStageAgentsModule', () => {
       planner: { enabled: false },
       issues: { triage: false, planIssues: false },
       coverage: { enabled: false },
+      ready: {
+        coach: false,
+        planner: false,
+        pullRequests: false,
+        triage: false,
+        planIssues: false,
+        coverage: false,
+      },
     });
   });
 });

@@ -300,6 +300,27 @@ describe('HypoStageApiClient', () => {
       await expect(apiClient.getAgentsStatus()).resolves.toMatchObject({ available: false, enabled: false });
     });
 
+    it('keeps a control hidden when the flag is on but the flow is not ready', async () => {
+      mockFetchApi.fetch!.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          enabled: true,
+          coach: { enabled: true, checkOnSave: true },
+          planner: { enabled: true },
+          issues: { triage: true, planIssues: true },
+          coverage: { enabled: true },
+          ready: { coach: false, planner: true, pullRequests: false, triage: false, planIssues: false, coverage: false },
+        }),
+      } as Response);
+      await expect(apiClient.getAgentsStatus()).resolves.toMatchObject({
+        available: true,
+        coach: { enabled: true, ready: false },
+        planner: { enabled: true, ready: true },
+        issues: { triage: true, triageReady: false },
+        pullRequestsReady: false,
+      });
+    });
+
     it('reports the module as unavailable when the request throws', async () => {
       mockFetchApi.fetch!.mockRejectedValue(new Error('Failed to fetch'));
       await expect(apiClient.getAgentsStatus()).resolves.toMatchObject({ available: false });

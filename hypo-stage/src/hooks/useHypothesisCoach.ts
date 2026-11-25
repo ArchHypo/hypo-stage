@@ -36,7 +36,11 @@ export const useHypothesisCoach = (options: { hypothesisId?: string } = {}): Hyp
     let cancelled = false;
     api
       .getAgentsStatus()
-      .then(s => !cancelled && setStatus(s.coach))
+      .then(s => {
+        if (cancelled) return;
+        // The panel is rendered only when the coach can call its model.
+        setStatus({ enabled: s.coach.ready, checkOnSave: s.coach.ready && s.coach.checkOnSave });
+      })
       .catch(() => undefined);
     return () => {
       cancelled = true;

@@ -166,10 +166,11 @@ export class HypoStageMockApi implements HypoStageApi {
     return {
       available: false,
       enabled: false,
-      coach: { enabled: false, checkOnSave: false },
-      planner: { enabled: false },
-      issues: { triage: false, planIssues: false },
-      coverage: { enabled: false },
+      coach: { enabled: false, checkOnSave: false, ready: false },
+      planner: { enabled: false, ready: false },
+      issues: { triage: false, planIssues: false, triageReady: false, planIssuesReady: false },
+      coverage: { enabled: false, ready: false },
+      pullRequestsReady: false,
     };
   }
 

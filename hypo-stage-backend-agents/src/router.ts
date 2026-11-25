@@ -2,7 +2,7 @@ import express from 'express';
 import Router from 'express-promise-router';
 import type { Knex } from 'knex';
 import type { HttpAuthService, LoggerService } from '@backstage/backend-plugin-api';
-import { AgentsConfig, findRepository } from './config';
+import { AgentsConfig, agentsReadiness, findRepository } from './config';
 import {
   decidePullRequestAction,
   GitHubPullRequestWebhook,
@@ -161,6 +161,7 @@ export async function createRouter(options: RouterOptions): Promise<express.Rout
         planIssues: config.repositories.some(r => r.issues.planIssues),
       },
       coverage: { enabled: config.coverage.enabled },
+      ready: agentsReadiness(config, Boolean(enqueueAnalyzePr)),
     });
   });
 

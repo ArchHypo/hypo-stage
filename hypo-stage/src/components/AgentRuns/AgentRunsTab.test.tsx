@@ -158,9 +158,9 @@ describe('AgentRunsTab', () => {
     expect(within(panel).getByText('provider down')).toBeInTheDocument();
   });
 
-  it('explains when agents are disabled', async () => {
+  it('explains when pull request analysis is not running', async () => {
     await render(false);
-    expect(await screen.findByText(/Agents are disabled in config/)).toBeInTheDocument();
+    expect(await screen.findByText(/Pull request analysis is not running/)).toBeInTheDocument();
   });
 
   it('renders issue triage runs without PR-only fields', async () => {

@@ -139,7 +139,7 @@ describe('HomePage', () => {
     });
 
     it('switches between hypotheses and agent runs when the module is available', async () => {
-      mockHypoStageApi.getAgentsStatus.mockResolvedValue({ available: true, enabled: true, coach: { enabled: false, checkOnSave: false }, planner: { enabled: false }, issues: { triage: false, planIssues: false }, coverage: { enabled: false } });
+      mockHypoStageApi.getAgentsStatus.mockResolvedValue({ available: true, enabled: true, pullRequestsReady: true, coach: { enabled: false, checkOnSave: false, ready: false }, planner: { enabled: false, ready: false }, issues: { triage: false, planIssues: false, triageReady: false, planIssuesReady: false }, coverage: { enabled: false, ready: false } });
       const user = userEvent.setup();
       await renderWithProviders();
 
@@ -155,6 +155,15 @@ describe('HomePage', () => {
       expect(await screen.findByRole('button', { name: /Create New Hypothesis/i })).toBeInTheDocument();
     });
 
+    it('hides agent runs when analysis is enabled but the queue or GitHub connection is missing', async () => {
+      mockHypoStageApi.getAgentsStatus.mockResolvedValue({ available: true, enabled: true, pullRequestsReady: false, coach: { enabled: true, checkOnSave: false, ready: false }, planner: { enabled: false, ready: false }, issues: { triage: false, planIssues: false, triageReady: false, planIssuesReady: false }, coverage: { enabled: false, ready: false } });
+      await renderWithProviders('/?tab=agent-runs');
+
+      await waitFor(() => expect(mockHypoStageApi.getAgentsStatus).toHaveBeenCalled());
+      expect(screen.queryByRole('tab', { name: 'Agent runs' })).not.toBeInTheDocument();
+      expect(mockHypoStageApi.getAgentRuns).not.toHaveBeenCalled();
+    });
+
     it('hides agent runs when every feature flag is off', async () => {
       mockHypoStageApi.getAgentsStatus.mockResolvedValue({ available: true, enabled: false, coach: { enabled: false, checkOnSave: false }, planner: { enabled: false }, issues: { triage: false, planIssues: false }, coverage: { enabled: false } });
       await renderWithProviders('/?tab=agent-runs');
@@ -166,19 +175,36 @@ describe('HomePage', () => {
     });
   });
 
-  it('shows the Issues report tab when coverage is on and triage is off', async () => {
+  it('hides the Issues report when coverage is enabled but cannot run', async () => {
     mockHypoStageApi.getAgentsStatus.mockResolvedValue({
-      available: true, enabled: false, coach: { enabled: false, checkOnSave: false }, planner: { enabled: false },
-      issues: { triage: false, planIssues: false }, coverage: { enabled: true },
+      available: true, enabled: false, pullRequestsReady: false,
+      coach: { enabled: false, checkOnSave: false, ready: false }, planner: { enabled: false, ready: false },
+      issues: { triage: true, planIssues: false, triageReady: false, planIssuesReady: false },
+      coverage: { enabled: true, ready: false },
+    });
+    await renderWithProviders('/?tab=issues-report');
+    await waitFor(() => expect(mockHypoStageApi.getAgentsStatus).toHaveBeenCalled());
+    expect(screen.queryByRole('tab', { name: 'Issues report' })).not.toBeInTheDocument();
+    expect(mockHypoStageApi.getIssuesReport).not.toHaveBeenCalled();
+  });
+
+  it('shows the Issues report tab when coverage can run and triage is off', async () => {
+    mockHypoStageApi.getAgentsStatus.mockResolvedValue({
+      available: true, enabled: false, pullRequestsReady: false,
+      coach: { enabled: false, checkOnSave: false, ready: false }, planner: { enabled: false, ready: false },
+      issues: { triage: false, planIssues: false, triageReady: false, planIssuesReady: false },
+      coverage: { enabled: true, ready: true },
     });
     await renderWithProviders('/?tab=issues-report');
     expect(await screen.findByRole('tab', { name: 'Issues report' })).toBeInTheDocument();
   });
 
-  it('shows the Issues report tab only when an issue flow is enabled', async () => {
+  it('shows the Issues report tab when an issue flow can run', async () => {
     mockHypoStageApi.getAgentsStatus.mockResolvedValue({
-      available: true, enabled: true, coach: { enabled: false, checkOnSave: false }, planner: { enabled: false },
-      issues: { triage: true, planIssues: false }, coverage: { enabled: false },
+      available: true, enabled: true, pullRequestsReady: false,
+      coach: { enabled: false, checkOnSave: false, ready: false }, planner: { enabled: false, ready: false },
+      issues: { triage: true, planIssues: false, triageReady: true, planIssuesReady: false },
+      coverage: { enabled: false, ready: false },
     });
     await renderWithProviders('/?tab=issues-report');
     expect(await screen.findByRole('tab', { name: 'Issues report' })).toBeInTheDocument();

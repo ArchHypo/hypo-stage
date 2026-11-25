@@ -34,6 +34,39 @@ describe('CreateHypothesisPage', () => {
     expect(screen.getByTestId('entity-refs')).toHaveTextContent('component:default/checkout');
   });
 
+  it('hides Review with AI when the coach flag is on but the model cannot be called', async () => {
+    const api = {
+      getAgentsStatus: jest.fn().mockResolvedValue({
+        ...AGENTS_UNAVAILABLE,
+        available: true,
+        coach: { enabled: true, checkOnSave: true, ready: false },
+      }),
+    };
+    await renderInTestApp(
+      <TestApiProvider apis={[[HypoStageApiRef, api]]}>
+        <CreateHypothesisPage />
+      </TestApiProvider>,
+    );
+    await waitFor(() => expect(api.getAgentsStatus).toHaveBeenCalled());
+    expect(screen.queryByRole('button', { name: /Review with AI/ })).not.toBeInTheDocument();
+  });
+
+  it('shows Review with AI when the coach can call its model', async () => {
+    const api = {
+      getAgentsStatus: jest.fn().mockResolvedValue({
+        ...AGENTS_UNAVAILABLE,
+        available: true,
+        coach: { enabled: true, checkOnSave: false, ready: true },
+      }),
+    };
+    await renderInTestApp(
+      <TestApiProvider apis={[[HypoStageApiRef, api]]}>
+        <CreateHypothesisPage />
+      </TestApiProvider>,
+    );
+    expect(await screen.findByRole('button', { name: /Review with AI/ })).toBeInTheDocument();
+  });
+
   it('marks a coverage finding created only after the hypothesis is saved', async () => {
     const user = userEvent.setup();
     const api = {
