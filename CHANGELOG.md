@@ -7,9 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **Dashboard stats:** `GET /hypotheses/stats` ignores `sinceDays`, so a leftover query cannot hide hypotheses that are still on the list. **Breaking** for clients that passed `sinceDays` or read `inLast30Days`. Release this as 2.0.0.
+
 ### Removed
 
-- **Dashboard time windows:** hypotheses stay open for a long time, so the dashboard no longer filters stats by `sinceDays` and no longer shows the "Created (30d)" card. `GET /hypotheses/stats` ignores `sinceDays` and no longer returns `inLast30Days`. Overview counts (Total, Validated, Open), Where to focus, and the uncertainty/impact panels cover the same hypotheses as the list.
+- **Created (30d):** the dashboard no longer shows that card, and the stats response no longer includes `inLast30Days`. Overview counts (Total, Validated, Open), Where to focus, and the uncertainty/impact panels cover the same hypotheses as the list.
 
 ## [1.0.1] - 2026-10-22
 
