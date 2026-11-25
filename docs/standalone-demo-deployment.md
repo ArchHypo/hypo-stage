@@ -28,7 +28,7 @@ The frontend calls the backend API. The backend uses a PostgreSQL database with 
 3. **Build**: `yarn install --ignore-engines && yarn build:types && cd hypo-stage-backend && yarn install && yarn build`
 4. **Start**: `cd hypo-stage-backend && node dev/index.js`
 5. **Environment**: `BACKSTAGE_CONFIG_PATH=../app-config.production.yaml` so the backend loads the committed production config (env var substitution for DB and base URL).
-6. **CORS**: `backend.cors.origin` allows the Vercel frontend URL.
+6. **CORS**: `backend.cors.origin` allows `https://hypo-stage-hypo-stage*.vercel.app` (production and preview). The Vercel app also proxies `/api` to Render, so a preview can load before that config is redeployed.
 
 The repo’s `app-config.production.yaml` at the root is committed and uses `${RENDER_EXTERNAL_URL}`, `${PGHOST}`, etc.
 

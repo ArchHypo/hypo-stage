@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **Vercel preview:** the standalone app calls `/api` on its own host, and `backend.cors.origin` allows `https://hypo-stage-hypo-stage*.vercel.app`. Preview hosts were blocked with "Failed to fetch" because only the production Vercel origin was allowed.
+
 ### Changed
 
 - **Dashboard stats:** `GET /hypotheses/stats` ignores `sinceDays`, so a leftover query cannot hide hypotheses that are still on the list. **Breaking** for clients that passed `sinceDays` or read `inLast30Days`. Release this as 2.0.0.
