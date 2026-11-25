@@ -92,24 +92,34 @@ export interface GuardrailResult {
  * the original backend API will accept when a reviewer applies them. Everything the
  * model proposed but that was not kept is reported in `dropped`.
  */
+/** Shared gate for pull-request and issue assessments. */
+export function gateOnConfidence(input: {
+  related: boolean;
+  confidence: number;
+  threshold: number;
+}): { confidence: number; reason: string | null } {
+  const confidence = Math.max(0, Math.min(1, Number(input.confidence) || 0));
+  if (!input.related) {
+    return { confidence, reason: 'model marked it unrelated' };
+  }
+  if (confidence < input.threshold) {
+    return { confidence, reason: `confidence ${confidence} below threshold ${input.threshold}` };
+  }
+  return { confidence, reason: null };
+}
+
 export function applyGuardrails(ctx: GuardrailContext): GuardrailResult {
   const { hypothesis, assessment } = ctx;
   const dropped: DroppedProposal[] = [];
-  const confidence = Math.max(0, Math.min(1, Number(assessment.confidence) || 0));
-  if (!assessment.related) {
-    return { suggestions: [], dropped: [{ kind: 'assessment', reason: 'model marked it unrelated' }] };
+  const gate = gateOnConfidence({
+    related: assessment.related,
+    confidence: assessment.confidence,
+    threshold: ctx.confidenceThreshold,
+  });
+  if (gate.reason) {
+    return { suggestions: [], dropped: [{ kind: 'assessment', reason: gate.reason }] };
   }
-  if (confidence < ctx.confidenceThreshold) {
-    return {
-      suggestions: [],
-      dropped: [
-        {
-          kind: 'assessment',
-          reason: `confidence ${confidence} below threshold ${ctx.confidenceThreshold}`,
-        },
-      ],
-    };
-  }
+  const confidence = gate.confidence;
 
   const today = ctx.today ?? new Date();
   const rationale = clampText(assessment.rationale || 'Related to this pull request.', 1000);

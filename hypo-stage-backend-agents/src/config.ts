@@ -236,6 +236,11 @@ function requireConfiguredModel(models: ModelDefinition[], key: string | null, l
   }
 }
 
+/** Pull-request analysis and issue flows are the only work that needs pg-boss. */
+export function agentsQueueNeeded(config: AgentsConfig): boolean {
+  return config.enabled || config.repositories.some(repo => repo.issues.triage || repo.issues.planIssues);
+}
+
 export function findRepository(
   config: AgentsConfig,
   repository: string,

@@ -182,6 +182,7 @@ export async function runPullRequestPipeline(
         changedFiles,
         confidenceThreshold: repo.confidenceThreshold,
         completedPlanningIds: completed,
+        allowedKinds: ['link', 'planning_progress', 'reassessment', 'new_planning', 'status_change'],
       });
       const step = trace.steps.find(
         s => s.step === 'assess' && s.details?.hypothesisId === c.hypothesis.id,

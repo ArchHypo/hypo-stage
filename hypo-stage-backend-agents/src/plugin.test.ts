@@ -2,6 +2,8 @@ import crypto from 'crypto';
 import request from 'supertest';
 import { mockServices, startTestBackend } from '@backstage/backend-test-utils';
 import { catalogServiceMock } from '@backstage/plugin-catalog-node/testUtils';
+import { ConfigReader } from '@backstage/config';
+import { agentsQueueNeeded, readAgentsConfig } from './config';
 import { hypoStageAgentsModule } from './plugin';
 
 const SECRET = 'boot-secret';
@@ -55,5 +57,29 @@ describe('hypoStageAgentsModule', () => {
       .set('authorization', 'Bearer invalid')
       .send({ status: 'accepted' });
     expect(review.status).toBe(401);
+  });
+
+  it('boots with every feature off and does not require a provider key', async () => {
+    expect(agentsQueueNeeded(readAgentsConfig(new ConfigReader({})))).toBe(false);
+
+    const { server } = await startTestBackend({
+      features: [
+        hypoStageAgentsModule,
+        catalogServiceMock.factory(),
+        mockServices.rootConfig.factory({ data: {} }),
+      ],
+    });
+
+    const health = await request(server).get('/api/hypo-stage/agents/health');
+    expect(health.status).toBe(200);
+    expect(health.body).toEqual({
+      status: 'ok',
+      enabled: false,
+      queue: false,
+      coach: { enabled: false, checkOnSave: false },
+      planner: { enabled: false },
+      issues: { triage: false, planIssues: false },
+      coverage: { enabled: false },
+    });
   });
 });

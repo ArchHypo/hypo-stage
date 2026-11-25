@@ -2,7 +2,7 @@ import type { Knex } from 'knex';
 import type { LoggerService } from '@backstage/backend-plugin-api';
 import { AgentsConfig, findModel } from '../config';
 import type { ModelRegistry } from '../providers/models';
-import { generateStructured } from '../pipeline/llm';
+import { generateStructured, modelFailure } from '../pipeline/llm';
 import type { RunTraceStep } from '../store/runs';
 import { insertReview, ReviewTrigger } from '../store/reviews';
 import { guardReview, HypothesisReview } from './guardrails';
@@ -62,6 +62,7 @@ export async function reviewHypothesis(
       maxRetries: trigger === 'fallback' ? 2 : 0,
     });
     const review = guardReview(input, output);
+    trace.push({ step: 'guard', durationMs: 0, details: { dropped: review.dropped } });
     const reviewId = await insertReview(knex, {
       ...base,
       status: 'completed',
@@ -73,10 +74,7 @@ export async function reviewHypothesis(
     return { reviewId, ...review };
   } catch (error) {
     // AbortSignal.timeout rejects with a DOMException, which is not always an Error instance.
-    const { name, message: rawMessage } = (error ?? {}) as { name?: string; message?: string };
-    const message = rawMessage ?? String(error);
-    const timedOut =
-      name === 'TimeoutError' || name === 'AbortError' || /aborted|timeout/i.test(message);
+    const { timedOut, message } = modelFailure(error);
     await insertReview(knex, {
       ...base,
       status: 'failed',

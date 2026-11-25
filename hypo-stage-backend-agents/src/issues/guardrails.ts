@@ -1,6 +1,7 @@
 import type { HypothesisRecord } from '../domain/archhypo';
 import type { DroppedProposal } from '../pipeline/guardrails';
-import { clampText } from '../pipeline/guardrails';
+import { clampText, gateOnConfidence } from '../pipeline/guardrails';
+import type { SuggestionKind } from '../store/suggestions';
 import type { NewSuggestion } from '../store/suggestions';
 import type { EvidenceType } from '../store/issues';
 import type { IssueAssessOutput } from './schemas';
@@ -23,19 +24,19 @@ export function guardIssueAssessment(ctx: {
   issueUrl: string;
   issueNumber: number;
   confidenceThreshold: number;
+  /** Kinds this handler may store. Anything else is recorded as dropped. */
+  allowedKinds: SuggestionKind[];
 }): IssueGuardResult {
   const { hypothesis, assessment } = ctx;
-  const confidence = Math.max(0, Math.min(1, Number(assessment.confidence) || 0));
-  if (!assessment.related || assessment.evidenceType === 'unrelated') {
-    return { suggestions: [], dropped: [{ kind: 'assessment', reason: 'model marked it unrelated' }], related: null };
+  const gate = gateOnConfidence({
+    related: Boolean(assessment.related) && assessment.evidenceType !== 'unrelated',
+    confidence: assessment.confidence,
+    threshold: ctx.confidenceThreshold,
+  });
+  if (gate.reason) {
+    return { suggestions: [], dropped: [{ kind: 'assessment', reason: gate.reason }], related: null };
   }
-  if (confidence < ctx.confidenceThreshold) {
-    return {
-      suggestions: [],
-      dropped: [{ kind: 'assessment', reason: `confidence ${confidence} below threshold ${ctx.confidenceThreshold}` }],
-      related: null,
-    };
-  }
+  const confidence = gate.confidence;
 
   const rationale = clampText(assessment.rationale || `Reported in issue #${ctx.issueNumber}.`, 1000);
   const base = { hypothesisId: hypothesis.id, confidence, evidence: [] };
@@ -69,5 +70,11 @@ export function guardIssueAssessment(ctx: {
     }
   }
 
-  return { suggestions, dropped, related: { hypothesisId: hypothesis.id, evidenceType } };
+  const allowed = new Set(ctx.allowedKinds);
+  const kept = suggestions.filter(suggestion => {
+    if (allowed.has(suggestion.kind)) return true;
+    dropped.push({ kind: suggestion.kind, reason: 'not allowed for this handler' });
+    return false;
+  });
+  return { suggestions: kept, dropped, related: { hypothesisId: hypothesis.id, evidenceType } };
 }

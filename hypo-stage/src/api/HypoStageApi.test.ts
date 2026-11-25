@@ -293,4 +293,16 @@ describe('HypoStageApiClient', () => {
       );
     });
   });
+
+  describe('getAgentsStatus', () => {
+    it('reports the module as unavailable when health is not ok', async () => {
+      mockFetchApi.fetch!.mockResolvedValue({ ok: false, status: 404 } as Response);
+      await expect(apiClient.getAgentsStatus()).resolves.toMatchObject({ available: false, enabled: false });
+    });
+
+    it('reports the module as unavailable when the request throws', async () => {
+      mockFetchApi.fetch!.mockRejectedValue(new Error('Failed to fetch'));
+      await expect(apiClient.getAgentsStatus()).resolves.toMatchObject({ available: false });
+    });
+  });
 });

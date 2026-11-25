@@ -182,4 +182,36 @@ describe('AgentSuggestionsCard', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Accept' }));
     expect(await screen.findByText(/plan issue #4 closed/)).toBeInTheDocument();
   });
+
+  it('does not fetch suggestions when the agents module is unavailable', async () => {
+    api.getAgentsStatus.mockResolvedValue({
+      available: false,
+      enabled: false,
+      coach: { enabled: false, checkOnSave: false },
+      planner: { enabled: false },
+      issues: { triage: false, planIssues: false },
+      coverage: { enabled: false },
+    });
+    api.getAgentSuggestions.mockReset();
+    await render();
+    await waitFor(() => expect(api.getAgentsStatus).toHaveBeenCalled());
+    expect(screen.queryByText('Agent Suggestions')).not.toBeInTheDocument();
+    expect(api.getAgentSuggestions).not.toHaveBeenCalled();
+  });
+
+  it('hides the card when every feature is off and nothing is pending', async () => {
+    api.getAgentsStatus.mockResolvedValue({
+      available: true,
+      enabled: false,
+      coach: { enabled: false, checkOnSave: false },
+      planner: { enabled: false },
+      issues: { triage: false, planIssues: false },
+      coverage: { enabled: false },
+    });
+    api.getAgentSuggestions.mockReset();
+    api.getAgentSuggestions.mockResolvedValue([]);
+    await render();
+    await waitFor(() => expect(api.getAgentSuggestions).toHaveBeenCalled());
+    expect(screen.queryByText('Agent Suggestions')).not.toBeInTheDocument();
+  });
 });

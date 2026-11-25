@@ -109,7 +109,7 @@ The demo at [https://hypo-stage-hypo-stage.vercel.app](https://hypo-stage-hypo-s
 The demo database does include data you can click through:
 
 - A hypothesis with the statement from the recording, on `component:default/api-gateway`, uncertainty Medium, impact Medium, quality attributes Performance and Security.
-- One **pending** technical-planning suggestion on that hypothesis, and one **Agent runs** row. Both are fixtures inserted by migration. The run's provider is `fixture`, which is not a model.
+- One **pending** technical-planning suggestion on that hypothesis, so the suggestions card can be reviewed without an API key. A fixture agent run with provider `fixture` is stored too. It is not a model call, and the Agent runs tab stays hidden while every feature flag is off.
 
 Accepting the fixture suggestion creates the spike through the normal planning API. **Review with AI** and **Suggest plan with AI** stay hidden until someone enables `coach` and `planner` on their own backend.
 

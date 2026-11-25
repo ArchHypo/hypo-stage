@@ -2,7 +2,7 @@ import type { Knex } from 'knex';
 import type { LoggerService } from '@backstage/backend-plugin-api';
 import { AgentsConfig, findModel } from '../config';
 import { loadHypotheses } from '../pipeline/context';
-import { generateStructured } from '../pipeline/llm';
+import { generateStructured, modelFailure } from '../pipeline/llm';
 import type { ModelRegistry } from '../providers/models';
 import type { RunTraceStep } from '../store/runs';
 import { insertPlanProposal } from '../store/plans';
@@ -76,6 +76,7 @@ export async function designPlan(
       maxActions: config.planner.maxActions,
       iterationDays: config.planner.iterationDays,
     });
+    trace.push({ step: 'guard', durationMs: 0, details: { dropped: plan.dropped } });
     const proposalId = await insertPlanProposal(knex, {
       ...base,
       status: 'completed',
@@ -86,10 +87,7 @@ export async function designPlan(
     });
     return { proposalId, hypothesisId, profile: profile.profile, ...plan };
   } catch (error) {
-    const { name, message: rawMessage } = (error ?? {}) as { name?: string; message?: string };
-    const message = rawMessage ?? String(error);
-    const timedOut =
-      name === 'TimeoutError' || name === 'AbortError' || /aborted|timeout/i.test(message);
+    const { timedOut, message } = modelFailure(error);
     await insertPlanProposal(knex, {
       ...base,
       status: 'failed',

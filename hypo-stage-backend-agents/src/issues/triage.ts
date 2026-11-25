@@ -123,6 +123,7 @@ export async function runIssueTriage(deps: PipelineDeps, event: IssueEvent): Pro
         issueUrl: issue.url,
         issueNumber: issue.number,
         confidenceThreshold: repo.confidenceThreshold,
+        allowedKinds: ['link', 'status_change'],
       });
       const step = trace.steps.find(s => s.step === 'assess' && s.details?.hypothesisId === hypothesis.id);
       if (step) {

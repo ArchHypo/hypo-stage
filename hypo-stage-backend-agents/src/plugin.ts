@@ -7,7 +7,7 @@ import { stringifyEntityRef } from '@backstage/catalog-model';
 import { catalogServiceRef } from '@backstage/plugin-catalog-node';
 import { runCoachFallback } from './coach/fallback';
 import { runCoverage } from './uncovered/run';
-import { readAgentsConfig } from './config';
+import { agentsQueueNeeded, readAgentsConfig } from './config';
 import { createGitHubClient } from './github/client';
 import { createModelRegistry } from './providers/models';
 import { createPgBoss } from './queue/boss';
@@ -95,8 +95,7 @@ export const hypoStageAgentsModule = createBackendModule({
 
         let enqueueAnalyzePr: EnqueueAnalyzePr | undefined;
         let enqueueIssue: EnqueueIssue | undefined;
-        const issueFlows = config.repositories.some(r => r.issues.triage || r.issues.planIssues);
-        const queueNeeded = config.enabled || issueFlows;
+        const queueNeeded = agentsQueueNeeded(config);
         if (!['pg', 'postgres', 'postgresql'].includes(String(knex.client.config.client))) {
           if (queueNeeded) {
             logger.warn(

@@ -14,7 +14,7 @@ import { insertIssueLink } from '../store/issues';
 import { runIssueTriage } from './triage';
 import { runPlanSync } from './planSync';
 import { runPlanComment } from './planComment';
-import { openPlanIssue, PlanIssueExistsError, planIssueContent, RepositoryRequiredError } from './planIssues';
+import { openPlanIssue, PlanIssueExistsError, planIssueContent, RepositoryRequiredError, syncPlanIssue } from './planIssues';
 
 const H1 = '11111111-1111-4111-8111-111111111111';
 const TRIGGER = '44444444-4444-4444-8444-444444444444';
@@ -164,6 +164,24 @@ describe('issue flows', () => {
       );
     });
 
+    it('pushes the current planning text to its GitHub issue', async () => {
+      const createIssue = jest.fn().mockResolvedValue({ number: 4, url: 'https://github.com/acme/payments/issues/4' });
+      const updateIssue = jest.fn().mockResolvedValue(undefined);
+      const plan = planDeps(createIssue);
+      plan.github = { ...plan.github, updateIssue, closeIssue: jest.fn() };
+      await openPlanIssue(plan, SPIKE, 'user:default/fernando');
+      const link = await syncPlanIssue(plan, SPIKE);
+      expect(link?.issueNumber).toBe(4);
+      expect(updateIssue).toHaveBeenCalledWith(
+        TEST_REPO,
+        4,
+        expect.objectContaining({
+          title: expect.stringContaining('Spike'),
+          body: expect.stringContaining(`<!-- hypostage:planning=${SPIKE} -->`),
+        }),
+      );
+    });
+
     it('builds a readable body', () => {
       const { body } = planIssueContent({
         hypothesis: { id: H1, statement: 'S', uncertainty: 'High', impact: 'Low' },
@@ -243,26 +261,33 @@ describe('issue flows', () => {
   });
 
   describe('runPlanComment', () => {
-    it('records a comment as progress on the mirrored planning without calling a model', async () => {
+    it('assesses a comment against the planning goal and evidence only', async () => {
+      const model = scriptedModel(() => ({
+        related: true,
+        confidence: 0.9,
+        rationale: 'The comment reports the measurement the planning asked for.',
+        progress: { effect: 'advances', expectedOutcomeUpdate: 'Measured 1400 rps', reason: 'r' },
+        reassessment: { uncertainty: 'Low', impact: null, reason: '1400 rps measured' },
+      }));
       const github = {
         getIssue: jest.fn().mockResolvedValue(
           issueDetails({ number: 4, commentThread: [{ author: 'dev', body: 'load test: 1400 rps at p95 140 ms', createdAt: '2026-09-26T00:00:00Z' }] }),
         ),
       };
-      await runPlanComment(
-        deps({ doGenerate: () => { throw new Error('must not be called'); } }, github),
-        event({ event: 'issue_comment', action: 'created', number: 4 }),
-        SPIKE,
-      );
+      await runPlanComment(deps(model, github), event({ event: 'issue_comment', action: 'created', number: 4 }), SPIKE);
 
-      const rows = await knex('agent_suggestions');
-      expect(rows.map(r => [r.kind, r.technical_planning_id])).toEqual([['planning_progress', SPIKE]]);
-      expect(rows[0].rationale).toContain('1400 rps');
-      expect(await knex('agent_runs').first()).toMatchObject({
-        handler: 'plan_comment',
-        origin: 'hypostage',
-        model_key: 'none',
-      });
+      const rows = await knex('agent_suggestions').orderBy('kind');
+      expect(rows.map(r => [r.kind, r.technical_planning_id])).toEqual([
+        ['planning_progress', SPIKE],
+        ['reassessment', SPIKE],
+      ]);
+      const run = await knex('agent_runs').first();
+      expect(run).toMatchObject({ handler: 'plan_comment', origin: 'hypostage', provider: 'ollama' });
+      const dropped = JSON.parse(run.trace).steps[0].details.dropped;
+      expect(dropped).toEqual(
+        expect.arrayContaining([{ kind: 'link', reason: 'not allowed for this handler' }]),
+      );
+      expect(dropped.map((item: { kind: string }) => item.kind)).not.toContain('new_planning');
     });
   });
 });

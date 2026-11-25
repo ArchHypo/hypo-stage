@@ -156,6 +156,13 @@ describe('agents router', () => {
       expect((await knex('agent_suggestions').first()).status).toBe('superseded');
     });
 
+    it('does not queue a pull request when agents are disabled', async () => {
+      const res = await post(await app(testConfig({ enabled: false })), prPayload());
+      expect(res.status).toBe(202);
+      expect(res.body).toMatchObject({ queued: false, reason: 'agents disabled' });
+      expect(enqueue).not.toHaveBeenCalled();
+    });
+
     it('answers ping and returns 503 without a queue', async () => {
       expect((await post(await app(), { zen: 'hi' }, 'ping')).status).toBe(200);
       expect((await post(await app(testConfig(), false), prPayload())).status).toBe(503);

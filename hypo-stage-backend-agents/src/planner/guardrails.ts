@@ -23,6 +23,8 @@ export interface GuardedPlan {
   reading: string;
   actions: PlannedAction[];
   warnings: string[];
+  /** Actions the model proposed that were not kept, with the reason. */
+  dropped: string[];
 }
 
 const rank = (level: string) => LIKERT_SCALE.indexOf(level as (typeof LIKERT_SCALE)[number]);
@@ -72,16 +74,32 @@ export function guardPlan(
   const current = { uncertainty: hypothesis.uncertainty, impact: hypothesis.impact };
   const seen = new Set(hypothesis.technicalPlannings.map(p => normalize(p.description)));
   const warnings: string[] = [];
+  const dropped: string[] = [];
   const actions: PlannedAction[] = [];
 
   for (const a of output.actions ?? []) {
-    if (actions.length >= options.maxActions) break;
-    if (!(ACTION_TYPES as readonly string[]).includes(a.actionType)) continue;
-    if (!(PLAN_GOALS as readonly string[]).includes(a.goal)) continue;
+    if (actions.length >= options.maxActions) {
+      dropped.push(`stopped after ${options.maxActions} actions`);
+      break;
+    }
+    if (!(ACTION_TYPES as readonly string[]).includes(a.actionType)) {
+      dropped.push(`unknown action type '${a.actionType}'`);
+      continue;
+    }
+    if (!(PLAN_GOALS as readonly string[]).includes(a.goal)) {
+      dropped.push(`unknown goal '${a.goal}'`);
+      continue;
+    }
     const description = clampText(a.description ?? '');
-    if (!description || !a.evidence?.trim()) continue;
+    if (!description || !a.evidence?.trim()) {
+      dropped.push('action is missing a description or evidence');
+      continue;
+    }
     const key = normalize(description);
-    if (seen.has(key)) continue;
+    if (seen.has(key)) {
+      dropped.push('action repeats an existing or earlier plan');
+      continue;
+    }
     seen.add(key);
 
     const entityRef =
@@ -122,5 +140,5 @@ export function guardPlan(
     }
   }
 
-  return { reading: clampText(output.reading ?? '', 800), actions, warnings };
+  return { reading: clampText(output.reading ?? '', 800), actions, warnings, dropped };
 }

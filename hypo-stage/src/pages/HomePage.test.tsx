@@ -155,12 +155,14 @@ describe('HomePage', () => {
       expect(await screen.findByRole('button', { name: /Create New Hypothesis/i })).toBeInTheDocument();
     });
 
-    it('opens the agent runs tab from the URL', async () => {
+    it('hides agent runs when every feature flag is off', async () => {
       mockHypoStageApi.getAgentsStatus.mockResolvedValue({ available: true, enabled: false, coach: { enabled: false, checkOnSave: false }, planner: { enabled: false }, issues: { triage: false, planIssues: false }, coverage: { enabled: false } });
       await renderWithProviders('/?tab=agent-runs');
 
-      expect(await screen.findByText(/Agents are disabled in config/)).toBeInTheDocument();
-      expect(mockHypoStageApi.getAgentRuns).toHaveBeenCalledWith(expect.objectContaining({ offset: 0 }));
+      await waitFor(() => expect(mockHypoStageApi.getAgentsStatus).toHaveBeenCalled());
+      expect(screen.queryByRole('tab', { name: 'Agent runs' })).not.toBeInTheDocument();
+      expect(mockHypoStageApi.getAgentRuns).not.toHaveBeenCalled();
+      expect(screen.getByRole('button', { name: /Create New Hypothesis/i })).toBeInTheDocument();
     });
   });
 

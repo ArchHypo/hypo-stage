@@ -38,11 +38,19 @@ export const HomePage = () => {
     };
   }, [api]);
 
-  // Agent tabs only exist when the agents backend module is installed.
+  const featureOn =
+    agents.enabled ||
+    agents.coach.enabled ||
+    agents.planner.enabled ||
+    agents.issues.triage ||
+    agents.issues.planIssues ||
+    agents.coverage.enabled;
+  // Tabs for a feature appear only when that feature is on. An installed module with
+  // every flag off looks like HypoStage without agents.
   const tabs = ALL_TABS.filter(
     t =>
       t.id === 'hypotheses' ||
-      (t.id === 'agent-runs' && agents.available) ||
+      (t.id === 'agent-runs' && agents.available && featureOn) ||
       (t.id === 'issues-report' &&
         agents.available &&
         (agents.issues.triage || agents.issues.planIssues || agents.coverage.enabled)),

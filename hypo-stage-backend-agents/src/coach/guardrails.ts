@@ -22,6 +22,8 @@ export interface HypothesisReview {
   splitInto: string[];
   suggestedSourceType: HypothesisReviewOutput['suggestedSourceType'];
   suggestedQualityAttributes: HypothesisReviewOutput['suggestedQualityAttributes'];
+  /** Rewrites and splits that were not kept, with the reason. */
+  dropped: string[];
 }
 
 const normalize = (s: string) => s.trim().replace(/\s+/g, ' ').toLowerCase();
@@ -41,25 +43,45 @@ export function guardReview(input: CoachInput, output: HypothesisReviewOutput): 
   }));
 
   const seen = new Set<string>([original]);
-  const rewrites = (output.rewrites ?? [])
-    .map(r => ({ statement: r.statement.trim(), reason: clampText(r.reason, 300) }))
-    .filter(r => {
-      const key = normalize(r.statement);
-      if (!validStatement(r.statement) || seen.has(key)) {
-        return false;
-      }
-      seen.add(key);
-      return true;
-    })
-    .slice(0, MAX_REWRITES);
+  const dropped: string[] = [];
+  const rewrites: HypothesisReviewOutput['rewrites'] = [];
+  for (const raw of output.rewrites ?? []) {
+    const statement = raw.statement.trim();
+    const key = normalize(statement);
+    if (!validStatement(statement)) {
+      dropped.push('rewrite is shorter than 20 or longer than 500 characters');
+      continue;
+    }
+    if (seen.has(key)) {
+      dropped.push('rewrite repeats the statement or an earlier rewrite');
+      continue;
+    }
+    if (rewrites.length >= MAX_REWRITES) {
+      dropped.push(`stopped after ${MAX_REWRITES} rewrites`);
+      continue;
+    }
+    seen.add(key);
+    rewrites.push({ statement, reason: clampText(raw.reason, 300) });
+  }
 
   const tooBroad = issues.some(i => i.type === 'too_broad');
-  const splitInto = tooBroad
-    ? (output.splitInto ?? [])
-        .map(s => s.trim())
-        .filter(s => validStatement(s) && normalize(s) !== original)
-        .slice(0, MAX_SPLIT)
-    : [];
+  const splitInto: string[] = [];
+  for (const raw of output.splitInto ?? []) {
+    const statement = raw.trim();
+    if (!tooBroad) {
+      dropped.push('split was ignored because the statement is not too broad');
+      continue;
+    }
+    if (!validStatement(statement) || normalize(statement) === original) {
+      dropped.push('split part is empty, too short, or repeats the statement');
+      continue;
+    }
+    if (splitInto.length >= MAX_SPLIT) {
+      dropped.push(`stopped after ${MAX_SPLIT} split parts`);
+      continue;
+    }
+    splitInto.push(statement);
+  }
 
   const current = new Set(input.qualityAttributes ?? []);
   const suggestedQualityAttributes = Array.from(
@@ -93,5 +115,6 @@ export function guardReview(input: CoachInput, output: HypothesisReviewOutput): 
     splitInto,
     suggestedSourceType,
     suggestedQualityAttributes,
+    dropped,
   };
 }

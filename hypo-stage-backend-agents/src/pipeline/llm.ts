@@ -4,6 +4,14 @@ import type { RunTraceStep } from '../store/runs';
 
 const CALL_TIMEOUT_MS = 120_000;
 
+/** Coach and planner share this classification of aborted model calls. */
+export function modelFailure(error: unknown): { timedOut: boolean; message: string } {
+  const { name, message: rawMessage } = (error ?? {}) as { name?: string; message?: string };
+  const message = rawMessage ?? String(error);
+  const timedOut = name === 'TimeoutError' || name === 'AbortError' || /aborted|timeout/i.test(message);
+  return { timedOut, message };
+}
+
 /** Structured-output call shared by all pipeline steps; records timing and token usage. */
 export async function generateStructured<T>(options: {
   model: LanguageModel;
