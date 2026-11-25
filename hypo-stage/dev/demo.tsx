@@ -35,10 +35,25 @@ import {
 } from '../src/index';
 import { HypoStageMockApi } from '../src/api/HypoStageMockApi';
 
-const backendUrl = typeof import.meta !== 'undefined' && import.meta.env?.VITE_BACKEND_URL
+const configuredBackendUrl = typeof import.meta !== 'undefined' && import.meta.env?.VITE_BACKEND_URL
   ? (import.meta.env.VITE_BACKEND_URL as string).replace(/\/$/, '')
   : '';
-const useRealBackend = backendUrl.length > 0;
+const useRealBackend = configuredBackendUrl.length > 0;
+
+/**
+ * On Vercel, call this deployment and let vercel.json proxy /api to Render.
+ * Preview hosts are a different origin from the one backend.cors allows, so a
+ * direct browser call fails with "Failed to fetch" until Render redeploys.
+ */
+function backendUrlForBrowser(): string {
+  if (!useRealBackend) return '';
+  if (typeof window !== 'undefined' && window.location.hostname.endsWith('.vercel.app')) {
+    return window.location.origin;
+  }
+  return configuredBackendUrl;
+}
+
+const backendUrl = backendUrlForBrowser();
 
 const SIGN_IN_PROVIDER_KEY = '@backstage/core:SignInPage:provider';
 if (typeof window !== 'undefined') {

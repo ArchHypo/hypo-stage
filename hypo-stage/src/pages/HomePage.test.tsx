@@ -34,7 +34,6 @@ const mockStats = {
   byStatus: { Open: 1 },
   byUncertainty: {},
   byImpact: {},
-  inLast30Days: 1,
   needAttention: 0,
   canPostpone: 0,
 };

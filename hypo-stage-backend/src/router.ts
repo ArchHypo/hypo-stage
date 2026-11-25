@@ -58,11 +58,10 @@ export async function createRouter({
     res.json(Array.from(refsSet).sort());
   });
 
-  /** Lightweight stats for dashboard: same filters as GET /hypotheses, optional time bound (sinceDays). */
+  /** Lightweight stats for dashboard: same filters as GET /hypotheses. */
   router.get('/hypotheses/stats', async (req, res) => {
     const entityRef = req.query.entityRef as string | undefined;
     const team = req.query.team as string | undefined;
-    const sinceDays = req.query.sinceDays !== undefined ? Number(req.query.sinceDays) : undefined;
 
     let hypotheses = await hypothesisService.getAll();
 
@@ -84,40 +83,28 @@ export async function createRouter({
       );
     }
 
-    const cutoff =
-      sinceDays !== undefined && Number.isFinite(sinceDays) && sinceDays > 0
-        ? new Date(Date.now() - sinceDays * 24 * 60 * 60 * 1000)
-        : null;
-    const filtered = cutoff
-      ? hypotheses.filter(h => new Date(h.updatedAt) >= cutoff)
-      : hypotheses;
-
     const byStatus: Record<string, number> = {};
     const byUncertainty: Record<string, number> = {};
     const byImpact: Record<string, number> = {};
-    let inLast30Days = 0;
     let needAttention = 0;
     let canPostpone = 0;
-    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
     const highUncertainty = (u: string) => u === 'High' || u === 'Very High';
     const highImpact = (i: string) => i === 'High' || i === 'Very High';
     const lowImpact = (i: string) => i === 'Very Low' || i === 'Low';
 
-    for (const h of filtered) {
+    for (const h of hypotheses) {
       byStatus[h.status] = (byStatus[h.status] ?? 0) + 1;
       byUncertainty[h.uncertainty] = (byUncertainty[h.uncertainty] ?? 0) + 1;
       byImpact[h.impact] = (byImpact[h.impact] ?? 0) + 1;
-      if (new Date(h.createdAt) >= thirtyDaysAgo) inLast30Days += 1;
       if (highUncertainty(h.uncertainty) && highImpact(h.impact)) needAttention += 1;
       if (lowImpact(h.impact)) canPostpone += 1;
     }
 
     res.json({
-      total: filtered.length,
+      total: hypotheses.length,
       byStatus,
       byUncertainty,
       byImpact,
-      inLast30Days,
       needAttention,
       canPostpone,
     });

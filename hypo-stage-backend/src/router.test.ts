@@ -290,7 +290,7 @@ describe('HypoStage Router', () => {
   });
 
   describe('GET /hypotheses/stats', () => {
-    it('should return total, byStatus, byUncertainty, byImpact and inLast30Days for all hypotheses', async () => {
+    it('should return total, byStatus, byUncertainty and byImpact for all hypotheses', async () => {
       const now = new Date();
       const mockHypotheses = [
         {
@@ -331,7 +331,6 @@ describe('HypoStage Router', () => {
       expect(response.body.byStatus).toEqual({ Open: 1, 'In Review': 1 });
       expect(response.body.byUncertainty).toEqual({ High: 2 });
       expect(response.body.byImpact).toEqual({ Medium: 1, High: 1 });
-      expect(response.body.inLast30Days).toBe(2);
       expect(response.body.needAttention).toBe(1);
       expect(response.body.canPostpone).toBe(0);
     });
@@ -357,13 +356,21 @@ describe('HypoStage Router', () => {
 
       expect(response.body.total).toBe(1);
       expect(response.body.byStatus).toEqual({ Open: 1 });
-      expect(response.body.inLast30Days).toBe(1);
     });
 
-    it('should filter stats by sinceDays when provided', async () => {
+    it('should include hypotheses older than 90 days', async () => {
       const oldDate = new Date(Date.now() - 100 * 24 * 60 * 60 * 1000);
       const mockHypotheses = [
-        { id: '1', entityRefs: [], statement: 'H1', status: 'Open', createdAt: oldDate, updatedAt: oldDate },
+        {
+          id: '1',
+          entityRefs: [],
+          statement: 'H1',
+          status: 'Open',
+          uncertainty: 'High',
+          impact: 'High',
+          createdAt: oldDate,
+          updatedAt: oldDate,
+        },
       ];
       mockHypothesisService.getAll.mockResolvedValue(mockHypotheses as any);
 
@@ -379,11 +386,10 @@ describe('HypoStage Router', () => {
         .query({ sinceDays: 90 })
         .expect(200);
 
-      expect(response.body.total).toBe(0);
-      expect(response.body.byStatus).toEqual({});
-      expect(response.body.inLast30Days).toBe(0);
-      expect(response.body.needAttention).toBe(0);
-      expect(response.body.canPostpone).toBe(0);
+      expect(response.body.total).toBe(1);
+      expect(response.body.byStatus).toEqual({ Open: 1 });
+      expect(response.body.needAttention).toBe(1);
+      expect(response.body).not.toHaveProperty('inLast30Days');
     });
   });
 

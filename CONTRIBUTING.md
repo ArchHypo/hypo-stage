@@ -5,7 +5,7 @@ Thank you for helping improve HypoStage.
 ## Getting started
 
 1. **Fork** the repository and create a branch from `main`.
-2. **Install:** From the repo root, `yarn install --ignore-engines` (Node.js 20+ recommended).
+2. **Install:** From the repo root, `yarn install --ignore-engines` (Node.js 22.x, matching `package.json` `engines`).
 3. **Validate:** Run `make check` (or `yarn build`, `CI=true yarn test`, `yarn lint`) before opening a PR.
 
 ## Guidelines

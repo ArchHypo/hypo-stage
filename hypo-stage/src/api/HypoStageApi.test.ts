@@ -134,7 +134,6 @@ describe('HypoStageApiClient', () => {
         byStatus: { Open: 5, Validated: 3 },
         byUncertainty: { High: 4 },
         byImpact: { Medium: 6 },
-        inLast30Days: 2,
         needAttention: 2,
         canPostpone: 1,
       };
@@ -151,7 +150,7 @@ describe('HypoStageApiClient', () => {
       );
     });
 
-    it('should fetch stats with entityRef, team and sinceDays', async () => {
+    it('should fetch stats with entityRef and team', async () => {
       mockFetchApi.fetch!.mockResolvedValue({
         ok: true,
         json: jest.fn().mockResolvedValue({
@@ -159,7 +158,6 @@ describe('HypoStageApiClient', () => {
           byStatus: {},
           byUncertainty: {},
           byImpact: {},
-          inLast30Days: 1,
           needAttention: 0,
           canPostpone: 0,
         }),
@@ -168,11 +166,10 @@ describe('HypoStageApiClient', () => {
       await apiClient.getHypothesesStats({
         entityRef: 'component:default/my-svc',
         team: 'TeamA',
-        sinceDays: 90,
       });
 
       expect(mockFetchApi.fetch).toHaveBeenCalledWith(
-        'http://localhost:7007/api/hypo-stage/hypotheses/stats?entityRef=component%3Adefault%2Fmy-svc&team=TeamA&sinceDays=90',
+        'http://localhost:7007/api/hypo-stage/hypotheses/stats?entityRef=component%3Adefault%2Fmy-svc&team=TeamA',
       );
     });
 

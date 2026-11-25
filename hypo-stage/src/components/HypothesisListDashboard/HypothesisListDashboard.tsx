@@ -24,11 +24,6 @@ export interface HypothesisListDashboardProps {
   selectedComponentRef?: string | null;
   /** Refresh when this changes (e.g. after list refresh). */
   refreshKey?: number;
-  /**
-   * Optional time window in days (by `updatedAt`) applied to every figure except "Created (30d)".
-   * When omitted (default), the stats cover the same hypotheses as the list below the dashboard.
-   */
-  sinceDays?: number;
 }
 
 export function HypothesisListDashboard({
@@ -36,7 +31,6 @@ export function HypothesisListDashboard({
   selectedTeam,
   selectedComponentRef,
   refreshKey = 0,
-  sinceDays,
 }: HypothesisListDashboardProps) {
   const hypoStageApi = useApi(HypoStageApiRef);
   const sharedClasses = useSharedStyles();
@@ -48,12 +42,11 @@ export function HypothesisListDashboard({
     ...(!entityRef &&
       selectedComponentRef !== undefined &&
       selectedComponentRef !== null && { entityRef: selectedComponentRef }),
-    ...(sinceDays !== undefined && { sinceDays }),
   };
 
   const { value: stats, loading, error } = useAsync(
     () => hypoStageApi.getHypothesesStats(options),
-    [refreshKey, entityRef, selectedTeam, selectedComponentRef, sinceDays],
+    [refreshKey, entityRef, selectedTeam, selectedComponentRef],
   );
 
   if (loading) {
@@ -88,7 +81,6 @@ export function HypothesisListDashboard({
             value={openCount}
             statusClass={getStatusClass('Open', sharedClasses)}
           />
-          <StatCard label="Created (30d)" value={stats.inLast30Days} />
         </Box>
       </Box>
 

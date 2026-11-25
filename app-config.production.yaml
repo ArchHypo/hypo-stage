@@ -11,8 +11,10 @@ backend:
   listen:
     port: 7007
   cors:
-    # Frontend origin(s) allowed to call the API; add preview URLs here if needed (comma-separated or list per Backstage docs).
-    origin: https://hypo-stage-hypo-stage.vercel.app
+    # Backstage matches this with minimatch. The * covers production
+    # (hypo-stage-hypo-stage.vercel.app) and preview hosts
+    # (hypo-stage-hypo-stage-git-<id>-arch-hypo-projects.vercel.app).
+    origin: https://hypo-stage-hypo-stage*.vercel.app
     methods: [GET, HEAD, PATCH, POST, PUT, DELETE, OPTIONS]
     allowedHeaders: [Content-Type, Authorization, X-Requested-With, Accept]
   database:

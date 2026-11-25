@@ -55,7 +55,7 @@ export const useStyles = makeStyles(theme => ({
   },
   overviewGrid: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
+    gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
     gap: theme.spacing(1.5),
     width: '100%',
     [theme.breakpoints.down('md')]: {

@@ -147,7 +147,7 @@ From the repo root: `yarn build`, `yarn test`, `yarn lint` run for both packages
 
 ## ✅ Prerequisites
 
-- **Node.js** v20 or later ([nvm](https://github.com/nvm-sh/nvm): `nvm install 20 && nvm use 20`)
+- **Node.js** 22.x ([nvm](https://github.com/nvm-sh/nvm): `nvm install 22 && nvm use 22`)
 - **Yarn**
 - **PostgreSQL** (or SQLite) for the backend. For local dev you can use the repo’s [Docker Compose](#running-with-docker) Postgres.
 - **Docker & Docker Compose** (optional, for Postgres)
@@ -163,7 +163,7 @@ ModuleNotFoundError: No module named 'distutils'
 node-gyp is using a Python that no longer provides `distutils` (e.g. Python 3.12+). Fix it:
 
 1. **Install setuptools** (recommended): `pip install setuptools` then run `yarn install --ignore-engines` again.
-2. **Use Node.js 20+** so prebuilt binaries are used when possible: `nvm use 20`.
+2. **Use Node.js 22.x** so prebuilt binaries are used when possible: `nvm use 22`. An open range such as `>=20` makes Vercel install Node 26, which `better-sqlite3@12.6.2` rejects.
 3. **Use Python 3.11 or earlier for node-gyp**: `npm config set python /path/to/python3.11`.
 
 The **cpu-features** failure is optional; **better-sqlite3** is required only if you use SQLite for the backend.
@@ -344,7 +344,7 @@ Or: `make lint`. This runs lint for both workspace packages (frontend and backen
 
 To confirm everything works:
 
-1. **Build, test, and lint**: From the repo root (Node 20+ recommended), run `make deps` then **`make check`** (runs build, unit tests, and lint in one go, non-interactively). Or run `make build && make test && make lint`. From each package you can run `yarn build`, `yarn test`, `yarn lint`.
+1. **Build, test, and lint**: From the repo root (Node.js 22.x), run `make deps` then **`make check`** (runs build, unit tests, and lint in one go, non-interactively). Or run `make build && make test && make lint`. From each package you can run `yarn build`, `yarn test`, `yarn lint`.
 2. **Standalone**: Follow [Run standalone](#run-standalone-no-backstage-app-required) (including **`make seed-standalone`** for full demo data), then open http://localhost:3000.
 3. **In an app**: [Install](#installation) into a Backstage app and open `/hypo-stage`.
 4. **Docker**: [Running with Docker](#running-with-docker) for Postgres.
