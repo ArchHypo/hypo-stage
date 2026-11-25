@@ -4,7 +4,7 @@ import { mockServices, startTestBackend } from '@backstage/backend-test-utils';
 import { catalogServiceMock } from '@backstage/plugin-catalog-node/testUtils';
 import { ConfigReader } from '@backstage/config';
 import { agentsQueueNeeded, readAgentsConfig } from './config';
-import { hypoStageAgentsModule } from './plugin';
+import { hypoStageAgentsModule } from './module';
 
 const SECRET = 'boot-secret';
 

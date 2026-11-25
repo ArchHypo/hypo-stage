@@ -1,1 +1,1 @@
-export { hypoStageAgentsModule as default } from './plugin';
+export { hypoStageAgentsModule as default } from './module';

@@ -28,7 +28,7 @@ The public Render demo does not set a model provider. `migrations/20261125_00000
 
 ### A module, not a plugin
 
-The agents are a **Backstage backend module** of the `hypo-stage` plugin (`createBackendModule({ pluginId: 'hypo-stage', moduleId: 'agents' })` in `src/plugin.ts`). That gives it:
+The agents are a **Backstage backend module** of the `hypo-stage` plugin (`createBackendModule({ pluginId: 'hypo-stage', moduleId: 'agents' })` in `src/module.ts`). That gives it:
 
 - the **same database** as the HypoStage backend plugin — it reads `hypothesis`, `technicalPlanning` and `hypothesisEvents` directly, and keeps its own tables (`agent_*`) with its own migration table (`knex_migrations_hypo_stage_agents`);
 - the **same HTTP router** — its routes live under `/api/hypo-stage/...`.
@@ -36,7 +36,21 @@ The agents are a **Backstage backend module** of the `hypo-stage` plugin (`creat
 Two consequences shape the code:
 
 1. **It never writes the plugin's tables.** Agents create *suggestions*; when a user accepts one, the **frontend** applies it through the plugin's REST API (`useApplyAgentSuggestion`), so validation and the hypothesis history stay owned by the original plugin.
-2. **Modules start before their plugin.** On a fresh database the plugin's tables don't exist yet, so `plugin.ts` runs the plugin's migrations (idempotent) before its own.
+2. **Modules start before their plugin.** On a fresh database the plugin's tables don't exist yet, so `module.ts` runs the plugin's migrations (idempotent) before its own.
+
+The package follows the Backstage backend-module role and the same outer shape as `hypo-stage-backend`:
+
+| Piece | This module | Host plugin |
+|---|---|---|
+| Role | `backend-plugin-module`, `pluginPackage` `@archhypo/plugin-hypo-stage-backend` | `backend-plugin` |
+| Entry | `src/index.ts` re-exports the default from `src/module.ts` | `src/index.ts` re-exports the default from `src/plugin.ts` |
+| HTTP | `src/router.ts`, mounted on the shared `/api/hypo-stage` router | `src/router.ts` |
+| Logic | Feature folders next to the entry (`coach/`, `planner/`, `pipeline/`, `issues/`, `github/`, `store/`) | `src/services/` for the one hypothesis service |
+| Database | `migrations/` at the package root, separate knex table | `migrations/` at the package root |
+| Config | `config.d.ts` at the package root | No config schema |
+| Tests | `*.test.ts` beside the file they cover | Same |
+
+Feature folders stay at `src/`, which is how larger Backstage backend packages keep processors and providers. They are not nested under `services/` because this module has several flows, not one service.
 
 ### Three entry points
 
@@ -44,7 +58,7 @@ Two consequences shape the code:
 |---|---|---|
 | Button | `router.ts` coach and planner routes, answered in the same request | The form payload. The coach returns a review. The planner returns actions. The browser applies an accepted action through the HypoStage API |
 | GitHub webhook | `github/webhook.ts`, `github/events.ts`, then the queue | A signed event. The handler fetches the pull request or issue and writes `agent_suggestions` |
-| Scheduler | `plugin.ts` tasks `hypo-stage-agents-coach-fallback` and `hypo-stage-agents-coverage` | Rows already in the database. Fallback reviews hypotheses with no completed coach review. Coverage groups triaged issues that matched no hypothesis |
+| Scheduler | `module.ts` tasks `hypo-stage-agents-coach-fallback` and `hypo-stage-agents-coverage` | Rows already in the database. Fallback reviews hypotheses with no completed coach review. Coverage groups triaged issues that matched no hypothesis |
 
 The button path does not use pg-boss. The webhook path does, and only when a GitHub flow is enabled. The scheduler uses the Backstage scheduler.
 
@@ -86,7 +100,7 @@ Backend (`hypo-stage-backend-agents/src`):
 
 | Path | Responsibility |
 |---|---|
-| `plugin.ts` | Module registration: services, migrations, pg-boss, workers, scheduled jobs, routes, auth policy |
+| `module.ts` | Module registration: services, migrations, pg-boss, workers, scheduled jobs, routes, auth policy. A Backstage module uses `module.ts`; the host plugin keeps `plugin.ts` |
 | `config.ts` / `../config.d.ts` | Reads and validates `hypoStage.*` config into `AgentsConfig` with defaults |
 | `router.ts` | All HTTP routes: webhook, suggestions, runs, coach, planner, plan issues, coverage, report |
 | `domain/archhypo.ts` | ArchHypo vocabulary (levels, statuses, action types, quality attributes) and record types |
@@ -223,7 +237,7 @@ Example: analyze `release` events to summarize which hypotheses a release touche
 
 ### 3. Add a recurring job
 
-Use the Backstage scheduler like the coach fallback and coverage jobs in `plugin.ts`:
+Use the Backstage scheduler like the coach fallback and coverage jobs in `module.ts`:
 
 ```ts
 if (config.digest.enabled) {
@@ -248,11 +262,11 @@ Keep jobs idempotent (store what was already processed, as the coach fallback do
 
 ### 4. Use other Backstage plugins and services
 
-Declare dependencies in `plugin.ts` `deps` and pass them to your code:
+Declare dependencies in `module.ts` `deps` and pass them to your code:
 
 | Service | Use for |
 |---|---|
-| `catalogServiceRef` (already used) | Richer context: component owners, systems, APIs, dependencies (`getEntitiesByRefs`, `getEntityByRef`); see `describeComponents` in `plugin.ts` |
+| `catalogServiceRef` (already used) | Richer context: component owners, systems, APIs, dependencies (`getEntitiesByRefs`, `getEntityByRef`); see `describeComponents` in `module.ts` |
 | `coreServices.urlReader` | Read files from configured integrations (ADRs, TechDocs sources, `catalog-info.yaml`) using `readUrl` / `readTree` |
 | Notifications (`notificationService` from `@backstage/plugin-notifications-node`) | Notify hypothesis owners about evidence alerts, fired triggers or completed plans |
 | Permissions (`coreServices.permissions`) | Filter suggestions, runs and reports to what the viewer may see |

@@ -1,13 +1,13 @@
 {
   "name": "@archhypo/plugin-hypo-stage-backend-agents",
   "version": "1.0.0",
-  "description": "Backstage backend plugin for HypoStage agents and agent-related backend integrations.",
+  "description": "Backstage backend module that adds optional AI agents to the HypoStage plugin.",
   "keywords": [
     "backstage",
-    "backstage-plugin",
+    "backstage-plugin-module",
     "agents",
     "architecture",
-    "backend-plugin",
+    "backend-plugin-module",
     "archhypo"
   ],
   "license": "Apache-2.0",
@@ -31,9 +31,7 @@
   "backstage": {
     "role": "backend-plugin-module",
     "pluginId": "hypo-stage",
-    "pluginPackages": [
-      "@archhypo/plugin-hypo-stage-backend-agents"
-    ]
+    "pluginPackage": "@archhypo/plugin-hypo-stage-backend"
   },
   "scripts": {
     "start": "backstage-cli package start",

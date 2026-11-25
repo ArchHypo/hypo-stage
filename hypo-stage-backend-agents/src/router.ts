@@ -469,7 +469,7 @@ export async function createRouter(options: RouterOptions): Promise<express.Rout
     res.json({ ...result, issueClose: await closePlanIssueOnCompletion(result) });
   });
 
-  // Unauthenticated (see the auth policy in plugin.ts); protected by the HMAC signature.
+  // Unauthenticated (see the auth policy in module.ts); protected by the HMAC signature.
   router.post(WEBHOOK_PATH, express.raw({ type: '*/*', limit: '5mb' }), async (req, res) => {
     const secret = config.github.webhookSecret;
     if (!secret) {
