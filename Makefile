@@ -1,5 +1,5 @@
 # HypoStage plugin – Makefile for build, test, lint and Docker dependencies.
-# Use Node.js 20+ (e.g. nvm use 20).
+# Use Node.js 22.x (e.g. nvm use 22).
 
 SHELL := /usr/bin/env bash -o pipefail
 .SHELLFLAGS := -ec

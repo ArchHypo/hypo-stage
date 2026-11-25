@@ -1,6 +1,6 @@
 # HypoStage CI: runs the same validation as documented in the README
 # (install → make check). make check runs build → test → lint with staged output
-# and a final summary (timing, test/lint metrics). Requires Node.js 20+ (package.json engines).
+# and a final summary (timing, test/lint metrics). Requires Node.js 22.x (package.json engines).
 #
 # Validates:
 #   - Dependencies install with frozen lockfile
@@ -58,7 +58,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'yarn'
 
       - name: Install dependencies
