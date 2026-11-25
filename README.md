@@ -324,7 +324,11 @@ The optional backend module [`@archhypo/plugin-hypo-stage-backend-agents`](hypo-
 | Coverage | Turns recurring, costly issue themes no hypothesis covers into draft hypotheses |
 | Issues report & Agent runs | Maintenance report of issues and plans; traces of every agent run |
 
-Every feature is off by default. The quickest start (no GitHub needed) enables the coach and the plan designer:
+Every feature is off by default. The [public demo](https://hypo-stage-hypo-stage.vercel.app) does not enable a paid model. It does include the gateway hypothesis from the walkthrough and one fixture suggestion, so the suggestions card can be reviewed without an API key.
+
+Recorded example (coach, then plan designer): [hypothesis-coach-and-plan-designer.mp4](docs/agents/examples/hypothesis-coach-and-plan-designer.mp4).
+
+The quickest local start that does not call a paid API is Ollama. A cloud provider works the same way once you set its key:
 
 ```yaml
 hypoStage:

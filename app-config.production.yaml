@@ -30,27 +30,7 @@ backend:
         connection:
           database: backstage_plugin_hypo_stage
 
-hypoStage:
-  github:
-    apiToken: ${GITHUB_API_TOKEN}
-    webhookSecret: ${GITHUB_WEBHOOK_SECRET}
-  agents:
-    enabled: ${AGENTS_ENABLED}
-    defaultModel: default
-    providers:
-      anthropic:
-        apiKey: ${AGENTS_ANTHROPIC_API_KEY}
-      openai:
-        apiKey: ${AGENTS_OPENAI_API_KEY}
-      google:
-        apiKey: ${AGENTS_GOOGLE_API_KEY}
-      ollama:
-        baseUrl: ${AGENTS_OLLAMA_BASE_URL}
-    models:
-      # AGENTS_MODEL_PROVIDER: anthropic | openai | google | ollama
-      - key: default
-        provider: ${AGENTS_MODEL_PROVIDER}
-        modelId: ${AGENTS_MODEL_ID}
-    # Add one entry per repository whose pull requests should be analyzed
-    repositories:
-      - repository: ${AGENTS_GITHUB_REPOSITORY}
+# Agents stay off on the public Render demo. Do not add provider API keys here.
+# The demo database still has a fixture suggestion so the Agent Suggestions card
+# can be reviewed without calling a model. To enable a provider, see
+# docs/agents/user-guide.md.

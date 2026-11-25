@@ -47,7 +47,9 @@ hypoStage:
     # Leave unset with a personal token (your own issues would be ignored otherwise).
     # botLogin: hypostage-bot
   agents:
-    enabled: true
+    # Off until you choose a provider. Enabling calls that provider.
+    # Walkthrough: docs/agents/user-guide.md
+    enabled: false
     # Model key used by repositories that do not set `model`
     defaultModel: gemini-flash
     # Suggestions below this confidence ([0, 1]) are discarded
@@ -91,25 +93,25 @@ hypoStage:
       - repository: my-org/my-service
         model: gemini-flash
         issues:
-          triage: true        # analyze human issues against hypotheses
-          planIssues: true    # allow "Open as issue" on technical plannings (token needs issues: write)
+          triage: false       # true: analyze human issues against hypotheses
+          planIssues: false   # true: allow "Open as issue" (token needs issues: write)
           ignoreLabels: [question, duplicate, invalid]
     # Technical plan designer: proposes plan actions for a hypothesis (no GitHub needed)
     planner:
-      enabled: true
+      enabled: false
       model: gemini-flash
       # Iteration length, used to turn "iteration N" into a target date
       iterationDays: 14
       maxActions: 4
     # Hypothesis coach: reviews statements in the create/edit form (no GitHub needed)
     coach:
-      enabled: true
+      enabled: false
       model: gemini-flash
-      # Review unreviewed statements when saving (never blocks the save)
-      checkOnSave: true
+      # Review unreviewed statements when saving (never blocks the save). Off unless set.
+      checkOnSave: false
       # Background review of hypotheses created without the form (e.g. via the API)
       fallback:
-        enabled: true
+        enabled: false
         frequencyMinutes: 10
         maxPerRun: 5
         sinceDays: 7

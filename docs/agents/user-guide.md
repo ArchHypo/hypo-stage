@@ -7,6 +7,8 @@ Looking for how the module works internally or how to extend it? See the [develo
 ## Contents
 
 - [How the agents work](#how-the-agents-work)
+- [Operate it](#operate-it)
+- [Public demo](#public-demo)
 - [Getting started](#getting-started)
 - [Features](#features)
   - [PR analysis](#pr-analysis)
@@ -40,6 +42,76 @@ Looking for how the module works internally or how to extend it? See the [develo
 | **Superseded** | Replaced automatically, e.g. a PR got new commits, was closed without merging, or a plan issue was reopened. |
 
 When two artifacts report the same thing (for example a PR with `Fixes #12` and the plan issue #12 being closed), you get **one** suggestion listing both under *Sources*.
+
+---
+
+## Operate it
+
+This is the same path as the recorded example: the hypothesis coach on create, then the technical plan designer on the hypothesis page. No GitHub webhook is required. You do need PostgreSQL or SQLite, the agents module loaded, and one model with `coach.enabled` and `planner.enabled` set to `true`.
+
+<video controls width="720" src="./examples/hypothesis-coach-and-plan-designer.mp4"></video>
+
+[Open the walkthrough video](./examples/hypothesis-coach-and-plan-designer.mp4) (about 2.5 minutes).
+
+### 1. Turn the two features on
+
+Ollama is the option that does not call a paid API. With Ollama running and a model pulled (`ollama pull qwen2.5:7b`):
+
+```yaml
+hypoStage:
+  agents:
+    defaultModel: local
+    providers:
+      ollama:
+        baseUrl: http://localhost:11434/v1
+    models:
+      - key: local
+        provider: ollama
+        modelId: qwen2.5:7b
+        maxInputChars: 12000
+    coach:
+      enabled: true
+      checkOnSave: true
+    planner:
+      enabled: true
+```
+
+Restart the backend after saving config. `GET /api/hypo-stage/agents/health` should report `coach.enabled` and `planner.enabled` as true. The copied `app-config.example.yaml` leaves both false so a fresh install does not call a model.
+
+A paid provider works the same way. Set that provider's `apiKey`, point `defaultModel` at one of its `models` keys, and enable `coach` and `planner`. Do not put those keys in `app-config.production.yaml`.
+
+### 2. Review a statement with the coach
+
+1. Open **Create New Hypothesis** (`/hypo-stage/create-hypothesis`).
+2. Select the component `component:default/api-gateway`.
+3. Paste a statement that reads like a requirement, for example: `The new gateway will be fast, secure and cheaper to run than the old one`.
+4. Click **Review with AI**. The coach reports that the statement needs work: it is not yet falsifiable, it bundles performance, security, and cost, and words such as "fast" and "cheaper" have no measure.
+5. Under **Suggested rewrites**, click **Use this** on one rewrite. In the recording the statement becomes: `The new api-gateway can process at least 1000 requests per second while maintaining a latency under 200 milliseconds.`
+6. If you edit the statement after that review, the panel says the statement changed and offers **Review again**.
+7. Set source type **Requirements**, uncertainty **Medium**, impact **Medium**, and quality attributes **Performance** and **Security**.
+8. Submit. Because `checkOnSave` is true, the dialog **The coach found issues in this statement** offers **Back to edit** and **Save anyway**. Saving is never blocked.
+
+### 3. Ask for a technical plan
+
+1. Open the hypothesis you just saved.
+2. In **Technical Planning**, click **Suggest plan with AI**.
+3. The dialog shows a strategy for medium uncertainty and medium impact, then concrete actions. In the recording those are a **Spike** (load test for 1000 requests per second and 200 ms, including TLS) and a **Modularization** (split the security filter chain).
+4. For each action choose **Add**, **Edit before adding**, or **Dismiss**. **Add** creates the planning through the normal HypoStage API. **Generate again** asks the model for another proposal. **Close** leaves existing plannings unchanged.
+
+The **Agent Suggestions** card on that page stays empty until a background flow (PR analysis, issue triage, or the demo fixture below) stores a pending suggestion. The coach and the plan designer work in the form and the dialog. They do not wait in that card.
+
+---
+
+## Public demo
+
+The demo at [https://hypo-stage-hypo-stage.vercel.app](https://hypo-stage-hypo-stage.vercel.app) does **not** enable a model. Render has no Anthropic, OpenAI, Google, or Ollama key, and `app-config.production.yaml` does not read those variables. Nothing on that deployment calls a paid API.
+
+The demo database does include data you can click through:
+
+- A hypothesis with the statement from the recording, on `component:default/api-gateway`, uncertainty Medium, impact Medium, quality attributes Performance and Security.
+- One **pending** technical-planning suggestion on that hypothesis, and one **Agent runs** row. Both are fixtures inserted by migration. The run's provider is `fixture`, which is not a model.
+
+Accepting the fixture suggestion creates the spike through the normal planning API. **Review with AI** and **Suggest plan with AI** stay hidden until someone enables `coach` and `planner` on their own backend.
 
 ---
 
@@ -384,7 +456,7 @@ All keys are under `hypoStage`. Booleans accept `true/false`, `yes/no`, `on/off`
 | `agents.issues.alertThreshold` | `3` | Related issues with the same evidence type before an evidence alert |
 | `agents.coach.enabled` | `false` | Hypothesis coach |
 | `agents.coach.model` | `defaultModel` | Coach model key |
-| `agents.coach.checkOnSave` | `true` | Review unreviewed statements when saving |
+| `agents.coach.checkOnSave` | `false` | Review unreviewed statements when saving. Set `true` to show the save dialog from the walkthrough. |
 | `agents.coach.fallback.enabled` | `false` | Background review of hypotheses created without the coach |
 | `agents.coach.fallback.frequencyMinutes` | `10` | Job frequency |
 | `agents.coach.fallback.maxPerRun` | `5` | Hypotheses reviewed per run |

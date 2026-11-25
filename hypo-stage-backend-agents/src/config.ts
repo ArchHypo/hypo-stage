@@ -175,7 +175,7 @@ export function readAgentsConfig(root: Config): AgentsConfig {
   const coach: CoachConfig = {
     enabled: coachConfig?.getOptionalBoolean('enabled') ?? false,
     model: coachConfig?.getOptionalString('model') ?? defaultModel ?? null,
-    checkOnSave: coachConfig?.getOptionalBoolean('checkOnSave') ?? true,
+    checkOnSave: coachConfig?.getOptionalBoolean('checkOnSave') ?? false,
     fallback: {
       enabled: fallbackConfig?.getOptionalBoolean('enabled') ?? false,
       frequencyMinutes: fallbackConfig?.getOptionalNumber('frequencyMinutes') ?? 10,

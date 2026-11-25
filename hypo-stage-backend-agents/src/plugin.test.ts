@@ -33,7 +33,7 @@ describe('hypoStageAgentsModule', () => {
       status: 'ok',
       enabled: true,
       queue: false,
-      coach: { enabled: false, checkOnSave: true },
+      coach: { enabled: false, checkOnSave: false },
       planner: { enabled: false },
       issues: { triage: false, planIssues: false },
       coverage: { enabled: false },
