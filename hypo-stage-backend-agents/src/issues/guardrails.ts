@@ -36,6 +36,13 @@ export function guardIssueAssessment(ctx: {
   if (gate.reason) {
     return { suggestions: [], dropped: [{ kind: 'assessment', reason: gate.reason }], related: null };
   }
+  if (assessment.evidenceType === 'unrelated') {
+    return {
+      suggestions: [],
+      dropped: [{ kind: 'assessment', reason: 'model marked it unrelated' }],
+      related: null,
+    };
+  }
   const confidence = gate.confidence;
 
   const rationale = clampText(assessment.rationale || `Reported in issue #${ctx.issueNumber}.`, 1000);

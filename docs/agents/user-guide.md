@@ -121,7 +121,7 @@ Accepting the fixture suggestion creates the spike through the normal planning A
 
 | Requirement | Needed for |
 |---|---|
-| Node.js 20 | Everything |
+| Node.js 22 | Everything |
 | **PostgreSQL** database for the HypoStage plugin | PR analysis and all GitHub issue flows (they run on a [pg-boss](https://github.com/timgit/pg-boss) job queue). The coach and the plan designer also work on SQLite. |
 | An LLM provider (Anthropic, OpenAI, Google or a local Ollama) | Every agent feature |
 | A GitHub token and webhook | PR analysis and issue flows only |
@@ -407,13 +407,13 @@ Requires issue triage (it works on triaged issues). The job first runs about two
 - **Technical plan activities** carried out as issues — by action type and month, completed / not planned / open.
 - **Uncovered themes** from Coverage.
 
-**Set up.** Enabled automatically when any repository has `issues.triage` or `issues.planIssues`. The **Issues report** tab appears on the HypoStage home page (`/hypo-stage?tab=issues-report`).
+**Set up.** The **Issues report** tab appears on the HypoStage home page (`/hypo-stage?tab=issues-report`) when the module is available and any repository has `issues.triage` or `issues.planIssues`, or when `agents.coverage.enabled` is true.
 
 **Try it.** Open the tab, switch the period (24 hours, 7, 30, 90 days, 12 months) and use **Download Markdown** for a narrative export of the same data.
 
 ### Agent runs tab
 
-**What it does.** Lists every agent run (`/hypo-stage?tab=agent-runs`) with its flow (PR analysis, Issue triage, Plan issue sync, Plan issue comment), repository, PR or issue, model, status, suggestion count and duration. Click a row to read its trace:
+**What it does.** Lists every agent run (`/hypo-stage?tab=agent-runs`) with its flow (PR analysis, Issue triage, Plan issue sync, Plan issue comment), repository, PR or issue, model, status, suggestion count and duration. The tab is shown only when the module is available **and** at least one feature is on (`agents.enabled`, coach, planner, triage, plan issues, or coverage). An installed module with every flag off hides the tab, including on the public demo, even if a fixture run row exists. Click a row to read its trace:
 
 - **Context** — scope (`repository` or `all-open`), hypotheses in scope, and either files/merged (PRs) or issue state/comments/reopened (issues).
 - **Triage** — candidates the model returned; the selected ones with relevance and reason; the **dropped** ones with the reason (unknown id, relevance below 0.4, duplicate, over `maxCandidates`).
@@ -485,7 +485,7 @@ All keys are under `hypoStage`. Booleans accept `true/false`, `yes/no`, `on/off`
 | A run has no suggestions | Open it in the Agent runs tab and read the dropped reasons |
 | Your own issues are ignored | `botLogin` is set to your personal account; unset it |
 | Plan issues can't be created or closed | The token lacks *Issues: write* on that repository |
-| No agent buttons or tabs in the UI | The feature flag is off, or the backend wasn't restarted; check `/api/hypo-stage/agents/health` |
+| No agent buttons or tabs in the UI | Every feature flag is off, the module is not installed, or the backend wasn't restarted. Check `/api/hypo-stage/agents/health`. The Agent runs tab also stays hidden until one flag is on |
 
 ---
 

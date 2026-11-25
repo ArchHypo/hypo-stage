@@ -40,26 +40,33 @@ Two consequences shape the code:
 
 ### Flow of a GitHub-triggered run
 
+pg-boss starts only when `agentsQueueNeeded` is true: PR analysis is on, or some repository has issue triage or plan issues. With every flag off the queue stays idle, including on SQLite unit tests.
+
 ```mermaid
 flowchart LR
   GH[GitHub webhook] -->|HMAC check| R[router.ts]
-  R -->|pull_request| QP[(pg-boss: analyze-pr)]
-  R -->|issues / issue_comment| E[github/events.ts<br/>routeIssueEvent]
+  R -->|pull_request and agents.enabled| QP[(pg-boss: analyze-pr)]
+  R -->|issues / issue_comment| E[github/events.ts]
   E -->|human issue| QI[(pg-boss: issues)]
   E -->|plan issue| QI
   QP --> PR[pipeline/run.ts]
   QI --> T[issues/triage.ts]
   QI --> S[issues/planSync.ts]
   QI --> C[issues/planComment.ts]
-  PR & T & C --> P[context → triage → assess → checks]
-  S --> SUG[(agent_suggestions)]
-  P --> SUG
-  P --> RUN[(agent_runs + trace)]
+  PR --> SUG[(agent_suggestions)]
+  T --> SUG
+  S --> SUG
+  C --> SUG
+  PR --> RUN[(agent_runs + trace)]
+  T --> RUN
+  C --> RUN
   SUG --> UI[Agent Suggestions card]
-  UI -->|accept| API[hypo-stage REST API]
+  UI -->|accept| API[HypoStage REST API]
 ```
 
-User-initiated features (coach, plan designer, opening plan issues) are synchronous HTTP routes; recurring work (coach fallback, coverage) runs on the Backstage scheduler.
+Each handler passes its own `allowedKinds` into the checks. Pull-request analysis may keep a link, planning progress, a reassessment, a new planning, or a status change. Issue triage may keep a link or a status change. A plan-issue comment is a separate model call: it compares the comment with that planning's Goal and Evidence and may keep only progress or a reassessment. Plan sync itself does not call a model; it mirrors title and body text between the planning and the issue.
+
+User-initiated features (coach, plan designer, opening plan issues) are synchronous HTTP routes. Recurring work (coach fallback, coverage) runs on the Backstage scheduler, not on pg-boss.
 
 ---
 
@@ -288,7 +295,8 @@ Backend (`hypo-stage-backend-agents`, `yarn backstage-cli package test`):
   - `insertHypothesis`, `insertPlanning`, `issueDetails` — data builders;
   - `scriptedModel((system, prompt) => output)` — a `MockLanguageModelV3` that answers each call with a JSON object chosen from the system prompt.
 - Router tests use `supertest` with `mockServices.httpAuth` and `mockCredentials` from `@backstage/backend-test-utils`.
-- `plugin.test.ts` boots the module with `startTestBackend`.
+- `plugin.test.ts` boots the module with `startTestBackend`, including a boot where every flag is off and no provider key is set.
+- `hypo-stage-backend/src/plugin.test.ts` boots the HypoStage plugin **without** this module and lists hypotheses. That is the check that the core plugin still works when agents are not installed.
 
 Frontend (`hypo-stage`): components are tested with `renderInTestApp` and `TestApiProvider`, mocking only the API methods the component calls.
 

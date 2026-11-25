@@ -4,9 +4,9 @@
 #
 # Validates:
 #   - Dependencies install with frozen lockfile
-#   - TypeScript compiles (build:types) and Backstage CLI build for both packages
-#   - All unit tests pass (frontend + backend; backend may use Postgres for future integration tests)
-#   - Lint passes for both packages
+#   - TypeScript compiles (build:types) and Backstage CLI build for the frontend, backend, and agents module
+#   - All unit tests pass (frontend, backend, and agents module; backend may use Postgres for future integration tests)
+#   - Lint passes for every workspace
 
 name: CI
 

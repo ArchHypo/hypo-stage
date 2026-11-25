@@ -22,19 +22,19 @@ deps: ## Install dependencies (yarn install --ignore-engines)
 ##@ Build
 
 .PHONY: build
-build: ## Build both frontend and backend plugins (declarations + Backstage CLI build)
+build: ## Build frontend, backend, and the agents module (declarations + Backstage CLI build)
 	yarn build
 
 ##@ Tests
 
 .PHONY: test
-test: ## Run all tests (frontend and backend), non-interactive
+test: ## Run unit tests for every workspace, non-interactive
 	CI=true yarn test
 
 ##@ Lint
 
 .PHONY: lint
-lint: ## Run lint (code style) on both plugins
+lint: ## Run lint on every workspace and root scripts
 	yarn lint
 
 ##@ Run all

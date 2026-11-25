@@ -29,9 +29,9 @@ A **demo with seed data** is available for a quick overview: [https://hypo-stage
 
 ## 📌 Current release, Backstage, and community
 
-**Npm:** **`@archhypo/plugin-hypo-stage@1.0.1`** and **`@archhypo/plugin-hypo-stage-backend@1.0.1`** — the **1.x** line (see [CHANGELOG.md](CHANGELOG.md)). Treat this as the **stable baseline** for Backstage adopters: SemVer applies from `1.0.0` onward (breaking changes would bump **major**).
+**Npm:** **`@archhypo/plugin-hypo-stage@1.0.1`** and **`@archhypo/plugin-hypo-stage-backend@1.0.1`** — the **1.x** line (see [CHANGELOG.md](CHANGELOG.md)). Treat this as the **stable baseline** for Backstage adopters: SemVer applies from `1.0.0` onward (breaking changes would bump **major**). The optional agents package, `@archhypo/plugin-hypo-stage-backend-agents`, is versioned on its own and is not part of that 1.0.1 pair.
 
-**Backstage:** HypoStage is a normal Backstage **frontend + backend** plugin pair. Install both packages at the **same version**, wire routes and the backend module, and configure a database as in [Installation](#installation). Keep your app on a [maintained Backstage release](https://github.com/backstage/backstage/releases) and Node.js **20+** (see [Prerequisites](#-prerequisites)).
+**Backstage:** HypoStage is a normal Backstage **frontend + backend** plugin pair. Install both packages at the **same version**, wire routes and the backend plugin, and configure a database as in [Installation](#installation). The [AI agents](#-ai-agents) module is a separate backend module you add only when you want it. Keep your app on a [maintained Backstage release](https://github.com/backstage/backstage/releases) and Node.js **22.x** (see [Prerequisites](#-prerequisites)).
 
 **Open source:** [CHANGELOG.md](CHANGELOG.md) · [Security policy](SECURITY.md) · [Contributing](CONTRIBUTING.md) · [Issues](https://github.com/ArchHypo/hypo-stage/issues)
 
@@ -111,7 +111,7 @@ HypoStage can be added to the [official Backstage Plugin Directory](https://back
 
 ## 📦 NPM publishing
 
-To publish a new version: (1) set `"version": "X.Y.Z"` (using [Semantic Versioning](https://semver.org/)) in both `hypo-stage/package.json` and `hypo-stage-backend/package.json`, (2) merge via PR (main is protected), (3) create a GitHub Release with tag `vX.Y.Z` from main. The [publish workflow](.github/workflows/publish-npm.yml) runs automatically and publishes both packages to NPM. The agents package is optional and versioned separately; it is published only when its version equals that tag. See [docs/npm-publishing.md](docs/npm-publishing.md) for version guidelines, setup (NPM token), and release steps. After publishing, update [CHANGELOG.md](CHANGELOG.md) and this README’s **Current release** section when you cut the next version.
+To publish a new version: (1) set `"version": "X.Y.Z"` (using [Semantic Versioning](https://semver.org/)) in both `hypo-stage/package.json` and `hypo-stage-backend/package.json`, (2) merge via PR (main is protected), (3) create a GitHub Release with tag `vX.Y.Z` from main. The [publish workflow](.github/workflows/publish-npm.yml) runs automatically and publishes both core packages to NPM. The agents package keeps its own version. The workflow publishes it on that same tag only when `hypo-stage-backend-agents/package.json` is also `X.Y.Z`; otherwise the core release still succeeds and agents is skipped. That avoids failing the release by republishing an agents version npm already has. See [docs/npm-publishing.md](docs/npm-publishing.md) for the rule, setup (NPM token), and release steps. After publishing, update [CHANGELOG.md](CHANGELOG.md) and this README’s **Current release** section when you cut the next version.
 
 ---
 
@@ -144,7 +144,7 @@ Monorepo (Yarn workspaces):
 | `SECURITY.md` | — | How to report security issues |
 | `CONTRIBUTING.md` | — | How to contribute |
 
-From the repo root: `yarn build`, `yarn test`, `yarn lint` run for both packages. See [Makefile reference](#makefile-reference) for convenience targets.
+From the repo root: `yarn build`, `yarn test`, and `yarn lint` run for the frontend, the backend, and the agents module. See [Makefile reference](#makefile-reference) for convenience targets.
 
 ---
 
@@ -269,6 +269,8 @@ backend.add(import('@archhypo/plugin-hypo-stage-backend'));
 backend.start();
 ```
 
+The plugin works with only that registration. To add the optional agents, install `@archhypo/plugin-hypo-stage-backend-agents` and register it **after** the plugin, then follow [AI agents](#-ai-agents). Leaving it out changes nothing in the hypothesis API.
+
 **Register the frontend API** — In `packages/app/src/apis.ts` (or `apps/web/src/apis.ts`):
 
 ```ts
@@ -307,43 +309,116 @@ For standalone development in this repo, copy [app-config.example.yaml](app-conf
 - **Create a hypothesis**: “Create New Hypothesis” → statement, context, uncertainty/impact, quality attributes, optional related-artefact links → save.
 - **Manage**: View, edit, and track evolution from the list and detail pages. On **Edit**, you can change the hypothesis statement, status, source type, entity references, quality attributes, optional links, and notes (uncertainty and impact are still adjusted only via technical planning). **Delete** a hypothesis from the list (row icon) or from the detail page; both require typing the current hypothesis statement to confirm. The detail view shows clearly labeled assessment chips (Status, Uncertainty, Impact, Focus).
 - **Technical planning**: On a hypothesis detail page, add, edit, and delete technical planning items (documentation URLs are optional on create and can be added or updated later when editing a plan). When creating or editing a plan, you can optionally reassess uncertainty and impact — these are the only way to change those values after initial creation. Changes are recorded as events and displayed in the evolution chart with distinct markers.
+- **AI agents (optional)**: With the agents module installed and a feature turned on, the same pages grow a coach, a plan designer, a suggestions card, and extra home tabs. See [AI agents](#-ai-agents).
 
 ---
 
 ## 🤖 AI agents
 
-The optional backend module [`@archhypo/plugin-hypo-stage-backend-agents`](hypo-stage-backend-agents/README.md) adds AI agents that support the ArchHypo workflow. Agents only **suggest**: every change is reviewed in HypoStage and applied through the regular API, so it is validated and recorded in the hypothesis evolution like a manual edit.
+The optional package [`@archhypo/plugin-hypo-stage-backend-agents`](hypo-stage-backend-agents/README.md) is a Backstage **backend module** of the existing `hypo-stage` plugin. It is not a second plugin and it does not replace the hypothesis API. Install it only when you want model help. A Backstage app that never registers the module keeps the current HypoStage behaviour.
 
-| Feature | What it does |
+### How it fits the plugin
+
+The module shares the plugin database and the `/api/hypo-stage` router. It **reads** `hypothesis`, `technicalPlanning`, and `hypothesisEvents`. It **writes only its own** `agent_*` tables. A person reviews each suggestion in the UI. Accepting one calls the same REST endpoints the forms already use, so validation, events, and the evolution chart stay in the original plugin.
+
+| Piece you already have | What the module adds |
 |---|---|
-| PR analysis | Reads pull requests as evidence: links, planning progress, reassessments, new plannings, status changes |
-| Hypothesis coach | Reviews statements while writing, at save, or in the background, and proposes rewrites |
-| Technical plan designer | Proposes plan actions from the ArchHypo catalogue based on uncertainty and impact |
-| Issue triage | Links issues to hypotheses, flags fired triggers, raises evidence alerts |
-| Plans as issues | Opens technical plannings as GitHub issues and keeps both in sync |
-| Coverage | Turns recurring, costly issue themes no hypothesis covers into draft hypotheses |
-| Issues report & Agent runs | Maintenance report of issues and plans; traces of every agent run |
+| Create and edit hypothesis forms | **Review with AI** on the statement, and an optional check when you save |
+| Technical planning on the hypothesis page | **Suggest plan with AI**, then Add, Edit, or Dismiss each action |
+| Hypothesis detail page | **Agent Suggestions** card for pending background proposals |
+| Home page (`/hypo-stage`) | **Agent runs** and **Issues report** tabs, only while a matching feature is on |
+| GitHub is outside the plugin today | Webhook, pull-request analysis, issue triage, and plans opened as issues |
 
-Every feature is off by default. The [public demo](https://hypo-stage-hypo-stage.vercel.app) does not enable a paid model. It does include the gateway hypothesis from the walkthrough and one fixture suggestion, so the suggestions card can be reviewed without an API key.
+Buttons and tabs stay hidden while every flag is off, including when the module is installed but not configured. `GET /api/hypo-stage/agents/health` reports which flags are on. If the module is not installed, that route is absent and the frontend treats agents as unavailable.
 
-Recorded example (coach, then plan designer): [hypothesis-coach-and-plan-designer.mp4](docs/agents/examples/hypothesis-coach-and-plan-designer.mp4).
+### How a suggestion moves
 
-The quickest local start that does not call a paid API is Ollama. A cloud provider works the same way once you set its key. This snippet opts in; the committed example config leaves both features off:
+1. A flow runs (you click a button, a webhook arrives, or a scheduled job fires).
+2. Deterministic checks drop proposals the API would reject, or that this flow is not allowed to make. The reason is stored on the run trace.
+3. What remains is a **pending** suggestion.
+4. You **accept** or **reject** it. Accept applies the change through the HypoStage API. Reject changes nothing.
+5. A newer artifact for the same fact **supersedes** the pending row instead of stacking a second one.
+
+The coach and the plan designer show their result in the form or a dialog. They do not wait in the suggestions card. Pull-request analysis, issue triage, plan sync, and the demo fixture do.
+
+### Enable it
+
+In this repository the standalone backend already loads the module (`hypo-stage-backend/dev/index.ts`). In your own Backstage app:
+
+```bash
+yarn --cwd packages/backend add @archhypo/plugin-hypo-stage-backend-agents
+```
+
+```ts
+// packages/backend/src/index.ts — after the HypoStage plugin
+backend.add(import('@archhypo/plugin-hypo-stage-backend'));
+backend.add(import('@archhypo/plugin-hypo-stage-backend-agents'));
+```
+
+Every feature defaults to **off**. Copy `app-config.example.yaml` and turn on only what you want, then restart the backend. The example leaves the flags false so a fresh install does not call a model.
+
+The path that does not call a paid API is a local [Ollama](https://ollama.com) model. With Ollama running and `ollama pull qwen2.5:7b`:
 
 ```yaml
 hypoStage:
   agents:
-    defaultModel: gemini-flash
+    defaultModel: local
     providers:
-      google: { apiKey: ${GOOGLE_API_KEY} }
+      ollama:
+        baseUrl: http://localhost:11434/v1
     models:
-      - { key: gemini-flash, provider: google, modelId: gemini-3.5-flash }
-    coach: { enabled: true }
-    planner: { enabled: true }
+      - key: local
+        provider: ollama
+        modelId: qwen2.5:7b
+        maxInputChars: 12000
+    coach:
+      enabled: true
+    planner:
+      enabled: true
 ```
 
-- **[User guide](docs/agents/user-guide.md)** — every feature: what it does, setup (models, GitHub token and webhook, repositories), how to try it, possible outcomes, troubleshooting and the full configuration reference.
-- **[Developer guide](docs/agents/developer-guide.md)** — architecture, building blocks, design rules and recipes for new agentic features (new suggestion kinds, events, recurring jobs, other Backstage plugins, codebase access, MCP, providers).
+A cloud provider uses the same shape: set that provider's `apiKey`, point `defaultModel` at one of its `models` keys, and enable `coach` and `planner`. Do not put provider keys in `app-config.production.yaml`. After restart, `GET /api/hypo-stage/agents/health` should show `coach.enabled` and `planner.enabled` as true.
+
+PostgreSQL is required for the job queue (pull requests and issues). The coach and the plan designer also run on SQLite. The queue stays idle until PR analysis or an issue flow is enabled, so an unused module does not start pg-boss.
+
+### Use the coach and the plan designer
+
+Recorded example: [hypothesis-coach-and-plan-designer.mp4](docs/agents/examples/hypothesis-coach-and-plan-designer.mp4) (about 2.5 minutes).
+
+1. Open **Create New Hypothesis**.
+2. Pick a catalog component and paste a statement that is still a requirement, for example `The new gateway will be fast, secure and cheaper to run than the old one`.
+3. Click **Review with AI**. Read the findings, then **Use this** on a rewrite.
+4. Set source type, uncertainty, impact, and quality attributes, then save. With `coach.checkOnSave: true` (default is `false`), a dialog can warn you and still lets you **Save anyway**.
+5. Open the saved hypothesis. In **Technical Planning**, click **Suggest plan with AI**.
+6. For each proposed action choose **Add**, **Edit before adding**, or **Dismiss**. **Add** creates the planning through the normal API.
+
+### Use the GitHub flows
+
+These stay off until you set a token, a webhook, and the repositories to watch.
+
+1. `hypoStage.github.apiToken` — read for pull requests and issue triage; read and write to open and close plan issues.
+2. `hypoStage.github.webhookSecret` — the same secret as the GitHub webhook.
+3. Webhook URL: `https://<your-backend>/api/hypo-stage/webhooks/github`, content type JSON, events **Pull requests**, **Issues**, and **Issue comments**.
+4. List each `owner/repo` under `hypoStage.agents.repositories`.
+
+| Flag | What you do in the product |
+|---|---|
+| `agents.enabled: true` | Merged and open pull requests become suggestions: link, planning progress, reassessment, new planning, or status change |
+| `repositories[].issues.triage: true` | A human issue can be linked to a hypothesis, fire a Trigger, or raise an evidence alert. Issues never reassess a hypothesis by themselves |
+| `repositories[].issues.planIssues: true` | **Open as issue** on a planning. Closing the issue, commenting on it, or editing the planning text stays in sync. A comment is judged only against that planning's Goal and Evidence |
+| `agents.coverage.enabled: true` | Recurring issues that match no hypothesis become a draft you can turn into a hypothesis from the Issues report. The finding is marked created only after that hypothesis is saved |
+
+The **Agent runs** tab lists each run and why proposals were kept or dropped. It appears when the module is available and at least one feature flag is on. The **Issues report** tab appears when triage, plan issues, or coverage is on.
+
+### Public demo
+
+[https://hypo-stage-hypo-stage.vercel.app](https://hypo-stage-hypo-stage.vercel.app) does not enable a model and has no provider keys. The database includes the gateway hypothesis from the recording and one pending fixture suggestion, so you can open the suggestions card and accept it through the normal planning API. **Review with AI**, **Suggest plan with AI**, and the Agent runs tab stay hidden there.
+
+### Where to read more
+
+- **[User guide](docs/agents/user-guide.md)** — each feature: setup, a way to try it, outcomes, troubleshooting, and the configuration reference.
+- **[Developer guide](docs/agents/developer-guide.md)** — module boundaries, checks, and recipes for a new suggestion kind, event, job, or provider.
+- **[Package README](hypo-stage-backend-agents/README.md)** — install snippet and the smallest config.
 
 ---
 
@@ -366,7 +441,7 @@ The build emits `dist/` (and `dist-types/`) in each package. No separate Backsta
 yarn test
 ```
 
-Or: `make test` (runs once, no watch prompt). Frontend: Jest for components, hooks, API, utils. Backend: Jest for router and HypothesisService.
+Or: `make test` (runs once, no watch prompt). Frontend: Jest for components, hooks, API, utils. Backend: Jest for the router and HypothesisService, including a boot that lists hypotheses with the agents module absent. Agents: Jest for handlers, guardrails, and a boot with every feature flag off.
 
 ---
 
@@ -376,7 +451,7 @@ Or: `make test` (runs once, no watch prompt). Frontend: Jest for components, hoo
 yarn lint
 ```
 
-Or: `make lint`. This runs lint for both workspace packages (frontend and backend) and for the root **`scripts/`** directory (Node scripts). Warnings about frontend importing from the backend package are acceptable for this plugin’s shared types.
+Or: `make lint`. This runs lint for every workspace (frontend, backend, and the agents module) and for the root **`scripts/`** directory (Node scripts). Warnings about frontend importing from the backend package are acceptable for this plugin’s shared types.
 
 ---
 
@@ -393,7 +468,7 @@ To confirm everything works:
 
 ## 🔄 CI (GitHub Actions)
 
-On pull requests and pushes to `main`/`master`, the workflow runs the same validation as [Validating usage](#validating-usage): **install** (frozen lockfile), **build** (type-check + Backstage CLI build for both packages), **lint**, and **test**. A PostgreSQL 16 service container is available for backend tests. Configuration: [.github/workflows/ci.yml](.github/workflows/ci.yml).
+On pull requests and pushes to `main`/`master`, the workflow runs the same validation as [Validating usage](#validating-usage): **install** (frozen lockfile), **build** (type-check + Backstage CLI build for the frontend, backend, and agents module), **lint**, and **test**. A PostgreSQL 16 service container is available for backend tests. Configuration: [.github/workflows/ci.yml](.github/workflows/ci.yml).
 
 ---
 
@@ -535,8 +610,8 @@ No organization-specific code is required.
 |--------|-------------|
 | `make help` | Show targets and descriptions |
 | `make deps` | Install dependencies |
-| `make build` | Build both plugins |
-| `make test` | Run unit tests (frontend + backend) |
+| `make build` | Build the frontend, backend, and agents module |
+| `make test` | Run unit tests for every workspace |
 | `make lint` | Run lint (workspaces + root `scripts/`) |
 | `make check` | Build, unit test, and lint in one go |
 | `make start-dependencies` | Start PostgreSQL (Docker) |
@@ -552,6 +627,8 @@ No organization-specific code is required.
 **Frontend:** `HypoStagePage`, `CreateHypothesisPage`, `HypothesisPage`, `EditHypothesisPage`; `HypothesisForm`, `HypothesisList`; `EntityHypothesesTab`, `useHypoStageTabEnabled`, `HYPO_STAGE_FEATURE_FLAG`; `HypoStageApiRef`, `HypoStageApiClient`.
 
 **Backend:** `HypothesisService`; REST under `/hypotheses` and `/technical_plannings`; migrations in `hypo-stage-backend/migrations/`.
+
+**Agents module (when installed):** routes under `/api/hypo-stage/agents` and `POST /api/hypo-stage/webhooks/github`. Those routes are absent when the module is not registered.
 
 ---
 
