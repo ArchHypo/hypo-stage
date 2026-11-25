@@ -16,7 +16,7 @@ This backend module adds agents that read pull requests and issues as evidence, 
 | **Coverage** | Finds recurring, costly issue themes no hypothesis covers and drafts hypotheses for them |
 | **Issues report** | Maintenance report of issues and plan activities, with a Markdown export |
 
-Every run is stored with a trace. The **Agent runs** tab shows that trace once at least one feature flag is on.
+A run starts in one of three ways: a **Review with AI** or **Suggest plan with AI** click, a GitHub webhook after a pull request or issue changes, or a scheduled pass over hypotheses that were never coached and over issue themes no hypothesis covers. The [user guide](https://github.com/ArchHypo/hypo-stage/blob/main/docs/agents/user-guide.md#three-ways-a-run-starts) says what the module does with the input in each case. Every run is stored with a trace. The **Agent runs** tab shows that trace once at least one flow can run.
 
 ## How it fits
 
@@ -67,7 +67,7 @@ hypoStage:
 
 PR analysis and the GitHub issue flows additionally need a token, a webhook and the repositories to analyze.
 
-Restart the backend. `GET /api/hypo-stage/agents/health` reports the flags. Then:
+Restart the backend. `GET /api/hypo-stage/agents/health` reports each flag and whether that flow is `ready`. The screen renders a button or tab only when `ready` is true, so a flag without a callable model, a GitHub token, a webhook secret, or the PostgreSQL queue stays hidden. Then:
 
 1. **Create New Hypothesis** → **Review with AI** → use a rewrite → save.
 2. Open the hypothesis → **Technical Planning** → **Suggest plan with AI** → **Add** an action.

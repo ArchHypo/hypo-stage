@@ -329,7 +329,17 @@ The module shares the plugin database and the `/api/hypo-stage` router. It **rea
 | Home page (`/hypo-stage`) | **Agent runs** and **Issues report** tabs, only while a matching feature is on |
 | GitHub is outside the plugin today | Webhook, pull-request analysis, issue triage, and plans opened as issues |
 
-Buttons and tabs stay hidden while every flag is off, including when the module is installed but not configured. `GET /api/hypo-stage/agents/health` reports which flags are on. If the module is not installed, that route is absent and the frontend treats agents as unavailable.
+Buttons and tabs stay off the page until that flow can run. `GET /api/hypo-stage/agents/health` reports each flag and a `ready` value. `ready` is true only when the flag is on and the backend can carry the flow out: a callable model for the coach, the plan designer, and coverage, and also the PostgreSQL queue, a GitHub token, and a webhook secret for pull requests, triage, and plan issues. A flag without those stays hidden. If the module is not installed, the health route is absent and the frontend treats agents as unavailable. Pending suggestions can still be reviewed when the module is installed, because accepting one uses the normal HypoStage API.
+
+### Three ways a run starts
+
+The module only runs when one of these happens. The [user guide](docs/agents/user-guide.md#three-ways-a-run-starts) walks through what it does with the input in each case.
+
+| Way it starts | What it is given | What you see |
+|---|---|---|
+| **Review with AI** or **Suggest plan with AI** | The statement or hypothesis on the screen | The answer in the form or a dialog. **Use this** or **Add** applies it. Nothing is saved until you do that |
+| A GitHub webhook | A notice that a pull request or issue changed. The module then downloads the text | A pending suggestion on the hypothesis. Accept uses the normal API |
+| The scheduler | Hypotheses that never went through the coach, or issue themes no hypothesis covers | A rewrite suggestion, or a draft hypothesis on the Issues report |
 
 ### How a suggestion moves
 

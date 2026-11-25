@@ -149,7 +149,7 @@ There is no extra frontend package. When the backend registers `@archhypo/plugin
 - An **Agent Suggestions** card on the hypothesis page
 - **Agent runs** and **Issues report** tabs on the home page, only for the flags that are on
 
-If the module is missing, or every flag is off, those controls stay hidden and hypothesis create, edit, and planning work as before. The frontend learns this from `GET /api/hypo-stage/agents/health`. Accepting a suggestion calls the same hypothesis and planning endpoints this package already uses.
+Those controls are rendered only when `/api/hypo-stage/agents/health` says that flow is `ready` (the flag is on and the model, queue, or GitHub connection it needs is in place). A flag by itself does not show the control. If the module is missing, or nothing is ready, hypothesis create, edit, and planning work as before. Accepting a suggestion calls the same hypothesis and planning endpoints this package already uses.
 
 Setup, models, and GitHub: [AI agents in the repository README](https://github.com/ArchHypo/hypo-stage#ai-agents) and the [user guide](https://github.com/ArchHypo/hypo-stage/blob/main/docs/agents/user-guide.md).
 

@@ -7,6 +7,10 @@ Looking for how the module works internally or how to extend it? See the [develo
 ## Contents
 
 - [How the agents work](#how-the-agents-work)
+  - [Three ways a run starts](#three-ways-a-run-starts)
+  - [1. A button in HypoStage](#1-a-button-in-hypostage)
+  - [2. A notice from GitHub](#2-a-notice-from-github)
+  - [3. The scheduler](#3-the-scheduler)
 - [Operate it](#operate-it)
 - [Public demo](#public-demo)
 - [Getting started](#getting-started)
@@ -30,7 +34,8 @@ Looking for how the module works internally or how to extend it? See the [develo
 - **Agents suggest, people decide.** Every agent output is a *suggestion* shown on the hypothesis page (or in a dialog). Nothing in your hypotheses changes until someone accepts it.
 - **Accepting applies the change through the normal HypoStage API**, exactly as if you edited the hypothesis or technical planning yourself. The change is validated and appears in the hypothesis history and evolution chart.
 - **Uncertainty and impact stay with the team.** Agents may propose a reassessment backed by evidence (for example a merged load test), but they never change levels on their own, and the coach and plan designer never assess them at all.
-- **Every agent run is traceable** in the [Agent runs tab](#agent-runs-tab): what the model was shown, what it proposed, and why each proposal was kept or dropped.
+- **Every agent run is traceable** in the [Agent runs tab](#agent-runs-tab): what the model was shown, what it proposed, and why each proposal was kept or dropped. The tab is rendered only when at least one flow can actually run.
+- **A control is rendered only when that flow can run.** Turning a flag on is not enough. The coach and the plan designer also need a model the backend can call (an API key for Anthropic, OpenAI, or Google; Ollama needs no key). Pull-request analysis, issue triage, plan issues, and coverage also need the PostgreSQL queue, `github.apiToken`, and `github.webhookSecret`. Coverage additionally needs triage to be ready. `GET /api/hypo-stage/agents/health` reports this as `ready`. The buttons and tabs stay off the page while `ready` is false, including when the flag itself is true.
 
 ### Suggestion lifecycle
 
@@ -42,6 +47,42 @@ Looking for how the module works internally or how to extend it? See the [develo
 | **Superseded** | Replaced automatically, e.g. a PR got new commits, was closed without merging, or a plan issue was reopened. |
 
 When two artifacts report the same thing (for example a PR with `Fixes #12` and the plan issue #12 being closed), you get **one** suggestion listing both under *Sources*.
+
+### Three ways a run starts
+
+Every run starts in one of three ways. The module is given different input each time, and a person still decides before a hypothesis or a planning changes. The feature sections below are the details. This is the map.
+
+| Way it starts | What the module is given | Where you see the result |
+|---|---|---|
+| [A button in HypoStage](#1-a-button-in-hypostage) | The statement or hypothesis on the screen | In the form or a dialog, while you wait |
+| [A notice from GitHub](#2-a-notice-from-github) | A webhook that a pull request or issue changed, then the text fetched from GitHub | A pending suggestion on the hypothesis page |
+| [The scheduler](#3-the-scheduler) | Hypotheses nobody coached, or issue themes no hypothesis covers | A rewrite suggestion, or a draft on the Issues report |
+
+#### 1. A button in HypoStage
+
+Someone is writing in HypoStage. GitHub is not involved. The click sends what is on the screen and the module answers in that same screen.
+
+**Review with AI** sends the statement, source type, quality attributes, components, and notes. The module says whether the text is a hypothesis, a requirement, a risk, or a decision, and whether it is falsifiable. It can offer rewrites, a split when several uncertainties are bundled, and a source type or quality attributes to add. **Use this** copies a rewrite into the field. It does not save. With `checkOnSave` on, saving an unreviewed statement that needs work offers **Back to edit** or **Save anyway**. Saving is never blocked. The coach never sets uncertainty or impact.
+
+**Suggest plan with AI** reads the saved hypothesis: statement, the uncertainty and impact the team already set, components, and plannings that already exist. It picks a strategy from those two levels before it calls the model (act now, investigate, postpone, or reduce impact). The model then proposes a few actions from the ArchHypo catalogue, such as a Spike or an Experiment. **Add** creates the planning through the normal API. **Edit before adding** opens the form. **Dismiss** drops that action. A planning that already exists is not proposed again.
+
+#### 2. A notice from GitHub
+
+The webhook is only a notice, for example "pull request 7 was opened" or "someone commented on issue 12". The message does not include the diff. The module checks that the repository is one it watches, then uses the API token to download the title, body, and diff or comments. It compares that text with the open hypotheses and stores a suggestion. Accept and Reject are on the hypothesis page.
+
+- **Pull request.** It asks which hypotheses the change might affect, then what it means for each statement and its plannings: link the PR, record progress or completion, reassess uncertainty or impact, add a planning, or change status. A close that did not merge withdraws pending suggestions from that PR. Completion is only offered after a merge.
+- **Human issue.** It may suggest adding the issue URL to a hypothesis, or marking a Trigger as fired. It does not change uncertainty or impact. An issue is a claim, not a measurement. After several related issues it can raise an evidence alert that the team only acknowledges.
+- **Plan issue HypoStage opened.** An edit copies "What to do" and "Expected outcome" back onto that planning. Closing it as completed suggests marking the planning done. A person's comment is compared only with that planning's Goal and Evidence and may suggest progress or a reassessment for that planning. Comments the module posted itself are ignored.
+
+The coach button and the plan designer button do not wait for a webhook.
+
+#### 3. The scheduler
+
+Nobody clicks, and GitHub does not call in. The Backstage scheduler wakes the module, it reads what is already stored, and it leaves a draft.
+
+**Coach fallback** (`coach.fallback.enabled`). Hypotheses created without the form, for example through the API, never got **Review with AI**. Every few minutes the job takes recent hypotheses that have no completed coach review and runs the same review as the button, a few at a time. When the statement needs work, the rewrite is stored as a **Statement rewrite** suggestion. A statement that already reads as a hypothesis produces nothing. The job does not review the same hypothesis again.
+
+**Coverage** (`coverage.enabled`). The job uses issues that triage already marked as unrelated to every hypothesis. It groups them by component and quality attribute and keeps a group only when it looks costly: enough issues, and they stayed open, were reopened, or drew many comments. Quick fixes are skipped. The model names the theme and drafts one hypothesis. If the coach is on, the coach reviews that draft. The result is an **Uncovered themes** row on the Issues report, not a hypothesis yet. **Create hypothesis** opens the form already filled in. The row is marked created only after that save. **Dismiss** hides it until new issues join the group.
 
 ---
 
@@ -212,7 +253,7 @@ Hypotheses whose entity references include such a component are the only ones co
 GET /api/hypo-stage/agents/health
 ```
 
-returns which features are on (`enabled` for PR analysis, `coach`, `planner`, `issues`, `coverage`). The UI shows agent controls only for enabled features. Configuration is read at startup: **restart the backend after changing it**.
+returns which features are on and which are `ready`. The UI renders a control only when that flow is `ready`. Configuration is read at startup: **restart the backend after changing it**.
 
 ---
 
@@ -407,13 +448,13 @@ Requires issue triage (it works on triaged issues). The job first runs about two
 - **Technical plan activities** carried out as issues — by action type and month, completed / not planned / open.
 - **Uncovered themes** from Coverage.
 
-**Set up.** The **Issues report** tab appears on the HypoStage home page (`/hypo-stage?tab=issues-report`) when the module is available and any repository has `issues.triage` or `issues.planIssues`, or when `agents.coverage.enabled` is true.
+**Set up.** The **Issues report** tab appears on the HypoStage home page (`/hypo-stage?tab=issues-report`) when triage, plan issues, or coverage is `ready`. Coverage is ready only when it is enabled, its model can be called, and triage is ready.
 
 **Try it.** Open the tab, switch the period (24 hours, 7, 30, 90 days, 12 months) and use **Download Markdown** for a narrative export of the same data.
 
 ### Agent runs tab
 
-**What it does.** Lists every agent run (`/hypo-stage?tab=agent-runs`) with its flow (PR analysis, Issue triage, Plan issue sync, Plan issue comment), repository, PR or issue, model, status, suggestion count and duration. The tab is shown only when the module is available **and** at least one feature is on (`agents.enabled`, coach, planner, triage, plan issues, or coverage). An installed module with every flag off hides the tab, including on the public demo, even if a fixture run row exists. Click a row to read its trace:
+**What it does.** Lists every agent run (`/hypo-stage?tab=agent-runs`) with its flow (PR analysis, Issue triage, Plan issue sync, Plan issue comment), repository, PR or issue, model, status, suggestion count and duration. The tab is shown only when at least one flow is `ready`. An installed module with every flag off, or with flags on but no callable model, GitHub connection, or queue, hides the tab. That includes the public demo, even if a fixture run row exists. Click a row to read its trace:
 
 - **Context** — scope (`repository` or `all-open`), hypotheses in scope, and either files/merged (PRs) or issue state/comments/reopened (issues).
 - **Triage** — candidates the model returned; the selected ones with relevance and reason; the **dropped** ones with the reason (unknown id, relevance below 0.4, duplicate, over `maxCandidates`).
@@ -485,7 +526,7 @@ All keys are under `hypoStage`. Booleans accept `true/false`, `yes/no`, `on/off`
 | A run has no suggestions | Open it in the Agent runs tab and read the dropped reasons |
 | Your own issues are ignored | `botLogin` is set to your personal account; unset it |
 | Plan issues can't be created or closed | The token lacks *Issues: write* on that repository |
-| No agent buttons or tabs in the UI | Every feature flag is off, the module is not installed, or the backend wasn't restarted. Check `/api/hypo-stage/agents/health`. The Agent runs tab also stays hidden until one flag is on |
+| No agent buttons or tabs in the UI | The module is not installed, every `ready` value is false, or the backend wasn't restarted. A flag can be true while `ready` is false: missing provider key, missing GitHub token or webhook secret, or no PostgreSQL queue. Check `/api/hypo-stage/agents/health` |
 
 ---
 

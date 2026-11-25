@@ -38,6 +38,16 @@ Two consequences shape the code:
 1. **It never writes the plugin's tables.** Agents create *suggestions*; when a user accepts one, the **frontend** applies it through the plugin's REST API (`useApplyAgentSuggestion`), so validation and the hypothesis history stay owned by the original plugin.
 2. **Modules start before their plugin.** On a fresh database the plugin's tables don't exist yet, so `plugin.ts` runs the plugin's migrations (idempotent) before its own.
 
+### Three entry points
+
+| Entry | Code | What it is given |
+|---|---|---|
+| Button | `router.ts` coach and planner routes, answered in the same request | The form payload. The coach returns a review. The planner returns actions. The browser applies an accepted action through the HypoStage API |
+| GitHub webhook | `github/webhook.ts`, `github/events.ts`, then the queue | A signed event. The handler fetches the pull request or issue and writes `agent_suggestions` |
+| Scheduler | `plugin.ts` tasks `hypo-stage-agents-coach-fallback` and `hypo-stage-agents-coverage` | Rows already in the database. Fallback reviews hypotheses with no completed coach review. Coverage groups triaged issues that matched no hypothesis |
+
+The button path does not use pg-boss. The webhook path does, and only when a GitHub flow is enabled. The scheduler uses the Backstage scheduler.
+
 ### Flow of a GitHub-triggered run
 
 pg-boss starts only when `agentsQueueNeeded` is true: PR analysis is on, or some repository has issue triage or plan issues. With every flag off the queue stays idle, including on SQLite unit tests.
@@ -181,7 +191,7 @@ pg-boss requires PostgreSQL; on SQLite the webhook answers 503 and only synchron
 3. **No loops.** Only human-originated artifacts count as evidence. Artifacts HypoStage creates (plan issues, its own comments) carry a marker and only *sync* the plan they mirror. Each handler passes an explicit `allowedKinds` list to the checks.
 4. **Deterministic first.** If something can be decided without the model (a closed issue, a `Fixes #N` link, a strategy from levels), decide it in code.
 5. **Explainable.** Record dropped proposals and their reasons in the trace.
-6. **Off by default.** New features get a config flag defaulting to `false`, exposed in `/agents/health` when the UI depends on it.
+6. **Off by default.** New features get a config flag defaulting to `false`, exposed in `/agents/health` when the UI depends on it. The frontend renders a control only when `ready` is true for that flow (`agentsReadiness` in `config.ts`): the flag, a callable model, and for GitHub flows the queue plus a token and webhook secret. Do not show a button from the flag alone.
 7. **Migrations are append-only.** Add a new file in `migrations/`; never edit one that may have run.
 
 ---
