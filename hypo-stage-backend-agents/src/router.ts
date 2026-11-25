@@ -33,6 +33,7 @@ import {
   PlanIssueExistsError,
   PlanningNotFoundError,
   RepositoryRequiredError,
+  syncPlanIssue,
 } from './issues/planIssues';
 import { getRunDetail, listRuns, listRunsForHypothesis, RUN_STATUSES, RunStatus } from './store/runs';
 import {
@@ -261,6 +262,28 @@ export async function createRouter(options: RouterOptions): Promise<express.Rout
     }
   });
 
+  router.post('/agents/plannings/:id/issue/sync', async (req, res) => {
+    await httpAuth.credentials(req, { allow: ['user'] });
+    if (!UUID_PATTERN.test(req.params.id) || !options.github) {
+      res.status(404).json({ error: 'No plan issue to update' });
+      return;
+    }
+    const link = await syncPlanIssue(
+      {
+        knex,
+        config,
+        github: options.github,
+        resolveEntityRepository: options.resolveEntityRepository ?? (async () => null),
+      },
+      req.params.id,
+    );
+    if (!link) {
+      res.status(404).json({ error: 'No plan issue to update' });
+      return;
+    }
+    res.json(link);
+  });
+
   router.post('/agents/plan-proposals', express.json(), async (req, res) => {
     const credentials = await httpAuth.credentials(req, { allow: ['user'] });
     if (!config.planner.enabled) {
@@ -290,10 +313,12 @@ export async function createRouter(options: RouterOptions): Promise<express.Rout
         res.status(404).json({ error: 'Hypothesis not found' });
       } else if (error instanceof HypothesisWithoutComponentsError) {
         res.status(422).json({ error: 'Add at least one entity reference to the hypothesis first' });
-      } else if (error instanceof PlannerTimeoutError) {
-        res.status(504).json({ error: 'The plan designer took too long to answer' });
       } else {
-        res.status(502).json({ error: 'The plan designer model failed to answer' });
+        sendModelFailure(res, error, {
+          timeout: PlannerTimeoutError,
+          timeoutMessage: 'The plan designer took too long to answer',
+          failureMessage: 'The plan designer model failed to answer',
+        });
       }
     }
   });
@@ -348,11 +373,11 @@ export async function createRouter(options: RouterOptions): Promise<express.Rout
     try {
       res.json(await reviewHypothesis({ knex, logger, config, models }, input, trigger, user));
     } catch (error) {
-      if (error instanceof CoachTimeoutError) {
-        res.status(504).json({ error: 'The coach took too long to answer' });
-        return;
-      }
-      res.status(502).json({ error: 'The coach model failed to answer' });
+      sendModelFailure(res, error, {
+        timeout: CoachTimeoutError,
+        timeoutMessage: 'The coach took too long to answer',
+        failureMessage: 'The coach model failed to answer',
+      });
     }
   });
 
@@ -557,4 +582,20 @@ export async function createRouter(options: RouterOptions): Promise<express.Rout
   });
 
   return router;
+}
+
+function sendModelFailure(
+  res: express.Response,
+  error: unknown,
+  messages: {
+    timeout: new (...args: never[]) => Error;
+    timeoutMessage: string;
+    failureMessage: string;
+  },
+): void {
+  if (error instanceof messages.timeout) {
+    res.status(504).json({ error: messages.timeoutMessage });
+    return;
+  }
+  res.status(502).json({ error: messages.failureMessage });
 }

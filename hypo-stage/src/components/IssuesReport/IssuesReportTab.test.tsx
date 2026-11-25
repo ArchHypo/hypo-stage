@@ -72,9 +72,10 @@ describe('IssuesReportTab', () => {
     await render();
     await userEvent.click(await screen.findByRole('button', { name: 'Create hypothesis' }));
     await waitFor(() => expect(mockNavigate).toHaveBeenCalled());
-    expect(api.updateCoverageFinding).toHaveBeenCalledWith('f1', 'created');
+    expect(api.updateCoverageFinding).not.toHaveBeenCalled();
     const url = new URL(`http://x${mockNavigate.mock.calls[0][0]}`);
     expect(url.pathname).toBe('/hypo-stage/create-hypothesis');
+    expect(url.searchParams.get('coverageFinding')).toBe('f1');
     expect(url.searchParams.get('statement')).toBe('The checkout keeps p95 under 300 ms at peak load');
     expect(url.searchParams.getAll('entityRef')).toEqual(['component:default/checkout']);
     expect(url.searchParams.getAll('qualityAttribute')).toEqual(['Performance']);

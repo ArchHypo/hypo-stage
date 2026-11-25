@@ -1,7 +1,8 @@
 # Publish HypoStage packages to NPM when a version tag is pushed.
 #
 # How to release:
-#   1. Update version in hypo-stage/package.json, hypo-stage-backend/package.json, and hypo-stage-backend-agents/package.json (same semver, e.g. 1.0.1)
+#   1. Update version in hypo-stage/package.json and hypo-stage-backend/package.json (same semver, e.g. 1.0.1).
+#      The agents package is optional and versioned on its own. It is published only when its version equals the tag.
 #   2. Merge version bump via PR (main is protected)
 #   3. Create a GitHub Release with tag v1.0.1 from main (Releases → Create a new release)
 #
@@ -56,12 +57,12 @@ jobs:
           PKG_FRONTEND=$(node -p "require('./hypo-stage/package.json').version")
           PKG_BACKEND=$(node -p "require('./hypo-stage-backend/package.json').version")
           PKG_AGENTS=$(node -p "require('./hypo-stage-backend-agents/package.json').version")
-          if [ "$PKG_FRONTEND" != "$TAG_VERSION" ] || [ "$PKG_BACKEND" != "$TAG_VERSION" ] || [ "$PKG_AGENTS" != "$TAG_VERSION" ]; then
-            echo "Version mismatch: tag=$TAG_VERSION, frontend=$PKG_FRONTEND, backend=$PKG_BACKEND, agents=$PKG_AGENTS"
-            echo "Update all package.json version fields to match the tag before pushing."
+          if [ "$PKG_FRONTEND" != "$TAG_VERSION" ] || [ "$PKG_BACKEND" != "$TAG_VERSION" ]; then
+            echo "Version mismatch: tag=$TAG_VERSION, frontend=$PKG_FRONTEND, backend=$PKG_BACKEND"
+            echo "Update the frontend and backend package.json version fields to match the tag before pushing."
             exit 1
           fi
-          echo "Version $TAG_VERSION verified."
+          echo "Version $TAG_VERSION verified. Agents package is $PKG_AGENTS (published only when it matches the tag)."
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -91,5 +92,18 @@ jobs:
       - name: Publish frontend
         working-directory: hypo-stage
         run: npm publish --access public --provenance
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Publish agents module when its version matches the tag
+        working-directory: hypo-stage-backend-agents
+        run: |
+          TAG_VERSION="${GITHUB_REF#refs/tags/v}"
+          PKG_AGENTS=$(node -p "require('./package.json').version")
+          if [ "$PKG_AGENTS" != "$TAG_VERSION" ]; then
+            echo "Skipping @archhypo/plugin-hypo-stage-backend-agents ($PKG_AGENTS); tag is $TAG_VERSION."
+            exit 0
+          fi
+          npm publish --access public --provenance
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

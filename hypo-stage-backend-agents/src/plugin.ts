@@ -95,21 +95,24 @@ export const hypoStageAgentsModule = createBackendModule({
 
         let enqueueAnalyzePr: EnqueueAnalyzePr | undefined;
         let enqueueIssue: EnqueueIssue | undefined;
-        if (['pg', 'postgres', 'postgresql'].includes(String(knex.client.config.client))) {
+        const issueFlows = config.repositories.some(r => r.issues.triage || r.issues.planIssues);
+        const queueNeeded = config.enabled || issueFlows;
+        if (!['pg', 'postgres', 'postgresql'].includes(String(knex.client.config.client))) {
+          if (queueNeeded) {
+            logger.warn(
+              'HypoStage agents need PostgreSQL for pg-boss; pull request webhooks will be rejected',
+            );
+          }
+        } else if (!queueNeeded) {
+          logger.info('HypoStage agents queue is idle; no pull request or issue flow is enabled');
+        } else {
           const boss = await createPgBoss({ knex, logger });
           lifecycle.addShutdownHook(async () => {
             await boss.stop({ graceful: true });
           });
-          // PR analysis checks agents.enabled itself; issue flows are enabled per repository.
-          if (config.enabled || config.repositories.some(r => r.issues.triage || r.issues.planIssues)) {
-            await registerWorker(boss, deps);
-          }
+          await registerWorker(boss, deps);
           enqueueAnalyzePr = createEnqueue(boss);
           enqueueIssue = createIssueEnqueue(boss, config.issues.debounceSeconds);
-        } else {
-          logger.warn(
-            'HypoStage agents need PostgreSQL for pg-boss; pull request webhooks will be rejected',
-          );
         }
 
         if (config.coach.enabled && config.coach.fallback.enabled) {

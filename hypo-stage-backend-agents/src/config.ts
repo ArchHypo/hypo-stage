@@ -184,12 +184,7 @@ export function readAgentsConfig(root: Config): AgentsConfig {
     },
   };
   if (coach.enabled) {
-    if (!coach.model) {
-      throw new Error('hypoStage.agents.coach: set coach.model or agents.defaultModel');
-    }
-    if (!models.some(m => m.key === coach.model)) {
-      throw new Error(`hypoStage.agents.coach: unknown model key '${coach.model}'`);
-    }
+    requireConfiguredModel(models, coach.model, 'hypoStage.agents.coach');
   }
 
   const plannerConfig = agents?.getOptionalConfig('planner');
@@ -200,12 +195,7 @@ export function readAgentsConfig(root: Config): AgentsConfig {
     maxActions: plannerConfig?.getOptionalNumber('maxActions') ?? 4,
   };
   if (planner.enabled) {
-    if (!planner.model) {
-      throw new Error('hypoStage.agents.planner: set planner.model or agents.defaultModel');
-    }
-    if (!models.some(m => m.key === planner.model)) {
-      throw new Error(`hypoStage.agents.planner: unknown model key '${planner.model}'`);
-    }
+    requireConfiguredModel(models, planner.model, 'hypoStage.agents.planner');
   }
 
   return {
@@ -235,6 +225,15 @@ export function readAgentsConfig(root: Config): AgentsConfig {
     coach,
     planner,
   };
+}
+
+function requireConfiguredModel(models: ModelDefinition[], key: string | null, label: string): void {
+  if (!key) {
+    throw new Error(`${label}: set a model or agents.defaultModel`);
+  }
+  if (!models.some(m => m.key === key)) {
+    throw new Error(`${label}: unknown model key '${key}'`);
+  }
 }
 
 export function findRepository(

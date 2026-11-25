@@ -41,7 +41,7 @@ The repo’s `app-config.production.yaml` at the root is committed and uses `${R
 
 ### 🌱 Seed Data
 
-After the backend was live, we ran the seed once so the database has demo hypotheses and technical planning:
+After the backend was live, we ran the seed once so the database has demo hypotheses and technical planning. Later migrations also insert the coach walkthrough hypothesis and one fixture agent suggestion (provider `fixture`). The public demo does not enable a model and `app-config.production.yaml` does not read provider API keys.
 
 ```bash
 BACKSTAGE_CONFIG_PATH=app-config.production.yaml make seed-standalone

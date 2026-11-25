@@ -135,13 +135,11 @@ describe('HypothesisPage', () => {
     expect(screen.getByRole('button', { name: /Delete/i })).toBeInTheDocument();
   });
 
-  it('should render the agent suggestions review section', async () => {
+  it('hides agent suggestions when the agents module is not installed', async () => {
     await renderWithProviders(<HypothesisPage />);
 
-    expect(screen.getByText('Agent Suggestions')).toBeInTheDocument();
-    await waitFor(() => {
-      expect(screen.getByText(/No pending agent suggestions/i)).toBeInTheDocument();
-    });
+    expect(screen.queryByText('Agent Suggestions')).not.toBeInTheDocument();
+    expect(mockHypoStageApi.getAgentSuggestions).not.toHaveBeenCalled();
   });
 
   it('should show loading state', async () => {

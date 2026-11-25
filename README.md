@@ -111,7 +111,7 @@ HypoStage can be added to the [official Backstage Plugin Directory](https://back
 
 ## 📦 NPM publishing
 
-To publish a new version: (1) set `"version": "X.Y.Z"` (using [Semantic Versioning](https://semver.org/)) in both `hypo-stage/package.json` and `hypo-stage-backend/package.json`, (2) merge via PR (main is protected), (3) create a GitHub Release with tag `vX.Y.Z` from main. The [publish workflow](.github/workflows/publish-npm.yml) runs automatically and publishes both packages to NPM. See [docs/npm-publishing.md](docs/npm-publishing.md) for version guidelines, setup (NPM token), and release steps. After publishing, update [CHANGELOG.md](CHANGELOG.md) and this README’s **Current release** section when you cut the next version.
+To publish a new version: (1) set `"version": "X.Y.Z"` (using [Semantic Versioning](https://semver.org/)) in both `hypo-stage/package.json` and `hypo-stage-backend/package.json`, (2) merge via PR (main is protected), (3) create a GitHub Release with tag `vX.Y.Z` from main. The [publish workflow](.github/workflows/publish-npm.yml) runs automatically and publishes both packages to NPM. The agents package is optional and versioned separately; it is published only when its version equals that tag. See [docs/npm-publishing.md](docs/npm-publishing.md) for version guidelines, setup (NPM token), and release steps. After publishing, update [CHANGELOG.md](CHANGELOG.md) and this README’s **Current release** section when you cut the next version.
 
 ---
 
@@ -328,7 +328,7 @@ Every feature is off by default. The [public demo](https://hypo-stage-hypo-stage
 
 Recorded example (coach, then plan designer): [hypothesis-coach-and-plan-designer.mp4](docs/agents/examples/hypothesis-coach-and-plan-designer.mp4).
 
-The quickest local start that does not call a paid API is Ollama. A cloud provider works the same way once you set its key:
+The quickest local start that does not call a paid API is Ollama. A cloud provider works the same way once you set its key. This snippet opts in; the committed example config leaves both features off:
 
 ```yaml
 hypoStage:

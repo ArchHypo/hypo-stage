@@ -1,5 +1,5 @@
 import { ACTION_TYPES, HypothesisRecord, LIKERT_SCALE, MAX_TEXT_LENGTH } from '../domain/archhypo';
-import { clampText, normalizeTargetDate } from '../pipeline/guardrails';
+import { addDays, clampText, normalizeTargetDate } from '../pipeline/guardrails';
 import type { PlanProposalOutput } from './schemas';
 import { GOAL_LABELS, PLAN_GOALS, PlanGoal, StrategyProfile } from './strategy';
 
@@ -27,12 +27,6 @@ export interface GuardedPlan {
 
 const rank = (level: string) => LIKERT_SCALE.indexOf(level as (typeof LIKERT_SCALE)[number]);
 const normalize = (s: string) => s.trim().replace(/\s+/g, ' ').toLowerCase();
-
-function addDays(date: Date, days: number): string {
-  const d = new Date(date);
-  d.setUTCDate(d.getUTCDate() + days);
-  return d.toISOString().slice(0, 10);
-}
 
 /** Only levels lower than today's, and only the ones the goal can move. */
 function guardEffect(

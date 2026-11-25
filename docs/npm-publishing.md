@@ -1,6 +1,6 @@
 # Publishing HypoStage to NPM
 
-This guide covers publishing `@archhypo/plugin-hypo-stage` and `@archhypo/plugin-hypo-stage-backend` to the NPM registry.
+This guide covers publishing `@archhypo/plugin-hypo-stage` and `@archhypo/plugin-hypo-stage-backend` to the NPM registry. `@archhypo/plugin-hypo-stage-backend-agents` is optional and versioned separately: a core release tag does not have to match it, and the workflow publishes it only when its own `package.json` version equals the tag.
 
 **Current line:** The project uses **`1.x`** releases on npm from **v1.0.0** onward (first stable 1.x baseline). Document user-facing changes in the root [`CHANGELOG.md`](../CHANGELOG.md) when you cut a release.
 
@@ -52,7 +52,7 @@ Pushing a version tag triggers automatic publishing via [`.github/workflows/publ
 
 ### Release steps (publishing a new version)
 
-Follow these steps exactly. The tag **must** match the version in both `package.json` files (e.g. tag `v0.1.1` requires `"version": "0.1.1"` in both packages).
+Follow these steps exactly. The tag **must** match the version in the frontend and backend `package.json` files (e.g. tag `v0.1.1` requires `"version": "0.1.1"` in both). The agents package keeps its own version.
 
 **1. Update version** in both `package.json` files to the new semver (e.g. `0.1.1`):
 

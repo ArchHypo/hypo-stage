@@ -79,7 +79,9 @@ export async function applyAgentSuggestion(
       await api.updateTechnicalPlanning(planning.id, {
         expectedOutcome: suggestion.payload.expectedOutcome ?? planning.expectedOutcome,
         documentations: withUrl(planning.documentations, url),
+        ...(suggestion.payload.description ? { description: suggestion.payload.description } : {}),
       });
+      await api.syncPlanIssue?.(planning.id)?.catch(() => undefined);
       break;
     }
 

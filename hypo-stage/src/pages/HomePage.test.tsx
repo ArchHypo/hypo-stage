@@ -164,6 +164,15 @@ describe('HomePage', () => {
     });
   });
 
+  it('shows the Issues report tab when coverage is on and triage is off', async () => {
+    mockHypoStageApi.getAgentsStatus.mockResolvedValue({
+      available: true, enabled: false, coach: { enabled: false, checkOnSave: false }, planner: { enabled: false },
+      issues: { triage: false, planIssues: false }, coverage: { enabled: true },
+    });
+    await renderWithProviders('/?tab=issues-report');
+    expect(await screen.findByRole('tab', { name: 'Issues report' })).toBeInTheDocument();
+  });
+
   it('shows the Issues report tab only when an issue flow is enabled', async () => {
     mockHypoStageApi.getAgentsStatus.mockResolvedValue({
       available: true, enabled: true, coach: { enabled: false, checkOnSave: false }, planner: { enabled: false },

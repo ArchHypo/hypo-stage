@@ -139,6 +139,10 @@ export class HypoStageMockApi implements HypoStageApi {
     throw new Error(DEMO_READ_ONLY);
   }
 
+  async syncPlanIssue(_technicalPlanningId: string): Promise<void> {
+    return undefined;
+  }
+
   async updateTechnicalPlanning(
     _technicalPlanningId: string,
     _input: UpdateTechnicalPlanningInput,

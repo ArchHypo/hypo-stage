@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **AI agents module** (`@archhypo/plugin-hypo-stage-backend-agents`): optional coach, plan designer, pull-request and issue flows, coverage, and an issues report. Every feature stays off until configured. The public demo does not call a paid model; it seeds the walkthrough hypothesis and one fixture suggestion. The agents package is versioned separately from the frontend and backend packages.
+
 ### Fixed
 
 - **Vercel preview:** the standalone app calls `/api` on its own host, and `backend.cors.origin` allows `https://hypo-stage-hypo-stage*.vercel.app`. Preview hosts were blocked with "Failed to fetch" because only the production Vercel origin was allowed.

@@ -164,22 +164,28 @@ export const AgentSuggestionsCard: React.FC<AgentSuggestionsCardProps> = ({
   const [busyId, setBusyId] = useState<string | null>(null);
 
   const load = useCallback(async () => {
+    if (!agents.available) {
+      setSuggestions([]);
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     try {
       setSuggestions(await api.getAgentSuggestions(hypothesis.id, 'pending'));
     } catch (err) {
-      showError(err instanceof Error ? err.message : 'Failed to load agent suggestions');
+      const message = err instanceof Error ? err.message : 'Failed to load agent suggestions';
+      if (!/404|not found/i.test(message)) {
+        showError(message);
+      }
       setSuggestions([]);
     } finally {
       setLoading(false);
     }
-  }, [api, hypothesis.id, showError]);
+  }, [agents.available, api, hypothesis.id, showError]);
 
   useEffect(() => {
     void load();
-    // Reload only when the hypothesis changes, not after every refresh of its data.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hypothesis.id]);
+  }, [load]);
 
   const review = async (suggestion: AgentSuggestion, decision: 'accepted' | 'rejected') => {
     setBusyId(suggestion.id);
@@ -215,6 +221,17 @@ export const AgentSuggestionsCard: React.FC<AgentSuggestionsCardProps> = ({
     }
     return Array.from(groups.entries());
   }, [suggestions]);
+
+  const featureOn =
+    agents.enabled ||
+    agents.coach.enabled ||
+    agents.planner.enabled ||
+    agents.issues.triage ||
+    agents.issues.planIssues ||
+    agents.coverage.enabled;
+  if (!agents.available || (!loading && suggestions.length === 0 && !featureOn)) {
+    return null;
+  }
 
   return (
     <Card className={className}>

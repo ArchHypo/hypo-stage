@@ -106,3 +106,17 @@ export async function openPlanIssue(
     reopenedAt: null,
   };
 }
+
+/** Pushes the current planning text to its GitHub issue. Returns null when the planning has no issue. */
+export async function syncPlanIssue(deps: PlanIssueDeps, planningId: string): Promise<IssueLink | null> {
+  const link = await findLinkByPlanning(deps.knex, planningId);
+  if (!link) return null;
+  const row = await deps.knex('technicalPlanning').where('id', planningId).first('hypothesisId');
+  if (!row) return null;
+  const [hypothesis] = await loadHypotheses(deps.knex, { ids: [row.hypothesisId] });
+  const planning = hypothesis?.technicalPlannings.find(p => p.id === planningId);
+  if (!hypothesis || !planning) return null;
+  const content = planIssueContent({ hypothesis, planning });
+  await deps.github.updateIssue(link.repository, link.issueNumber, { title: content.title, body: content.body });
+  return link;
+}

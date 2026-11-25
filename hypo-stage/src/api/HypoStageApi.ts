@@ -57,7 +57,14 @@ export type AgentSuggestion = AgentSuggestionBase &
         kind: 'reassessment';
         payload: { uncertainty: Likert; impact: Likert; previous: { uncertainty: Likert; impact: Likert } };
       }
-    | { kind: 'planning_progress'; payload: { effect: 'advances' | 'completes'; expectedOutcome: string | null } }
+    | {
+        kind: 'planning_progress';
+        payload: {
+          effect: 'advances' | 'completes';
+          expectedOutcome: string | null;
+          description?: string;
+        };
+      }
     | {
         kind: 'new_planning';
         payload: {
@@ -374,6 +381,8 @@ export interface HypoStageApi {
   deleteHypothesis: (id: string) => Promise<void>;
   createTechnicalPlanning: (hypothesisId: string, input: CreateTechnicalPlanningInput) => Promise<TechnicalPlanning>;
   updateTechnicalPlanning: (technicalPlanningId: string, input: UpdateTechnicalPlanningInput) => Promise<TechnicalPlanning>;
+  /** Copies the planning onto its GitHub issue. No-ops when the planning has no issue. */
+  syncPlanIssue: (technicalPlanningId: string) => Promise<void>;
   deleteTechnicalPlanning: (technicalPlanningId: string) => Promise<void>;
   /** Suggestions produced by the agents module (hypo-stage-backend-agents). */
   getAgentSuggestions: (hypothesisId: string, status?: AgentSuggestionStatus) => Promise<AgentSuggestion[]>;
@@ -584,6 +593,18 @@ export class HypoStageApiClient implements HypoStageApi {
     }
 
     return response.json();
+  }
+
+  async syncPlanIssue(technicalPlanningId: string): Promise<void> {
+    const baseUrl = await this.discoveryApi.getBaseUrl('hypo-stage');
+    const response = await this.fetchApi.fetch(
+      `${baseUrl}/agents/plannings/${technicalPlanningId}/issue/sync`,
+      { method: 'POST' },
+    );
+    if (response.status === 404) return;
+    if (!response.ok) {
+      throw new Error(`Failed to sync the plan issue: ${response.statusText}`);
+    }
   }
 
   async deleteTechnicalPlanning(technicalPlanningId: string): Promise<void> {

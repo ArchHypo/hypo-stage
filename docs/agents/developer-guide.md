@@ -2,7 +2,7 @@
 
 This guide is for developers who want to understand, change or extend the AI agents module (`hypo-stage-backend-agents`, published as `@archhypo/plugin-hypo-stage-backend-agents`). For how each feature behaves from a user's point of view, see the [user guide](./user-guide.md). The recorded coach and plan-designer session is [hypothesis-coach-and-plan-designer.mp4](./examples/hypothesis-coach-and-plan-designer.mp4).
 
-The public Render demo does not set a model provider. `migrations/20261125_000006_seed_demo_agent_fixture.js` inserts one pending suggestion and one agent run with provider `fixture`. That row is sample data. Do not treat it as the output of a model, and do not add provider keys to `app-config.production.yaml`.
+The public Render demo does not set a model provider. `migrations/20261125_000006_seed_demo_agent_fixture.js` inserts one pending suggestion and one agent run with provider `fixture`. That row is sample data. Do not treat it as the output of a model, and do not add provider keys to `app-config.production.yaml`. Both that migration and `hypo-stage-backend/migrations/20261125_000005_seed_coach_example_hypothesis.js` skip `NODE_ENV=test`, so unit tests keep an empty agents table.
 
 ## Contents
 

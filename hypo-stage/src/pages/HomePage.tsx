@@ -43,7 +43,9 @@ export const HomePage = () => {
     t =>
       t.id === 'hypotheses' ||
       (t.id === 'agent-runs' && agents.available) ||
-      (t.id === 'issues-report' && agents.available && (agents.issues.triage || agents.issues.planIssues)),
+      (t.id === 'issues-report' &&
+        agents.available &&
+        (agents.issues.triage || agents.issues.planIssues || agents.coverage.enabled)),
   );
   const requested = searchParams.get('tab');
   const selectedIndex = Math.max(0, tabs.findIndex(t => t.id === requested));

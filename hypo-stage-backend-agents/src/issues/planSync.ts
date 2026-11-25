@@ -5,6 +5,12 @@ import { finishRun, RunTrace, startRun } from '../store/runs';
 import { isPlanningCompleted, supersedeFromSource, upsertPendingSuggestion } from '../store/suggestions';
 import type { IssueHandlerResult } from './triage';
 
+function markedLine(body: string | null, label: string): string | null {
+  if (!body) return null;
+  const match = body.match(new RegExp(`\\*\\*${label}:\\*\\*\\s*(.+)`));
+  return match?.[1]?.trim() || null;
+}
+
 function linkStateReason(state: string, stateReason: string | null, action: string): string | null {
   if (state === 'closed') return stateReason;
   return action === 'reopened' ? 'reopened' : null;
@@ -63,7 +69,40 @@ export async function runPlanSync(
     const artifactRef = toIssueRef(event.repository, event.number);
     let suggestions = 0;
     let outcome: string;
-    if (issue.state === 'closed' && issue.stateReason === 'completed' && (await isPlanningCompleted(knex, planningId))) {
+    if (event.action === 'edited') {
+      const planningRow = await knex('technicalPlanning')
+        .where('id', planningId)
+        .first('description', 'expectedOutcome');
+      const description = markedLine(issue.body, 'What to do');
+      const expectedOutcome = markedLine(issue.body, 'Expected outcome');
+      const descriptionChanged = Boolean(description && planningRow && description !== planningRow.description);
+      const outcomeChanged = Boolean(
+        expectedOutcome && planningRow && expectedOutcome !== planningRow.expectedOutcome,
+      );
+      if (descriptionChanged || outcomeChanged) {
+        await upsertPendingSuggestion(
+          knex,
+          { runId, source: { artifactRef, url: issue.url, kind: 'issue' } },
+          {
+            hypothesisId: planning.hypothesisId,
+            technicalPlanningId: planningId,
+            kind: 'planning_progress',
+            payload: {
+              effect: 'advances',
+              expectedOutcome: outcomeChanged ? expectedOutcome : null,
+              ...(descriptionChanged ? { description } : {}),
+            },
+            rationale: `Plan issue #${issue.number} was edited. Accept to copy that text into the technical planning.`,
+            evidence: [],
+            confidence: 1,
+          },
+        );
+        suggestions = 1;
+        outcome = 'proposed planning text from the issue';
+      } else {
+        outcome = 'issue text already matches the planning';
+      }
+    } else if (issue.state === 'closed' && issue.stateReason === 'completed' && (await isPlanningCompleted(knex, planningId))) {
       outcome = 'planning already completed';
     } else if (issue.state === 'closed' && issue.stateReason === 'completed') {
       await upsertPendingSuggestion(

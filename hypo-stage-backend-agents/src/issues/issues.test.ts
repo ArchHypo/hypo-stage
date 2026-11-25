@@ -185,6 +185,25 @@ describe('issue flows', () => {
     const closed = (reason: string) =>
       ({ getIssue: jest.fn().mockResolvedValue(issueDetails({ number: 4, state: 'closed', stateReason: reason, closedAt: '2026-09-25T00:00:00Z' })) });
 
+    it('proposes the edited issue text without calling a model', async () => {
+      const github = {
+        getIssue: jest.fn().mockResolvedValue(
+          issueDetails({
+            number: 4,
+            body: '**What to do:** Load test the gateway client with connection pooling\n\n**Expected outcome:** Measured 1000 rps under 200 ms.',
+          }),
+        ),
+      };
+      await runPlanSync(
+        deps({ doGenerate: () => { throw new Error('must not be called'); } }, github),
+        planEvent('edited'),
+        SPIKE,
+      );
+      const rows = await knex('agent_suggestions');
+      expect(rows).toHaveLength(1);
+      expect(JSON.parse(rows[0].payload).expectedOutcome).toBe('Measured 1000 rps under 200 ms.');
+    });
+
     it('proposes the planning as completed without any model, and withdraws it on reopen', async () => {
       const noModel = { doGenerate: () => { throw new Error('must not be called'); } };
       await runPlanSync(deps(noModel, closed('completed')), planEvent('closed'), SPIKE);
@@ -224,41 +243,26 @@ describe('issue flows', () => {
   });
 
   describe('runPlanComment', () => {
-    it('turns reported evidence into progress/reassessment on the mirrored planning only', async () => {
-      const model = scriptedModel(() => ({
-        related: true,
-        confidence: 0.9,
-        rationale: 'The comment reports the measurement asked for.',
-        evidence: [],
-        reassessment: { uncertainty: 'Low', impact: null, reason: '1400 rps measured' },
-        planningProgress: [
-          { technicalPlanningId: SPIKE, effect: 'advances', expectedOutcomeUpdate: 'Measured 1400 rps', reason: 'r' },
-          { technicalPlanningId: TRIGGER, effect: 'advances', expectedOutcomeUpdate: null, reason: 'not this one' },
-        ],
-        newPlanning: { actionType: 'Guideline', entityRef: null, description: 'x', expectedOutcome: 'y', targetDate: null, reason: 'r' },
-        statusChange: null,
-      }));
+    it('records a comment as progress on the mirrored planning without calling a model', async () => {
       const github = {
         getIssue: jest.fn().mockResolvedValue(
           issueDetails({ number: 4, commentThread: [{ author: 'dev', body: 'load test: 1400 rps at p95 140 ms', createdAt: '2026-09-26T00:00:00Z' }] }),
         ),
       };
-      await runPlanComment(deps(model, github), event({ event: 'issue_comment', action: 'created', number: 4 }), SPIKE);
-
-      const rows = await knex('agent_suggestions').orderBy('kind');
-      expect(rows.map(r => [r.kind, r.technical_planning_id])).toEqual([
-        ['planning_progress', SPIKE],
-        ['reassessment', SPIKE],
-      ]);
-      const run = await knex('agent_runs').first();
-      expect(run).toMatchObject({ handler: 'plan_comment', origin: 'hypostage' });
-      const dropped = JSON.parse(run.trace).steps[0].details.dropped;
-      expect(dropped).toEqual(
-        expect.arrayContaining([
-          { kind: 'link', reason: 'not allowed for this handler' },
-          { kind: 'new_planning', reason: 'not allowed for this handler' },
-        ]),
+      await runPlanComment(
+        deps({ doGenerate: () => { throw new Error('must not be called'); } }, github),
+        event({ event: 'issue_comment', action: 'created', number: 4 }),
+        SPIKE,
       );
+
+      const rows = await knex('agent_suggestions');
+      expect(rows.map(r => [r.kind, r.technical_planning_id])).toEqual([['planning_progress', SPIKE]]);
+      expect(rows[0].rationale).toContain('1400 rps');
+      expect(await knex('agent_runs').first()).toMatchObject({
+        handler: 'plan_comment',
+        origin: 'hypostage',
+        model_key: 'none',
+      });
     });
   });
 });

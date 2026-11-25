@@ -5,7 +5,9 @@ import {
   Content,
   HeaderLabel,
 } from '@backstage/core-components';
+import { useApi } from '@backstage/core-plugin-api';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { HypoStageApiRef } from '../api/HypoStageApi';
 import type { QualityAttribute } from '@archhypo/plugin-hypo-stage-backend';
 import { QUALITY_ATTRIBUTE_OPTIONS } from '../utils/constants';
 import { HypothesisForm } from '../components/HypothesisForm';
@@ -15,8 +17,10 @@ import { NotificationProvider } from '../providers/NotificationProvider';
 
 const CreateHypothesisPageContent = () => {
   const navigate = useNavigate();
+  const api = useApi(HypoStageApiRef);
   const { formData, updateField, updateFields, loading, isFormValid, handleSubmit } = useCreateHypothesis();
   const [searchParams] = useSearchParams();
+  const coverageFinding = searchParams.get('coverageFinding');
 
   // Pre-fill from links such as the Issues report's "Create hypothesis" (coverage findings).
   useEffect(() => {
@@ -36,7 +40,14 @@ const CreateHypothesisPageContent = () => {
   }, []);
   const coach = useHypothesisCoach();
 
-  const handleHypothesisCreated = () => {
+  const handleHypothesisCreated = async () => {
+    if (coverageFinding) {
+      try {
+        await api.updateCoverageFinding(coverageFinding, 'created');
+      } catch {
+        // The hypothesis is already saved. The finding stays pending if this bookkeeping call fails.
+      }
+    }
     navigate('/hypo-stage');
   };
 

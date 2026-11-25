@@ -52,6 +52,8 @@ export interface GitHubClient {
     repository: string,
     issue: { title: string; body: string; labels: string[] },
   ): Promise<{ number: number; url: string }>;
+  /** Updates the title and body of an issue HypoStage already opened. */
+  updateIssue(repository: string, number: number, issue: { title: string; body: string }): Promise<void>;
   /** Comments on the issue, then closes it as completed. */
   closeIssue(repository: string, number: number, comment: string): Promise<void>;
 }
@@ -234,6 +236,11 @@ export function createGitHubClient(options: {
         issue,
       );
       return { number: created.number, url: created.html_url };
+    },
+
+    async updateIssue(repository, number, issue) {
+      const { owner, repo } = splitRepository(repository);
+      await request('PATCH', `/repos/${owner}/${repo}/issues/${number}`, issue);
     },
 
     async closeIssue(repository, number, comment) {

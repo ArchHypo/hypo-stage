@@ -125,14 +125,9 @@ export const IssuesReportTab = () => {
     URL.revokeObjectURL(url);
   };
 
-  const createHypothesis = async (finding: CoverageFinding) => {
-    setBusyId(finding.id);
-    try {
-      await api.updateCoverageFinding(finding.id, 'created');
-    } catch {
-      // the finding status is bookkeeping; still open the form
-    }
+  const createHypothesis = (finding: CoverageFinding) => {
     const params = new URLSearchParams();
+    params.set('coverageFinding', finding.id);
     params.set('statement', finding.draftStatement);
     if (finding.entityRef) params.append('entityRef', finding.entityRef);
     params.append('qualityAttribute', finding.qualityAttribute);

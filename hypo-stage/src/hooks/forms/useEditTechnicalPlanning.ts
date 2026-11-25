@@ -72,6 +72,7 @@ export const useEditTechnicalPlanning = (
       };
 
       await execute(() => api.updateTechnicalPlanning(planningId, technicalPlanningData));
+      await api.syncPlanIssue?.(planningId).catch(() => undefined);
 
       showSuccess('Technical planning updated successfully!');
       await onSuccess?.();

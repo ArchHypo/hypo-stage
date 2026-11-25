@@ -44,7 +44,7 @@ export function preserveGoalPrefix(original: string, update: string): string {
   );
 }
 
-function addDays(date: Date, days: number): string {
+export function addDays(date: Date, days: number): string {
   const d = new Date(date);
   d.setUTCDate(d.getUTCDate() + days);
   return d.toISOString().slice(0, 10);
