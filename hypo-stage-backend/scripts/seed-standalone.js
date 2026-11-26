@@ -135,14 +135,14 @@ async function loadResolvedConfig() {
       const agentsSeed = await knex('knex_migrations_hypo_stage_agents')
         .where({ name: '20261125_000006_seed_demo_agent_fixture.js' })
         .first('name');
-      const run = await knex('agent_runs')
+      const fixtureRun = await knex('agent_runs')
         .where({ head_sha: 'demo-fixture', provider: 'fixture', status: 'completed' })
         .first('id');
       const suggestion = await knex('agent_suggestions')
         .where({ head_sha: 'demo-fixture', kind: 'new_planning', status: 'pending' })
         .first('id');
       if (!agentsSeed) missing.push('agents fixture migration');
-      if (!run) missing.push('fixture agent run');
+      if (!fixtureRun) missing.push('fixture agent run');
       if (!suggestion) missing.push('pending fixture suggestion');
     }
     if (missing.length) {
