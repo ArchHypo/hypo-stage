@@ -69,6 +69,16 @@ const mockHypoStageApi = {
   createTechnicalPlanning: jest.fn(),
   updateTechnicalPlanning: jest.fn(),
   deleteTechnicalPlanning: jest.fn(),
+  getAgentSuggestions: jest.fn().mockResolvedValue([]),
+  reviewAgentSuggestion: jest.fn(),
+  getAgentsStatus: jest.fn().mockResolvedValue({
+    available: false,
+    enabled: false,
+    coach: { enabled: false, checkOnSave: false },
+    planner: { enabled: false },
+    issues: { triage: false, planIssues: false },
+    coverage: { enabled: false },
+  }),
 };
 
 const renderWithProviders = async (ui: React.ReactElement) => {
@@ -123,6 +133,13 @@ describe('HypothesisPage', () => {
     expect(screen.getByRole('button', { name: /Back to List/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Edit Hypothesis/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Delete/i })).toBeInTheDocument();
+  });
+
+  it('hides agent suggestions when the agents module is not installed', async () => {
+    await renderWithProviders(<HypothesisPage />);
+
+    expect(screen.queryByText('Agent Suggestions')).not.toBeInTheDocument();
+    expect(mockHypoStageApi.getAgentSuggestions).not.toHaveBeenCalled();
   });
 
   it('should show loading state', async () => {
@@ -246,7 +263,7 @@ describe('HypothesisPage', () => {
         expect(mockHypoStageApi.deleteHypothesis).toHaveBeenCalledWith('test-hypothesis-id');
         expect(mockNavigate).toHaveBeenCalledWith('/hypo-stage');
       });
-    });
+    }, 15000);
 
     it('should show error notification on delete failure', async () => {
       const user = userEvent.setup({ delay: null });

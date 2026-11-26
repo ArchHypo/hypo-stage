@@ -10,6 +10,8 @@
  *   node scripts/seed-standalone.js
  *
  * Ensures the plugin database exists, runs migrations, then the demo seed (idempotent).
+ * Also runs the agents module migrations and its fixture seed when that package
+ * is checked out beside this one (the standalone repo layout).
  */
 const path = require('path');
 const fs = require('fs');
@@ -88,20 +90,23 @@ async function loadResolvedConfig() {
     connection = { ...baseObj, database: baseObj.database || DEFAULT_PLUGIN_DB };
   }
 
-  const knex = require('knex')({
-    client: effectiveClient || dbConfig.client,
-    connection,
-    useNullAsDefault: true,
-  });
-
   const migrationsDir = path.join(__dirname, '../migrations');
+  const agentsMigrationsDir = path.join(__dirname, '../../hypo-stage-backend-agents/migrations');
 
   async function ensurePostgresDatabase() {
     if ((effectiveClient || dbConfig.client) !== 'pg' || typeof connection !== 'object' || !connection) return;
     const dbName = connection.database;
     if (!dbName || dbName === 'postgres') return;
     if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(dbName)) return;
-    const adminConnection = { ...connection, database: 'postgres' };
+    // Copy the fields explicitly. Knex marks `password` non-enumerable, so a
+    // later object spread would drop it and Postgres would reject the login.
+    const adminConnection = {
+      host: connection.host,
+      port: connection.port,
+      user: connection.user,
+      password: connection.password,
+      database: 'postgres',
+    };
     const adminKnex = require('knex')({ client: 'pg', connection: adminConnection, useNullAsDefault: true });
     try {
       await adminKnex.raw('CREATE DATABASE ??', [dbName]);
@@ -114,6 +119,44 @@ async function loadResolvedConfig() {
     }
   }
 
+  async function assertDemoSeed(knex, agentsPresent) {
+    const pluginSeed = await knex('knex_migrations')
+      .where({ name: '20260216_000004_seed_demo_hypotheses.js' })
+      .first('name');
+    const coachSeed = await knex('knex_migrations')
+      .where({ name: '20261125_000005_seed_coach_example_hypothesis.js' })
+      .first('name');
+    const hypothesisCount = await knex('hypothesis').count('* as n').first();
+    const missing = [];
+    if (!pluginSeed) missing.push('hypothesis seed migration');
+    if (!coachSeed) missing.push('walkthrough hypothesis migration');
+    if (Number(hypothesisCount?.n || 0) < 1) missing.push('hypothesis rows');
+    if (agentsPresent) {
+      const agentsSeed = await knex('knex_migrations_hypo_stage_agents')
+        .where({ name: '20261125_000006_seed_demo_agent_fixture.js' })
+        .first('name');
+      const fixtureRun = await knex('agent_runs')
+        .where({ head_sha: 'demo-fixture', provider: 'fixture', status: 'completed' })
+        .first('id');
+      const suggestion = await knex('agent_suggestions')
+        .where({ head_sha: 'demo-fixture', kind: 'new_planning', status: 'pending' })
+        .first('id');
+      if (!agentsSeed) missing.push('agents fixture migration');
+      if (!fixtureRun) missing.push('fixture agent run');
+      if (!suggestion) missing.push('pending fixture suggestion');
+    }
+    if (missing.length) {
+      throw new Error(`Demo seed check failed. Missing: ${missing.join(', ')}`);
+    }
+    console.log('Demo seed check passed: hypotheses, agents migrations, and the fixture suggestion are present.');
+  }
+
+  const knex = require('knex')({
+    client: effectiveClient || dbConfig.client,
+    connection,
+    useNullAsDefault: true,
+  });
+
   try {
     await ensurePostgresDatabase();
     console.log('Running migrations...');
@@ -121,7 +164,18 @@ async function loadResolvedConfig() {
     console.log('Running demo seed (idempotent)...');
     const seedMigration = require('../migrations/20260216_000004_seed_demo_hypotheses.js');
     await seedMigration.up(knex);
-    console.log('Done. Demo hypotheses are in the database.');
+    if (fs.existsSync(agentsMigrationsDir)) {
+      console.log('Running agents migrations...');
+      await knex.migrate.latest({
+        directory: agentsMigrationsDir,
+        tableName: 'knex_migrations_hypo_stage_agents',
+      });
+      console.log('Running agents demo seed (idempotent)...');
+      const agentsSeed = require(path.join(agentsMigrationsDir, '20261125_000006_seed_demo_agent_fixture.js'));
+      await agentsSeed.up(knex);
+    }
+    await assertDemoSeed(knex, fs.existsSync(agentsMigrationsDir));
+    console.log('Done. Demo hypotheses and the agents fixture are in the database.');
   } catch (err) {
     console.error(err);
     process.exit(1);

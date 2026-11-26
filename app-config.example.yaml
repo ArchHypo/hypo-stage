@@ -36,3 +36,65 @@ backend:
     # Alternative: SQLite configuration (simpler for local testing)
     # client: better-sqlite3
     # connection: ':memory:'
+
+hypoStage:
+  # GitHub is only for pull-request analysis and issue flows. The coach and the
+  # plan designer below do not use it. Uncomment when you enable those flows.
+  # github:
+  #   apiToken: ${GITHUB_TOKEN}
+  #   webhookSecret: ${GITHUB_WEBHOOK_SECRET}
+  #   # Login of a dedicated bot behind apiToken. Leave unset with a personal token.
+  #   botLogin: hypostage-bot
+  agents:
+    # Local Ollama. Install Ollama, run `ollama pull qwen2.5:7b`, then start the backend.
+    # Review with AI and Suggest plan with AI call this model. No API key.
+    # Pull-request analysis stays off until `enabled` is true and GitHub is set above.
+    # A hosted model (Anthropic and others) is the commented block in app-config.production.yaml.
+    enabled: false
+    defaultModel: local
+    # Suggestions below this confidence ([0, 1]) are discarded
+    confidenceThreshold: 0.7
+    # Max hypotheses assessed per pull request after triage
+    maxCandidates: 5
+    providers:
+      ollama:
+        baseUrl: http://localhost:11434/v1
+    models:
+      - key: local
+        provider: ollama
+        modelId: qwen2.5:7b
+        maxInputChars: 12000
+    # GitHub issue flows (subscribe the webhook to Issues and Issue comments as well)
+    issues:
+      debounceSeconds: 120
+      alertThreshold: 3
+    coverage:
+      enabled: false
+      frequencyHours: 24
+      windowDays: 30
+      minIssues: 3
+      minOpenDays: 2
+    # repositories:
+    #   - repository: my-org/my-service
+    #     model: local
+    #     issues:
+    #       triage: false       # true: analyze human issues against hypotheses
+    #       planIssues: false   # true: allow "Open as issue" (token needs issues: write)
+    #       ignoreLabels: [question, duplicate, invalid]
+    # Technical plan designer: proposes plan actions for a hypothesis (no GitHub needed)
+    planner:
+      enabled: true
+      # Iteration length, used to turn "iteration N" into a target date
+      iterationDays: 14
+      maxActions: 4
+    # Hypothesis coach: reviews statements in the create/edit form (no GitHub needed)
+    coach:
+      enabled: true
+      # Review unreviewed statements when saving (never blocks the save). Off unless set.
+      checkOnSave: false
+      # Background review of hypotheses created without the form (e.g. via the API)
+      fallback:
+        enabled: false
+        frequencyMinutes: 10
+        maxPerRun: 5
+        sinceDays: 7

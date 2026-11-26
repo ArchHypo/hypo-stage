@@ -1,4 +1,4 @@
-import { default as React, useState } from 'react';
+import { default as React, useCallback, useEffect, useState } from 'react';
 import {
   Card,
   CardContent,
@@ -8,6 +8,11 @@ import {
   Button
 } from '@material-ui/core';
 import Timeline from '@material-ui/icons/Timeline';
+import EmojiObjects from '@material-ui/icons/EmojiObjects';
+import { useApi } from '@backstage/core-plugin-api';
+import { agentScreen, HypoStageApiRef, PlannedAction, PlanningIssueLink } from '../api/HypoStageApi';
+import { useAgentsStatus } from '../hooks/useAgentsStatus';
+import { PlanDesignerDialog } from './planner/PlanDesignerDialog';
 import { useStyles } from '../hooks/useStyles';
 import { TechnicalPlanningForm } from './TechnicalPlanningForm';
 import { TechnicalPlanningItem } from './TechnicalPlanningItem';
@@ -24,13 +29,59 @@ export const TechnicalPlanningList: React.FC<TechnicalPlanningListProps> = ({
   onRefresh
 }) => {
   const classes = useStyles();
-  const { formData, updateField, loading, isFormValid, handleSubmit } = useCreateTechnicalPlanning(
+  const api = useApi(HypoStageApiRef);
+  const agents = useAgentsStatus();
+  const screenAgents = agentScreen(agents);
+  const { formData, updateField, updateFields, loading, isFormValid, handleSubmit } = useCreateTechnicalPlanning(
     hypothesis.id,
     hypothesis.uncertainty,
     hypothesis.impact,
   );
   const [showTechnicalPlanningForm, setShowTechnicalPlanningForm] = useState(false);
   const [editingPlanningId, setEditingPlanningId] = useState<string | null>(null);
+  const [showPlanDesigner, setShowPlanDesigner] = useState(false);
+  // Proposal action being edited in the create form, recorded as "edited" once saved.
+  const [editedProposalAction, setEditedProposalAction] = useState<{ proposalId: string; index: number } | null>(null);
+
+  const [issueLinks, setIssueLinks] = useState<PlanningIssueLink[]>([]);
+  const loadIssueLinks = useCallback(async () => {
+    try {
+      setIssueLinks(await api.getPlanningIssues(hypothesis.id));
+    } catch {
+      setIssueLinks([]);
+    }
+  }, [api, hypothesis.id]);
+  useEffect(() => {
+    if (screenAgents.planIssues) {
+      void loadIssueLinks();
+    }
+  }, [screenAgents.planIssues, loadIssueLinks]);
+
+  const suggestPlanButton = screenAgents.planner ? (
+    <Button
+      variant="outlined"
+      color="primary"
+      startIcon={<EmojiObjects />}
+      onClick={() => setShowPlanDesigner(true)}
+      className={classes.marginTop}
+      style={{ marginLeft: 8 }}
+    >
+      Suggest plan with AI
+    </Button>
+  ) : null;
+
+  const editBeforeAdding = (action: PlannedAction, proposalId: string, index: number) => {
+    updateFields({
+      entityRef: action.entityRef,
+      actionType: action.actionType,
+      description: action.description,
+      expectedOutcome: action.expectedOutcome,
+      targetDate: action.targetDate,
+    });
+    setEditedProposalAction({ proposalId, index });
+    setShowPlanDesigner(false);
+    setShowTechnicalPlanningForm(true);
+  };
 
   return (
     <>
@@ -58,6 +109,17 @@ export const TechnicalPlanningList: React.FC<TechnicalPlanningListProps> = ({
                     isEditing={editingPlanningId === techPlan.id}
                     onEditStart={() => setEditingPlanningId(techPlan.id)}
                     onEditEnd={() => setEditingPlanningId(null)}
+                    planIssues={
+                      screenAgents.planIssues
+                        ? {
+                            link: issueLinks.find(l => l.technicalPlanningId === techPlan.id) ?? null,
+                            onOpened: async () => {
+                              await loadIssueLinks();
+                              await onRefresh();
+                            },
+                          }
+                        : undefined
+                    }
                   />
                 </Grid>
               ))}
@@ -73,6 +135,7 @@ export const TechnicalPlanningList: React.FC<TechnicalPlanningListProps> = ({
                   >
                     Add Another Technical Planning
                   </Button>
+                  {suggestPlanButton}
                 </Grid>
               )}
             </Grid>
@@ -82,13 +145,16 @@ export const TechnicalPlanningList: React.FC<TechnicalPlanningListProps> = ({
                 No technical planning information available
               </Typography>
               {!showTechnicalPlanningForm && (
-                <Button
-                  variant="contained"
-                  color="primary"
-                  onClick={() => setShowTechnicalPlanningForm(true)}
-                >
-                  Add Technical Planning
-                </Button>
+                <Box>
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    onClick={() => setShowTechnicalPlanningForm(true)}
+                  >
+                    Add Technical Planning
+                  </Button>
+                  {suggestPlanButton}
+                </Box>
               )}
             </Box>
           )}
@@ -106,15 +172,33 @@ export const TechnicalPlanningList: React.FC<TechnicalPlanningListProps> = ({
                 onSubmit={() => {
                   handleSubmit(async () => {
                     setShowTechnicalPlanningForm(false);
+                    if (editedProposalAction) {
+                      api
+                        .decidePlanAction(editedProposalAction.proposalId, editedProposalAction.index, 'edited')
+                        .catch(() => undefined);
+                      setEditedProposalAction(null);
+                    }
                     await onRefresh();
                   });
                 }}
-                onCancel={() => setShowTechnicalPlanningForm(false)}
+                onCancel={() => {
+                  setShowTechnicalPlanningForm(false);
+                  setEditedProposalAction(null);
+                }}
               />
             </Box>
           )}
         </CardContent>
       </Card>
+      {screenAgents.planner && (
+        <PlanDesignerDialog
+          open={showPlanDesigner}
+          hypothesis={hypothesis}
+          onClose={() => setShowPlanDesigner(false)}
+          onAdded={onRefresh}
+          onEditBeforeAdding={editBeforeAdding}
+        />
+      )}
     </>
   );
 };

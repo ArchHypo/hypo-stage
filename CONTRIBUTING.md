@@ -18,7 +18,7 @@ Thank you for helping improve HypoStage.
 
 - Open a PR against `main` with a clear description of **what** changed and **why**.
 - Link related issues when applicable.
-- Ensure CI is green (build, unit tests, lint).
+- Ensure CI is green (build, unit tests, and lint for the frontend, backend, and agents module, plus the PostgreSQL migration and demo-seed check).
 
 ## Code of conduct
 

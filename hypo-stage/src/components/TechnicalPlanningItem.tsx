@@ -20,6 +20,8 @@ import { HypoStageApiRef } from '../api/HypoStageApi';
 import { TechnicalPlanningForm } from './TechnicalPlanningForm';
 import { useEditTechnicalPlanning } from '../hooks/forms/useEditTechnicalPlanning';
 import { TechnicalPlanning, Hypothesis } from '@archhypo/plugin-hypo-stage-backend';
+import type { PlanningIssueLink } from '../api/HypoStageApi';
+import { PlanIssueControl } from './planIssues/PlanIssueControl';
 
 interface TechnicalPlanningItemProps {
   technicalPlanning: TechnicalPlanning;
@@ -29,6 +31,8 @@ interface TechnicalPlanningItemProps {
   isEditing: boolean;
   onEditStart: () => void;
   onEditEnd: () => void;
+  /** Shows "Open as issue" or the linked issue when plan issues are enabled. */
+  planIssues?: { link: PlanningIssueLink | null; onOpened: () => Promise<void> | void };
 }
 
 export const TechnicalPlanningItem: React.FC<TechnicalPlanningItemProps> = ({
@@ -39,6 +43,7 @@ export const TechnicalPlanningItem: React.FC<TechnicalPlanningItemProps> = ({
   isEditing,
   onEditStart,
   onEditEnd,
+  planIssues,
 }) => {
   const classes = useStyles();
   const api = useApi(HypoStageApiRef);
@@ -90,7 +95,14 @@ export const TechnicalPlanningItem: React.FC<TechnicalPlanningItemProps> = ({
           <Typography variant="h6" style={{ flexShrink: 0 }}>
             Technical Planning #{index + 1}
           </Typography>
-          <Box display="flex" flexWrap="wrap" style={{ gap: 8 }}>
+          <Box display="flex" flexWrap="wrap" alignItems="center" style={{ gap: 8 }}>
+            {planIssues && (
+              <PlanIssueControl
+                technicalPlanning={technicalPlanning}
+                link={planIssues.link}
+                onOpened={planIssues.onOpened}
+              />
+            )}
             <Button
               variant="outlined"
               size="small"

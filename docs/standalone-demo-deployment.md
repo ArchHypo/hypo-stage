@@ -41,7 +41,7 @@ The repo’s `app-config.production.yaml` at the root is committed and uses `${R
 
 ### 🌱 Seed Data
 
-After the backend was live, we ran the seed once so the database has demo hypotheses and technical planning:
+After the backend was live, we ran the seed once so the database has demo hypotheses and technical planning. The same command also runs the agents migrations and inserts one fixture agent suggestion (provider `fixture`) once the coach walkthrough hypothesis exists. Starting the backend applies that seed again if it is still missing. The public demo does not enable a model and `app-config.production.yaml` does not read provider API keys. **Review with AI**, **Suggest plan with AI**, and the Agent runs tab stay hidden while every agents flag is off. The pending fixture suggestion is still on the hypothesis page, and accepting it creates the spike through the normal planning API.
 
 ```bash
 BACKSTAGE_CONFIG_PATH=app-config.production.yaml make seed-standalone

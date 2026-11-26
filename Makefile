@@ -22,19 +22,19 @@ deps: ## Install dependencies (yarn install --ignore-engines)
 ##@ Build
 
 .PHONY: build
-build: ## Build both frontend and backend plugins (declarations + Backstage CLI build)
+build: ## Build frontend, backend, and the agents module (declarations + Backstage CLI build)
 	yarn build
 
 ##@ Tests
 
 .PHONY: test
-test: ## Run all tests (frontend and backend), non-interactive
+test: ## Run unit tests for every workspace, non-interactive
 	CI=true yarn test
 
 ##@ Lint
 
 .PHONY: lint
-lint: ## Run lint (code style) on both plugins
+lint: ## Run lint on every workspace and root scripts
 	yarn lint
 
 ##@ Run all
@@ -49,8 +49,8 @@ check: ## Build, test, and lint in one go (non-interactive)
 	echo ""; echo "=== Test ==="; \
 	$(MAKE) test 2>&1 | tee "$$test_log"; test_ret=$$?; \
 	if [ $$test_ret -eq 0 ]; then \
-	  test_suites=$$(grep "Test Suites:" "$$test_log" | tail -1); test_tests=$$(grep "Tests:" "$$test_log" | tail -1); \
-	  echo "Test: OK ($$test_suites; $$test_tests)"; \
+	  test_report=$$(grep -E "Test Suites:|Tests:[[:space:]]+[0-9]+" "$$test_log" | sed 's/^[[:space:]]*/    /'); \
+	  echo "Test: OK"; printf '%s\n' "$$test_report"; \
 	else echo "Test: FAILED"; failed=1; fi; \
 	echo ""; echo "=== Lint ==="; \
 	$(MAKE) lint 2>&1 | tee "$$lint_log"; lint_ret=$$?; \
@@ -61,7 +61,7 @@ check: ## Build, test, and lint in one go (non-interactive)
 	else echo "Lint: FAILED"; failed=1; fi; \
 	echo ""; echo "--- Check summary ---"; \
 	echo "  Build:  $$([ $$build_ret -eq 0 ] && echo "passed ($${build_duration}s)" || echo "FAILED")"; \
-	if [ $$test_ret -eq 0 ]; then echo "  Test:   passed ($$test_suites; $$test_tests)"; else echo "  Test:   FAILED"; fi; \
+	if [ $$test_ret -eq 0 ]; then echo "  Test:   passed"; printf '%s\n' "$$test_report" | sed 's/^/  /'; else echo "  Test:   FAILED"; fi; \
 	if [ $$lint_ret -eq 0 ]; then echo "  Lint:   passed$$([ -n "$$lint_line" ] && echo " ($$lint_line)" || true)"; else echo "  Lint:   FAILED"; fi; \
 	echo ""; \
 	if [ $$failed -eq 0 ]; then echo "All steps passed."; else echo "One or more steps failed."; fi; \
@@ -73,6 +73,10 @@ check: ## Build, test, and lint in one go (non-interactive)
 start-dependencies: ## Start Docker dependencies (PostgreSQL for HypoStage backend)
 	docker-compose up -d
 
+.PHONY: reset-agents-db
+reset-agents-db: ## Drop HypoStage agents tables and migration history (re-created on next backend start)
+	@docker exec hypo-stage-postgres psql -U postgres -d backstage_plugin_hypo_stage -c 'DROP TABLE IF EXISTS agent_plan_proposal_actions, agent_plan_proposals, agent_suggestions, agent_hypothesis_reviews, agent_issue_links, agent_issue_observations, agent_coverage_findings, agent_runs CASCADE; DROP TABLE IF EXISTS knex_migrations_hypo_stage_agents, knex_migrations_hypo_stage_agents_lock; DROP SCHEMA IF EXISTS pgboss CASCADE;'
+
 .PHONY: create-db
 create-db: ## Create the HypoStage plugin database in hypo-stage-postgres (backstage_plugin_hypo_stage)
 	@docker exec hypo-stage-postgres psql -U postgres -d backstage_plugin_hypo_stage -c 'SELECT 1' >/dev/null 2>&1 && \
@@ -81,7 +85,7 @@ create-db: ## Create the HypoStage plugin database in hypo-stage-postgres (backs
 	(echo "Run 'make start-dependencies' first if Postgres is not running." && exit 1)
 
 .PHONY: seed-standalone
-seed-standalone: ## Create plugin DB (if using Docker) and run migrations + seed (one command, from repo root)
+seed-standalone: ## Create plugin DB (if using Docker) and run migrations + hypothesis and agents seeds (one command, from repo root)
 	@$(MAKE) create-db 2>/dev/null || true
 	@cd hypo-stage-backend && yarn seed
 

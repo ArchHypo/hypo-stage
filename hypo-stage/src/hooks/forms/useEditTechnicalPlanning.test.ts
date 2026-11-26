@@ -20,6 +20,7 @@ const mockApi = {
   deleteHypothesis: jest.fn(),
   createTechnicalPlanning: jest.fn(),
   updateTechnicalPlanning: jest.fn().mockResolvedValue({ id: 'tp-1' }),
+  syncPlanIssue: jest.fn().mockResolvedValue(undefined),
   deleteTechnicalPlanning: jest.fn(),
 };
 
@@ -204,5 +205,6 @@ describe('useEditTechnicalPlanning', () => {
       'planning-b-id',
       expect.anything(),
     );
+    expect(mockApi.syncPlanIssue).toHaveBeenCalledWith('planning-b-id');
   });
 });

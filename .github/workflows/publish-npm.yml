@@ -1,9 +1,20 @@
 # Publish HypoStage packages to NPM when a version tag is pushed.
 #
 # How to release:
-#   1. Update version in hypo-stage/package.json and hypo-stage-backend/package.json (same semver, e.g. 1.0.1)
+#   1. Update version in hypo-stage/package.json and hypo-stage-backend/package.json (same semver, e.g. 1.0.1).
 #   2. Merge version bump via PR (main is protected)
 #   3. Create a GitHub Release with tag v1.0.1 from main (Releases → Create a new release)
+#
+# Agents package (hypo-stage-backend-agents) — why it publishes only when its version matches the tag:
+#   The frontend and backend are one release. Their package.json versions MUST equal the tag (v1.0.2
+#   requires "1.0.2" in both) or this workflow fails before it publishes anything.
+#   The agents module is optional and has its own semver. Today the core packages can be 1.0.1 while
+#   agents stays at 1.0.0. npm rejects a second publish of a version that already exists, and a failed
+#   `npm publish` would fail this job after the core packages had already been published.
+#   So a core-only tag (agents version left behind) skips the agents publish and still releases
+#   frontend + backend. To ship a new agents build, set hypo-stage-backend-agents/package.json to the
+#   same version as the tag (and bump the two core packages to that version too, because the tag
+#   check above still requires them to match). Example: tag v1.1.0 with all three packages at 1.1.0.
 #
 # Required: Add NPM_TOKEN (automation or granular token with publish rights) to repo secrets.
 
@@ -55,12 +66,14 @@ jobs:
           echo "Tag version: $TAG_VERSION"
           PKG_FRONTEND=$(node -p "require('./hypo-stage/package.json').version")
           PKG_BACKEND=$(node -p "require('./hypo-stage-backend/package.json').version")
+          PKG_AGENTS=$(node -p "require('./hypo-stage-backend-agents/package.json').version")
           if [ "$PKG_FRONTEND" != "$TAG_VERSION" ] || [ "$PKG_BACKEND" != "$TAG_VERSION" ]; then
             echo "Version mismatch: tag=$TAG_VERSION, frontend=$PKG_FRONTEND, backend=$PKG_BACKEND"
-            echo "Update both package.json version fields to match the tag before pushing."
+            echo "Update the frontend and backend package.json version fields to match the tag before pushing."
             exit 1
           fi
-          echo "Version $TAG_VERSION verified."
+          # Core packages must match. Agents is recorded here and decided in the last publish step.
+          echo "Version $TAG_VERSION verified. Agents package is $PKG_AGENTS (published only when it matches the tag)."
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -81,6 +94,13 @@ jobs:
       - name: Lint
         run: yarn lint
 
+      # Same Postgres check as CI. A broken agents migration or fixture seed
+      # stops the release before any package is published.
+      - name: Migrate, seed, and verify the agents fixture
+        run: |
+          cp app-config.example.yaml app-config.yaml
+          cd hypo-stage-backend && yarn seed
+
       - name: Publish backend
         working-directory: hypo-stage-backend
         run: npm publish --access public --provenance
@@ -90,5 +110,23 @@ jobs:
       - name: Publish frontend
         working-directory: hypo-stage
         run: npm publish --access public --provenance
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      # Publish @archhypo/plugin-hypo-stage-backend-agents only when its package.json
+      # version equals this tag. A mismatch is a skip (exit 0), not a failure: the core
+      # release above must still succeed when agents was not part of this tag.
+      # npm will not accept publishing the same agents version twice, so we do not try.
+      - name: Publish agents module when its version matches the tag
+        working-directory: hypo-stage-backend-agents
+        run: |
+          TAG_VERSION="${GITHUB_REF#refs/tags/v}"
+          PKG_AGENTS=$(node -p "require('./package.json').version")
+          if [ "$PKG_AGENTS" != "$TAG_VERSION" ]; then
+            echo "Skipping @archhypo/plugin-hypo-stage-backend-agents ($PKG_AGENTS); tag is $TAG_VERSION."
+            echo "This is expected for a core-only release. Bump the agents package to $TAG_VERSION when that module should ship with this tag."
+            exit 0
+          fi
+          npm publish --access public --provenance
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

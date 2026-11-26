@@ -112,6 +112,7 @@ export const createTechnicalPlanningSchema = z.object({
 export const updateTechnicalPlanningSchema = z.object({
   expectedOutcome: z.string().min(1).max(500),
   documentations: z.array(z.string().url()),
+  description: z.string().min(1).max(500).optional(),
   uncertainty: likertScaleSchema.optional(),
   impact: likertScaleSchema.optional(),
 });

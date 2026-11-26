@@ -81,7 +81,18 @@ backend:
 
 Migrations run automatically when the backend starts. No manual step required.
 
-### 4. CORS (cross-origin requests)
+### 4. Optional: AI agents module
+
+The hypothesis API does not depend on agents. To add them, install `@archhypo/plugin-hypo-stage-backend-agents` and register it after this plugin:
+
+```ts
+backend.add(import('@archhypo/plugin-hypo-stage-backend'));
+backend.add(import('@archhypo/plugin-hypo-stage-backend-agents'));
+```
+
+The module reads this plugin's tables and writes only its own `agent_*` tables. People apply suggestions through the REST API below. With the module absent, or with every `hypoStage.agents` flag left at its default `false`, this plugin behaves as it does today. See the [agents user guide](https://github.com/ArchHypo/hypo-stage/blob/main/docs/agents/user-guide.md).
+
+### 5. CORS (cross-origin requests)
 
 The plugin **does not** hardcode allowed browser origins. When the frontend is served from a different origin than the backend (typical in local dev: app on port **3000**, backend on **7007**), set **`backend.cors`** in your Backstage **`app-config.yaml`** (or `app-config.local.yaml`). Backstage’s backend applies these settings globally.
 

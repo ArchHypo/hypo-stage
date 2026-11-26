@@ -29,3 +29,44 @@ backend:
       hypo-stage:
         connection:
           database: backstage_plugin_hypo_stage
+
+# Agents stay off on the public Render demo. Do not uncomment the block below
+# on that deployment, and do not commit a provider API key. The demo database
+# still has a fixture suggestion so the Agent Suggestions card can be reviewed
+# without calling a model.
+#
+# A deployment that should call a hosted model looks like this. Set
+# ANTHROPIC_API_KEY (and the GitHub variables, if those flows are on) in the
+# host environment. The public demo leaves this commented.
+#
+# hypoStage:
+#   github:
+#     apiToken: ${GITHUB_TOKEN}
+#     webhookSecret: ${GITHUB_WEBHOOK_SECRET}
+#   agents:
+#     enabled: true
+#     defaultModel: claude-sonnet
+#     confidenceThreshold: 0.7
+#     maxCandidates: 5
+#     providers:
+#       anthropic:
+#         apiKey: ${ANTHROPIC_API_KEY}
+#     models:
+#       - key: claude-sonnet
+#         provider: anthropic
+#         modelId: claude-sonnet-5
+#     coach:
+#       enabled: true
+#       model: claude-sonnet
+#     planner:
+#       enabled: true
+#       model: claude-sonnet
+#       iterationDays: 14
+#       maxActions: 4
+#     repositories:
+#       - repository: my-org/my-service
+#         model: claude-sonnet
+#         issues:
+#           triage: true
+#           planIssues: true
+#           ignoreLabels: [question, duplicate, invalid]

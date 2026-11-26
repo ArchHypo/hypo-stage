@@ -4,9 +4,11 @@
 #
 # Validates:
 #   - Dependencies install with frozen lockfile
-#   - TypeScript compiles (build:types) and Backstage CLI build for both packages
-#   - All unit tests pass (frontend + backend; backend may use Postgres for future integration tests)
-#   - Lint passes for both packages
+#   - TypeScript compiles (build:types) and Backstage CLI build for the frontend, backend, and agents module
+#   - All unit tests pass (frontend, backend, and agents module)
+#   - Lint passes for every workspace
+#   - PostgreSQL migrations and demo seeds for the plugin and the agents module,
+#     including the fixture suggestion (the same check as `yarn seed`)
 
 name: CI
 
@@ -66,4 +68,12 @@ jobs:
 
       - name: Build, test & lint
         run: make check
-        # Same as README: build → test → lint with section headers and summary (timing, Jest/ESLint metrics)
+        # Frontend, backend, and agents module: typecheck, package build, unit tests, lint.
+
+      # Unit tests use SQLite and skip the demo seed (NODE_ENV=test). This step
+      # applies both packages' migrations and seeds to the workflow Postgres and
+      # fails unless the agents fixture suggestion is present.
+      - name: Migrate, seed, and verify the agents fixture
+        run: |
+          cp app-config.example.yaml app-config.yaml
+          cd hypo-stage-backend && yarn seed
