@@ -18,7 +18,7 @@ const ARTIFACT_URL = 'https://github.com/ArchHypo/hypo-stage/pull/40';
 
 /** Knex returns `{ id }` on Postgres and sometimes the bare id on SQLite. */
 function insertedId(row) {
-  if (row == null) return undefined;
+  if (row === null || row === undefined) return undefined;
   if (typeof row === 'string' || typeof row === 'number') return row;
   return row.id;
 }

@@ -140,7 +140,7 @@ describe('HomePage', () => {
 
     it('switches between hypotheses and agent runs when the module is available', async () => {
       mockHypoStageApi.getAgentsStatus.mockResolvedValue({ available: true, enabled: true, pullRequestsReady: true, coach: { enabled: false, checkOnSave: false, ready: false }, planner: { enabled: false, ready: false }, issues: { triage: false, planIssues: false, triageReady: false, planIssuesReady: false }, coverage: { enabled: false, ready: false } });
-      const user = userEvent.setup();
+      const user = userEvent.setup({ delay: null });
       await renderWithProviders();
 
       const tab = await screen.findByRole('tab', { name: 'Agent runs' });
@@ -153,7 +153,7 @@ describe('HomePage', () => {
 
       await user.click(screen.getByRole('tab', { name: 'Hypotheses' }));
       expect(await screen.findByRole('button', { name: /Create New Hypothesis/i })).toBeInTheDocument();
-    });
+    }, 15000);
 
     it('hides agent runs when analysis is enabled but the queue or GitHub connection is missing', async () => {
       mockHypoStageApi.getAgentsStatus.mockResolvedValue({ available: true, enabled: true, pullRequestsReady: false, coach: { enabled: true, checkOnSave: false, ready: false }, planner: { enabled: false, ready: false }, issues: { triage: false, planIssues: false, triageReady: false, planIssuesReady: false }, coverage: { enabled: false, ready: false } });

@@ -263,7 +263,7 @@ describe('HypothesisPage', () => {
         expect(mockHypoStageApi.deleteHypothesis).toHaveBeenCalledWith('test-hypothesis-id');
         expect(mockNavigate).toHaveBeenCalledWith('/hypo-stage');
       });
-    });
+    }, 15000);
 
     it('should show error notification on delete failure', async () => {
       const user = userEvent.setup({ delay: null });

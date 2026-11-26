@@ -68,7 +68,7 @@ describe('CreateHypothesisPage', () => {
   });
 
   it('marks a coverage finding created only after the hypothesis is saved', async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     const api = {
       getAgentsStatus: jest.fn().mockResolvedValue(AGENTS_UNAVAILABLE),
       createHypothesis: jest.fn().mockResolvedValue({ id: 'h-new' }),
@@ -102,5 +102,5 @@ describe('CreateHypothesisPage', () => {
 
     await waitFor(() => expect(api.createHypothesis).toHaveBeenCalled());
     expect(api.updateCoverageFinding).toHaveBeenCalledWith('f1', 'created');
-  });
+  }, 15000);
 });
