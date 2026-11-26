@@ -27,7 +27,7 @@ Before `1.0.0`, treat the API as unstable. From **`1.0.0`**, follow SemVer for t
 
 ### Pre-release (optional)
 
-For alpha/beta releases: `1.0.0-alpha.1`, `1.0.0-beta.2`. The publish workflow supports tags like `v1.0.0-alpha.1`; ensure both `package.json` files use the same version string.
+For alpha/beta releases: `1.0.0-alpha.1`, `1.0.0-beta.2`. The publish workflow supports tags like `v1.0.0-alpha.1`. The frontend and backend `package.json` files must use that same version string. Include `hypo-stage-backend-agents/package.json` when this tag should publish the agents module too.
 
 ---
 
@@ -52,39 +52,55 @@ Pushing a version tag triggers automatic publishing via [`.github/workflows/publ
 
 ### Release steps (publishing a new version)
 
-Follow these steps exactly. The tag **must** match the version in the frontend and backend `package.json` files (e.g. tag `v1.0.2` requires `"version": "1.0.2"` in both).
+The tag **must** match the frontend and backend versions. Tag `v1.1.0` requires `"version": "1.1.0"` in both `hypo-stage/package.json` and `hypo-stage-backend/package.json`. The workflow stops before publishing anything if either one differs.
 
-**1. Update version** in both core `package.json` files to the new semver (e.g. `1.0.2`):
+The agents module (`@archhypo/plugin-hypo-stage-backend-agents`, directory `hypo-stage-backend-agents`) is a third package. It publishes on that same tag only when its own `package.json` version is also `1.1.0`. Choose one of these before you edit versions:
 
-- `hypo-stage/package.json` → `"version": "1.0.2"`
-- `hypo-stage-backend/package.json` → `"version": "1.0.2"`
+| This tag | Versions to set | What npm receives |
+|---|---|---|
+| Core only | Frontend and backend = tag. Leave `hypo-stage-backend-agents/package.json` unchanged | Frontend and backend. The agents step prints a skip and exits 0 |
+| Core and agents | All three packages = tag | Frontend, backend, and `@archhypo/plugin-hypo-stage-backend-agents` |
 
-Both must have the **exact same** version string. The workflow will fail if they differ or don't match the tag.
+Agents cannot ship on its own tag. The workflow still requires the frontend and backend to equal the tag, so the agents version has to move to that same number. Today the core packages are `1.0.1` and the agents package is `1.0.0`. Tagging `v1.0.0` to publish that `1.0.0` would fail the core version check. The first agents publish rides the next core release: set all three to the new version (for example `1.1.0`) and tag `v1.1.0`.
 
-#### Why the agents package publishes only when its version matches the tag
+#### Why a core-only tag skips agents instead of failing
 
-The frontend and the backend are released together. The agents module is a third package with its own version (`hypo-stage-backend-agents/package.json`, currently `1.0.0` while the core packages are `1.0.1`). Two npm rules make a single "always publish agents" step unsafe:
+npm refuses to publish a version that is already on the registry, and a failed `npm publish` fails the job. Republishing the current agents version on every later core tag would fail after the frontend and backend had already published. The skip keeps a core-only release intact.
 
-- npm refuses to publish a version that is already on the registry. Republishing `1.0.0` on every later core tag would fail.
-- A failed `npm publish` fails the GitHub job. If that happened after the frontend and backend had already published, the core release would be left half-finished.
+The workflow order is:
 
-The workflow therefore:
+1. Require the frontend and backend versions to equal the tag.
+2. Build, test, and lint every workspace, then run the plugin and agents migrations and demo seeds against PostgreSQL.
+3. Publish the backend, then the frontend.
+4. Publish `@archhypo/plugin-hypo-stage-backend-agents` when its version equals the tag. Otherwise print the skip message and exit 0.
 
-1. **Requires** the frontend and backend versions to equal the tag. A mismatch stops the job before anything is published.
-2. **Publishes** those two packages.
-3. **Publishes** `@archhypo/plugin-hypo-stage-backend-agents` only when its version equals the same tag. If it does not, the step prints a skip message and exits 0. The core release still succeeds.
+**1. Update versions**
 
-To ship a new agents build, set all three `package.json` versions to the tag. Example: tag `v1.1.0` with `1.1.0` in the frontend, the backend, and `hypo-stage-backend-agents`. A core-only fix can leave the agents version where it is.
+Core only:
+
+- `hypo-stage/package.json` → `"version": "1.1.0"`
+- `hypo-stage-backend/package.json` → `"version": "1.1.0"`
+- `hypo-stage-backend-agents/package.json` → leave the current version
+
+Core and agents (this is the release that publishes the agents module):
+
+- `hypo-stage/package.json` → `"version": "1.1.0"`
+- `hypo-stage-backend/package.json` → `"version": "1.1.0"`
+- `hypo-stage-backend-agents/package.json` → `"version": "1.1.0"`
+
+The frontend and backend strings must match each other and the tag. For an agents release, the agents string must match them too.
 
 **2. Commit, push, open PR, and merge**
 
-Because `main` is protected, merge the version bump via a pull request:
+Because `main` is protected, merge the version bump via a pull request. Include the agents `package.json` in the commit when you changed it:
 
 ```bash
-NEW_VERSION="0.1.1"
+NEW_VERSION="1.1.0"
 
 git checkout -b "release-v$NEW_VERSION"
 git add hypo-stage/package.json hypo-stage-backend/package.json
+# Only when this tag publishes the agents module:
+git add hypo-stage-backend-agents/package.json
 git commit -m "chore: release v$NEW_VERSION"
 git push origin "release-v$NEW_VERSION"
 ```
@@ -97,9 +113,9 @@ Using the GitHub web interface creates a tag and triggers the publish workflow:
 
 1. Open the repo on GitHub → **Releases** (sidebar or `/releases`)
 2. Click **Create a new release**
-3. **Choose a tag** → **Create new tag** on publish → enter `v0.1.1` (replace with your version)
+3. **Choose a tag** → **Create new tag** on publish → enter `v1.1.0` (the version from step 1)
 4. **Target** → select `main` (ensure the merged PR is on main)
-5. **Release title** → e.g. `v0.1.1` or `Release v0.1.1`
+5. **Release title** → e.g. `v1.1.0` or `Release v1.1.0`
 6. **Description** → optional; add a changelog or leave blank
 7. Click **Publish release**
 
@@ -109,15 +125,24 @@ Publishing the release creates the tag and triggers the NPM publish workflow.
 
 - Go to **Actions** in the repo
 - The "Publish to NPM" workflow runs automatically
-- It validates the frontend and backend versions, builds, tests, and lints every workspace (including the agents module), runs the plugin and agents migrations and demo seeds against PostgreSQL, then publishes the two core packages. It publishes the agents package only when its version equals the tag
+- It validates the frontend and backend versions, builds, tests, and lints every workspace (including the agents module), runs the plugin and agents migrations and demo seeds against PostgreSQL, then publishes the backend and the frontend.
+- The last step publishes `@archhypo/plugin-hypo-stage-backend-agents` when `hypo-stage-backend-agents/package.json` equals the tag. The log line `Skipping @archhypo/plugin-hypo-stage-backend-agents` means this was a core-only tag. A published agents package appears as its own npm package page.
 
-**Tag format:** Use `v` + semver (e.g. `v0.1.1`, `v1.0.0`). The workflow strips the `v` and checks it matches both `package.json` versions.
+**Tag format:** Use `v` + semver (e.g. `v1.1.0`). The workflow strips the `v` and checks it against the frontend and backend versions, then against the agents version for the last publish step.
 
-#### Quick summary (replace `0.1.1` with your version)
+#### Quick summary (replace `1.1.0` with your version)
 
-1. Edit `hypo-stage/package.json` and `hypo-stage-backend/package.json` → `"version": "0.1.1"`
-2. Branch, commit, push, open PR, merge to `main` (see step 2 above)
-3. After merge: **Releases** → **Create a new release** → create tag `v0.1.1` from `main` → **Publish release**
+Core only:
+
+1. Set `"version": "1.1.0"` in `hypo-stage/package.json` and `hypo-stage-backend/package.json`. Leave the agents version unchanged.
+2. Branch, commit those two files, push, open a PR, merge to `main`.
+3. **Releases** → **Create a new release** → tag `v1.1.0` from `main` → **Publish release**.
+
+Core and agents:
+
+1. Set `"version": "1.1.0"` in all three: `hypo-stage/package.json`, `hypo-stage-backend/package.json`, and `hypo-stage-backend-agents/package.json`.
+2. Branch, commit all three files, push, open a PR, merge to `main`.
+3. **Releases** → **Create a new release** → tag `v1.1.0` from `main` → **Publish release**. Confirm `@archhypo/plugin-hypo-stage-backend-agents@1.1.0` on npm.
 
 ---
 
@@ -126,7 +151,8 @@ Publishing the release creates the tag and triggers the NPM publish workflow.
 | Problem | Cause | Fix |
 |---------|-------|-----|
 | Workflow fails: "Version mismatch" | Tag doesn't match the frontend or backend `package.json` | Ensure tag `vX.Y.Z` equals `"version": "X.Y.Z"` in both core package.json files. The agents version is not part of this check |
-| Agents package was not published | Its version differs from the tag | Expected for a core-only release. Bump `hypo-stage-backend-agents/package.json` to the tag version and release again when that module should ship |
+| Log says `Skipping @archhypo/plugin-hypo-stage-backend-agents` | Its version differs from the tag | Expected for a core-only release. To publish the module, set `hypo-stage-backend-agents/package.json` to the next tag and release all three packages together. A tag that only matches the old agents version fails, because the frontend and backend must match the tag too |
+| Agents publish fails: version already exists | That agents version is already on npm | Bump all three packages to a new version and tag that. npm will not accept the same agents version again |
 | Workflow fails: "ENEEDAUTH" | Missing or invalid NPM_TOKEN | Add NPM_TOKEN secret; use Automation or Granular token with publish rights |
 | Workflow fails: "403 Forbidden" | Token lacks publish scope | Create token with **Read and write** for `@archhypo` packages |
 
@@ -141,11 +167,13 @@ If you need to publish locally:
    yarn build
    ```
 
-2. **Publish backend, then frontend.** Publish the agents package only when you intend to ship that version (the same rule as CI: do not republish a version npm already has).
+2. **Publish backend, then frontend, then the agents module** when its version is not already on npm. Skip the last command for a core-only release. Publishing an agents version npm already has fails the same way the workflow avoids.
    ```bash
    cd hypo-stage-backend && npm publish --access public
    cd ../hypo-stage && npm publish --access public
-   cd ../hypo-stage-backend-agents && npm publish --access public
+   cd ../hypo-stage-backend-agents
+   npm view "@archhypo/plugin-hypo-stage-backend-agents@$(node -p "require('./package.json').version")" version \
+     || npm publish --access public
    ```
 
 **Note:** NPM requires either two-factor authentication (use `npm publish --otp=CODE`) or an **automation** token. Classic tokens with 2FA enabled will fail; use the GitHub workflow instead.
