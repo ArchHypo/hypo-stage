@@ -88,7 +88,7 @@ Restart the backend. `GET /api/hypo-stage/agents/health` reports each flag and w
 2. Open the hypothesis → **Technical Planning** → **Suggest plan with AI** → **Add** an action.
 3. For GitHub, set `github.apiToken`, `github.webhookSecret`, and `agents.repositories`, then enable `agents.enabled` and/or `issues.triage` / `issues.planIssues`. Pending results show on the hypothesis **Agent Suggestions** card. Traces show on **Agent runs** once a feature is on.
 
-The committed `app-config.example.yaml` leaves the flags off. The public demo does the same and does not call a paid model. A recorded coach and plan-designer session is in the user guide.
+The committed `app-config.example.yaml` is this Ollama setup: coach and planner on, pull-request analysis off. The public demo does not call a model. A recorded coach and plan-designer session is in the user guide.
 
 ## Documentation
 

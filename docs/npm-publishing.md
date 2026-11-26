@@ -109,7 +109,7 @@ Publishing the release creates the tag and triggers the NPM publish workflow.
 
 - Go to **Actions** in the repo
 - The "Publish to NPM" workflow runs automatically
-- It validates the frontend and backend versions, builds, publishes those two packages, then publishes the agents package only when its version equals the tag
+- It validates the frontend and backend versions, builds, tests, and lints every workspace (including the agents module), runs the plugin and agents migrations and demo seeds against PostgreSQL, then publishes the two core packages. It publishes the agents package only when its version equals the tag
 
 **Tag format:** Use `v` + semver (e.g. `v0.1.1`, `v1.0.0`). The workflow strips the `v` and checks it matches both `package.json` versions.
 

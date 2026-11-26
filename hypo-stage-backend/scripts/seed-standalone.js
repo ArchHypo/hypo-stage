@@ -119,6 +119,38 @@ async function loadResolvedConfig() {
     }
   }
 
+  async function assertDemoSeed(knex, agentsPresent) {
+    const pluginSeed = await knex('knex_migrations')
+      .where({ name: '20260216_000004_seed_demo_hypotheses.js' })
+      .first('name');
+    const coachSeed = await knex('knex_migrations')
+      .where({ name: '20261125_000005_seed_coach_example_hypothesis.js' })
+      .first('name');
+    const hypothesisCount = await knex('hypothesis').count('* as n').first();
+    const missing = [];
+    if (!pluginSeed) missing.push('hypothesis seed migration');
+    if (!coachSeed) missing.push('walkthrough hypothesis migration');
+    if (Number(hypothesisCount?.n || 0) < 1) missing.push('hypothesis rows');
+    if (agentsPresent) {
+      const agentsSeed = await knex('knex_migrations_hypo_stage_agents')
+        .where({ name: '20261125_000006_seed_demo_agent_fixture.js' })
+        .first('name');
+      const run = await knex('agent_runs')
+        .where({ head_sha: 'demo-fixture', provider: 'fixture', status: 'completed' })
+        .first('id');
+      const suggestion = await knex('agent_suggestions')
+        .where({ head_sha: 'demo-fixture', kind: 'new_planning', status: 'pending' })
+        .first('id');
+      if (!agentsSeed) missing.push('agents fixture migration');
+      if (!run) missing.push('fixture agent run');
+      if (!suggestion) missing.push('pending fixture suggestion');
+    }
+    if (missing.length) {
+      throw new Error(`Demo seed check failed. Missing: ${missing.join(', ')}`);
+    }
+    console.log('Demo seed check passed: hypotheses, agents migrations, and the fixture suggestion are present.');
+  }
+
   const knex = require('knex')({
     client: effectiveClient || dbConfig.client,
     connection,
@@ -142,6 +174,7 @@ async function loadResolvedConfig() {
       const agentsSeed = require(path.join(agentsMigrationsDir, '20261125_000006_seed_demo_agent_fixture.js'));
       await agentsSeed.up(knex);
     }
+    await assertDemoSeed(knex, fs.existsSync(agentsMigrationsDir));
     console.log('Done. Demo hypotheses and the agents fixture are in the database.');
   } catch (err) {
     console.error(err);

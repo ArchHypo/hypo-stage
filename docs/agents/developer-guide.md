@@ -337,7 +337,9 @@ make start-dependencies
 make seed-standalone
 ```
 
-`make seed-standalone` creates `backstage_plugin_hypo_stage`, migrates both packages, and applies both seeds. Confirm with the `docker exec` queries in the root README under [Running with Docker](../../README.md#-running-with-docker). `make reset-agents-db` drops only the agents tables so the next `make seed-standalone` replays those migrations. If something else already listens on port 5432, change the Compose host port and `backend.database.connection.port` together.
+`make seed-standalone` creates `backstage_plugin_hypo_stage`, migrates both packages, applies both seeds, and exits with an error if the walkthrough hypothesis or the fixture suggestion is missing. Confirm with the `docker exec` queries in the root README under [Running with Docker](../../README.md#-running-with-docker). `make reset-agents-db` drops only the agents tables so the next `make seed-standalone` replays those migrations. If something else already listens on port 5432, change the Compose host port and `backend.database.connection.port` together.
+
+CI and the npm publish workflow run that same `yarn seed` check against their PostgreSQL service after build, test, and lint. Unit tests stay on SQLite and do not insert the fixture.
 
 ---
 

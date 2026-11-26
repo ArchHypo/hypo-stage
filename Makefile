@@ -49,8 +49,8 @@ check: ## Build, test, and lint in one go (non-interactive)
 	echo ""; echo "=== Test ==="; \
 	$(MAKE) test 2>&1 | tee "$$test_log"; test_ret=$$?; \
 	if [ $$test_ret -eq 0 ]; then \
-	  test_suites=$$(grep "Test Suites:" "$$test_log" | tail -1); test_tests=$$(grep "Tests:" "$$test_log" | tail -1); \
-	  echo "Test: OK ($$test_suites; $$test_tests)"; \
+	  test_report=$$(grep -E "Test Suites:|Tests:[[:space:]]+[0-9]+" "$$test_log" | sed 's/^[[:space:]]*/    /'); \
+	  echo "Test: OK"; printf '%s\n' "$$test_report"; \
 	else echo "Test: FAILED"; failed=1; fi; \
 	echo ""; echo "=== Lint ==="; \
 	$(MAKE) lint 2>&1 | tee "$$lint_log"; lint_ret=$$?; \
@@ -61,7 +61,7 @@ check: ## Build, test, and lint in one go (non-interactive)
 	else echo "Lint: FAILED"; failed=1; fi; \
 	echo ""; echo "--- Check summary ---"; \
 	echo "  Build:  $$([ $$build_ret -eq 0 ] && echo "passed ($${build_duration}s)" || echo "FAILED")"; \
-	if [ $$test_ret -eq 0 ]; then echo "  Test:   passed ($$test_suites; $$test_tests)"; else echo "  Test:   FAILED"; fi; \
+	if [ $$test_ret -eq 0 ]; then echo "  Test:   passed"; printf '%s\n' "$$test_report" | sed 's/^/  /'; else echo "  Test:   FAILED"; fi; \
 	if [ $$lint_ret -eq 0 ]; then echo "  Lint:   passed$$([ -n "$$lint_line" ] && echo " ($$lint_line)" || true)"; else echo "  Lint:   FAILED"; fi; \
 	echo ""; \
 	if [ $$failed -eq 0 ]; then echo "All steps passed."; else echo "One or more steps failed."; fi; \

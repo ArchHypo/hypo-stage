@@ -117,7 +117,7 @@ hypoStage:
       enabled: true
 ```
 
-Restart the backend after saving config. `GET /api/hypo-stage/agents/health` should report `coach.enabled` and `planner.enabled` as true. The copied `app-config.example.yaml` leaves both false so a fresh install does not call a model.
+Restart the backend after saving config. `GET /api/hypo-stage/agents/health` should report `coach.enabled` and `planner.enabled` as true. [`app-config.example.yaml`](../../app-config.example.yaml) is already this Ollama setup (`checkOnSave` stays false there; set it to true when you want the save dialog in the steps below).
 
 A paid provider works the same way. Set that provider's `apiKey`, point `defaultModel` at one of its `models` keys, and enable `coach` and `planner`. Do not put those keys in `app-config.production.yaml`.
 

@@ -94,6 +94,13 @@ jobs:
       - name: Lint
         run: yarn lint
 
+      # Same Postgres check as CI. A broken agents migration or fixture seed
+      # stops the release before any package is published.
+      - name: Migrate, seed, and verify the agents fixture
+        run: |
+          cp app-config.example.yaml app-config.yaml
+          cd hypo-stage-backend && yarn seed
+
       - name: Publish backend
         working-directory: hypo-stage-backend
         run: npm publish --access public --provenance

@@ -351,27 +351,29 @@ The module only runs when one of these happens. The [user guide](docs/agents/use
 
 The coach and the plan designer show their result in the form or a dialog. They do not wait in the suggestions card. Pull-request analysis, issue triage, plan sync, and the demo fixture do.
 
-### Enable it
+### Install the module
 
-In this repository the standalone backend already loads the module (`hypo-stage-backend/dev/index.ts`). In your own Backstage app:
+HypoStage itself is already in place if you followed [Installation](#installation): routes, sidebar, the frontend API, and `backend.add(import('@archhypo/plugin-hypo-stage-backend'))`. There is no second frontend package and no new route. The steps below only add the backend module and point it at a local model.
+
+**1. Add the package** to the backend of your Backstage app (skip this in this repository; the standalone backend already depends on it):
 
 ```bash
 yarn --cwd packages/backend add @archhypo/plugin-hypo-stage-backend-agents
 ```
 
+**2. Register it immediately after the HypoStage plugin** in `packages/backend/src/index.ts`. In this repository that line is already in `hypo-stage-backend/dev/index.ts`.
+
 ```ts
-// packages/backend/src/index.ts — after the HypoStage plugin
 backend.add(import('@archhypo/plugin-hypo-stage-backend'));
 backend.add(import('@archhypo/plugin-hypo-stage-backend-agents'));
 ```
 
-Every feature defaults to **off**. Copy `app-config.example.yaml` and turn on only what you want, then restart the backend. The example leaves the flags false so a fresh install does not call a model.
-
-The path that does not call a paid API is a local [Ollama](https://ollama.com) model. With Ollama running and `ollama pull qwen2.5:7b`:
+**3. Paste the agents block into the `app-config.yaml` you already use.** Do not replace that file. This is the `hypoStage` section of [`app-config.example.yaml`](app-config.example.yaml). It turns on the coach and the plan designer with local [Ollama](https://ollama.com) and leaves pull-request analysis off. No API key.
 
 ```yaml
 hypoStage:
   agents:
+    enabled: false
     defaultModel: local
     providers:
       ollama:
@@ -381,15 +383,36 @@ hypoStage:
         provider: ollama
         modelId: qwen2.5:7b
         maxInputChars: 12000
-    coach:
-      enabled: true
     planner:
       enabled: true
+    coach:
+      enabled: true
+      checkOnSave: false
 ```
 
-A cloud provider uses the same shape: set that provider's `apiKey`, point `defaultModel` at one of its `models` keys, and enable `coach` and `planner`. Do not put provider keys in `app-config.production.yaml`. After restart, `GET /api/hypo-stage/agents/health` should show `coach.enabled` and `planner.enabled` as true.
+**4. Start Ollama and download the model** named in that block:
 
-PostgreSQL is required for the job queue (pull requests and issues). The coach and the plan designer also run on SQLite. The queue stays idle until PR analysis or an issue flow is enabled, so an unused module does not start pg-boss.
+```bash
+ollama pull qwen2.5:7b
+```
+
+Leave the Ollama server running (`ollama serve` if it is not already).
+
+**5. Restart the backend.** The module reads this config only at startup. On first start it creates the `agent_*` tables in the HypoStage database you already configured.
+
+**6. Confirm the module is on** before opening the UI:
+
+```bash
+curl -s http://localhost:7007/api/hypo-stage/agents/health
+```
+
+`coach.ready` and `planner.ready` are `true`. A 404 means step 2 did not register the module. `coach.enabled: true` with `coach.ready: false` means `defaultModel` does not match a `models` key, or that key is not `provider: ollama`.
+
+**7. Open the app you already have** at `/hypo-stage`. **Create New Hypothesis** shows **Review with AI**. A saved hypothesis shows **Suggest plan with AI** under Technical Planning. Those buttons call Ollama when you click them. Nothing else on the page changes until you turn on a GitHub flow below.
+
+PostgreSQL is required only for the job queue (pull requests and issues). The coach and the plan designer also run on SQLite. The queue stays idle while `agents.enabled` and the issue flags are false.
+
+A hosted model uses the same `hypoStage.agents` fields with an `apiKey`. [`app-config.production.yaml`](app-config.production.yaml) has that shape commented out, using Anthropic (`claude-sonnet-5`) plus GitHub. Leave it commented on the public demo, and do not commit a provider key.
 
 ### Use the coach and the plan designer
 
@@ -478,7 +501,7 @@ To confirm everything works:
 
 ## 🔄 CI (GitHub Actions)
 
-On pull requests and pushes to `main`/`master`, the workflow runs the same validation as [Validating usage](#validating-usage): **install** (frozen lockfile), **build** (type-check + Backstage CLI build for the frontend, backend, and agents module), **lint**, and **test**. A PostgreSQL 16 service container is available for backend tests. Configuration: [.github/workflows/ci.yml](.github/workflows/ci.yml).
+On pull requests and pushes to `main`/`master`, the workflow runs the same validation as [Validating usage](#validating-usage): **install** (frozen lockfile), **build** (type-check + Backstage CLI build for the frontend, backend, and agents module), **lint**, and **test** for every workspace. It then runs the plugin and agents migrations and both demo seeds against a PostgreSQL 16 service, and fails if the fixture suggestion is missing. The publish workflow runs that same database check before it publishes. Configuration: [.github/workflows/ci.yml](.github/workflows/ci.yml) and [.github/workflows/publish-npm.yml](.github/workflows/publish-npm.yml).
 
 ---
 
